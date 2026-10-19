@@ -1,0 +1,194 @@
+/* Independent Alche edition; the shared site and its stored theme stay intact. */
+body.alche-edition{
+  color-scheme:dark;--bg:#090b0d;--surface:#111416;--panel:#1a1e21;--ink:#f1f2ee;--muted:#a7acac;--line:#ffffff29;
+  --green:#c2dbd1;--cyan:#b3c4dc;--sage:#202d29;--terra:#dec6b6;--button-ink:#101412;--purple:#c6bfdd;--peach:#dec6b6;--blue:#b3c4dc;--tint:#1c2523;--motion:cubic-bezier(.16,1,.3,1);
+  --alche-mono:"Cascadia Code","SFMono-Regular",Consolas,monospace;--alche-gutter:50px;
+  background:var(--bg);font:15px/1.8 Arial,"Microsoft YaHei","PingFang SC",sans-serif;min-width:0;isolation:isolate;
+}
+.alche-edition::selection{background:#cfdbd3;color:#101412}
+.alche-edition :is(a,button,input,select,summary):focus-visible{outline:2px solid #d4ebe2;outline-offset:5px}
+.alche-edition :is(a,button,summary){touch-action:manipulation}
+.alche-atmosphere{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:#090b0d}
+.alche-glow{position:absolute;inset:-20%;background:radial-gradient(ellipse at 15% 44%,#20498a45,transparent 42%),radial-gradient(ellipse at 54% 72%,#79548a3d,transparent 40%),radial-gradient(ellipse at 85% 38%,#34675340,transparent 40%);filter:blur(35px);opacity:.75;animation:alche-drift 24s ease-in-out infinite alternate;animation-play-state:paused}
+.alche-edition[data-motion="playing"][data-page="home"] .alche-glow{animation-play-state:running}
+.alche-edition:not([data-page="home"]) .alche-glow{opacity:.18}
+.alche-grid{position:absolute;inset:0;background-image:linear-gradient(#e8f1ee08 1px,transparent 1px),linear-gradient(90deg,#e8f1ee08 1px,transparent 1px);background-size:80px 80px;background-position:center top}
+.alche-crosses{position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cpath d='M115 120h10m-5-5v10' fill='none' stroke='%23d3dfdc' stroke-opacity='.16' stroke-width='1'/%3E%3C/svg%3E");background-position:center top}
+@keyframes alche-drift{from{transform:translate3d(-3%,-2%,0) scale(1)}to{transform:translate3d(4%,3%,0) scale(1.12)}}
+.alche-edition .skip{border-radius:0;z-index:30}
+.alche-edition .header{position:sticky;top:0;z-index:10;border:0;background:#090b0de8;backdrop-filter:blur(16px)}
+.alche-edition .header-inner{max-width:1540px;min-height:112px;padding:24px var(--alche-gutter);gap:28px;border:0;border-radius:0;background:none;box-shadow:none}
+.alche-edition .brand{gap:10px;font-size:25px;letter-spacing:1px}
+.alche-edition .brand svg{width:40px;height:40px;stroke:var(--ink)}
+.alche-edition .brand small{font-family:var(--alche-mono);font-size:8px;letter-spacing:1.9px;color:#b9bfbc}
+.alche-edition .header nav{padding:0;gap:30px;border-radius:0;background:none;box-shadow:none}
+.alche-edition .header nav a{position:relative;display:flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:8px 0;font-size:13px;font-weight:400;letter-spacing:1px;border-radius:0;color:#c6cbc8;background:none;transition:color .4s var(--motion)}
+.alche-edition .header nav a::after{content:"";position:absolute;left:0;right:0;bottom:4px;height:1px;background:currentColor;transform:scaleX(0);transform-origin:left;transition:transform .4s var(--motion)}
+.alche-edition .header nav a:is(:hover,[aria-current]){color:#fff;background:none}
+.alche-edition .header nav a:is(:hover,[aria-current])::after{transform:scaleX(1)}
+.alche-edition .header-actions{display:none}
+.alche-toolbar{display:flex;align-items:center;gap:18px}
+.alche-toolbar :is(a,button){display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:44px;min-height:44px;padding:8px 0;border:0;border-radius:0;background:none;color:var(--muted);font-family:var(--alche-mono);font-size:11px;white-space:nowrap}
+.alche-toolbar :is(a,button):hover{color:#fff}
+.alche-original-link{border-bottom:1px solid #ffffff38!important}
+.alche-toolbar #alche-menu{display:none}
+.alche-edition :is(#theme-toggle,.preview-badge,#motion-toggle,.card-art){display:none!important}
+.alche-edition main{max-width:1540px;padding:0 var(--alche-gutter)}
+.alche-edition #home{padding-top:34px}
+.alche-edition .home-top{display:flow-root;padding:0}
+.alche-edition .home-top:empty{display:none}
+.alche-edition .home-heading{align-items:flex-end;gap:24px;margin-bottom:0}
+.alche-edition .home-heading>div:first-child{min-width:0}
+.alche-edition .eyebrow{font-family:var(--alche-mono);font-size:11px;letter-spacing:1.4px;color:#afb7b2}
+.alche-edition .home-heading .eyebrow{margin:0 0 28px;font-size:11px;letter-spacing:1.5px}
+.alche-edition .home-heading .eyebrow::before{display:none}
+.alche-edition .home-heading h2{font:600 clamp(48px,6.05vw,80px)/1.24 Arial,"Microsoft YaHei","PingFang SC",sans-serif;letter-spacing:-3px;color:var(--ink);overflow-wrap:anywhere;text-wrap:balance}
+.alche-edition .gradient-word{background:none;color:inherit;-webkit-text-fill-color:currentColor}
+.alche-edition .home-subtitle{margin-top:22px;font-size:14px;color:#aeb5b0}
+.alche-edition .home-signature{flex-shrink:0;max-width:145px;padding-bottom:6px;font-family:var(--alche-mono);font-size:11px;line-height:1.9;color:#aeb5b0}
+.alche-edition .home-signature em{font-style:normal}
+.alche-edition .search{min-height:52px;gap:14px;padding:0;border:0;border-bottom:1px solid #ffffff50;border-radius:0;box-shadow:none;background:none}
+.alche-edition .search:focus-within{border-bottom-color:#eff5ef}
+.alche-edition .search input{min-height:48px;padding:10px 0;color:var(--ink);font-size:14px}
+.alche-edition .search input::placeholder{color:#9fa6a3}
+.alche-edition .search svg{stroke:#aeb5b0;width:17px;height:17px}
+.alche-edition .search button{width:44px;height:44px;border-radius:0;background:none;color:var(--ink);font-size:25px}
+.alche-edition .home-search{max-width:680px;margin:28px 0 32px}
+.alche-edition .entry-grid{display:block;border-top:1px solid #ffffff5a}
+.alche-edition .entry{display:grid;grid-template-columns:160px minmax(0,1fr) 44px;align-items:start;gap:24px;min-height:128px;padding:26px 10px;grid-column:auto;grid-row:auto;border:0;border-bottom:1px solid #ffffff45;border-radius:0;background:none;box-shadow:none;color:var(--ink);animation:none;transition:background .4s var(--motion),padding .4s var(--motion)}
+.alche-edition .entry:is(:hover,:active){transform:none;box-shadow:none;background:#ffffff0d}
+.alche-edition .entry:hover{padding-left:20px;padding-right:20px}
+.alche-edition .card-top{display:contents}
+.alche-edition .card-number{grid-column:1;grid-row:1;align-self:start;padding-top:7px;font:11px/1.8 var(--alche-mono);letter-spacing:1px;color:#b6bfb9}
+.alche-edition .circle-arrow{grid-column:3;grid-row:1;align-self:center;width:44px;height:44px;border-radius:0;background:none;box-shadow:none;color:var(--ink);font-size:28px;font-weight:300}
+.alche-edition .entry-copy{grid-column:2;grid-row:1;display:grid;grid-template-columns:minmax(140px,.8fr) minmax(0,1.5fr);align-items:start;gap:5px 30px;margin:0;max-width:none}
+.alche-edition .entry h3{grid-column:1;grid-row:1/3;margin:0;padding:0;font-size:29px;font-weight:500;letter-spacing:.2px;line-height:1.65}
+.alche-edition .entry p{grid-column:2;grid-row:1;max-width:440px;margin:4px 0 6px;color:#b9c0bb;font-size:13px;line-height:1.9}
+.alche-edition .entry-link{grid-column:2;grid-row:2;color:#b9c0bb;font-size:11px;font-weight:400;letter-spacing:.4px;gap:14px}
+.alche-edition .entry-link>span{width:auto;height:auto;border-radius:0;background:none;font-size:16px}
+.alche-edition .recent{margin:62px 0 64px}
+.alche-edition .recent .section-heading{margin-bottom:18px}
+.alche-edition .recent h2{font-size:18px;font-weight:400;letter-spacing:.5px}
+.alche-edition .recent-empty{border-color:var(--line);gap:18px;padding:26px 0}
+.alche-edition .empty-mark{background:none;border:1px solid var(--line);border-radius:0;color:#c3ceca}
+.alche-edition .outline-label{background:none;padding:4px 0;border-radius:0;font-family:var(--alche-mono)}
+.alche-edition footer{max-width:1440px;flex-wrap:wrap;margin:0 var(--alche-gutter);padding:26px 0 30px;border-color:#ffffff40;font-size:11px;letter-spacing:.3px}
+.alche-edition footer>a{display:inline-flex;align-items:center;min-height:44px}
+.alche-edition footer>span{align-self:center}
+.alche-wordmark{flex-basis:100%;width:100%;padding:50px 0 8px;color:#c7ceca42;font:600 clamp(44px,11.9vw,172px)/.95 Arial,sans-serif;letter-spacing:-.055em;overflow-wrap:anywhere;user-select:none}
+.alche-edition .library-heading{padding:56px 0 40px;border-bottom-color:#ffffff50}
+.alche-edition .library-heading .eyebrow{padding:0;margin:0 0 22px;border-radius:0;background:none;color:#b7c3bd}
+.alche-edition .library-heading h1{font-size:clamp(44px,5.5vw,76px);font-weight:500;letter-spacing:-2px;line-height:1.25;margin-bottom:20px}
+.alche-edition .library-heading #library-description{color:#b3bcb6;line-height:1.9}
+.alche-edition .knowledge-page .library-heading{align-items:center;justify-content:space-between;gap:40px}
+.alche-edition .knowledge-page .library-heading-text{flex:1;max-width:650px}
+.alche-edition .flashcard-entry{flex:0 1 400px;min-height:114px;padding:20px 0 20px 24px;border:0;border-left:1px solid #ffffff3b;border-radius:0;background:none;color:var(--ink);box-shadow:none}
+.alche-edition .flashcard-entry:hover{transform:none;background:#ffffff09}
+.alche-edition .flashcard-entry svg{fill:none;stroke:#c6bfdd}
+.alche-edition .flashcard-entry strong{font-size:18px;font-weight:500}
+.alche-edition .flashcard-entry small{color:#b8b8c4}
+.alche-edition .flashcard-badge{border-radius:0;background:none;color:#c7bfdc;font-family:var(--alche-mono);padding:0;font-size:10px}
+.alche-edition .library-layout{grid-template-columns:225px minmax(0,1fr)}
+.alche-edition .sidebar-page .library-layout{grid-template-columns:270px minmax(0,1fr)}
+.alche-edition .sidebar{padding:30px 24px 24px 0;border-color:#ffffff26}
+.alche-edition .sidebar summary{min-height:44px;padding:0 0 14px;font-size:14px;font-weight:400;letter-spacing:.5px}
+.alche-edition .sidebar summary::marker{color:#c3ceca}
+.alche-edition :is(.field,.book-filter)>span{font-size:11px;letter-spacing:.4px;color:#c3cbc5!important;font-weight:400!important}
+.alche-edition :is(.field,.book-filter) select{border:1px solid #ffffff35!important;border-radius:0;background:#101512;color:var(--ink);min-height:44px;box-shadow:none!important;font-size:12px;padding:10px}
+.alche-edition .reset{min-height:44px;font-size:11px;letter-spacing:.7px;color:#c0c8c2}
+.alche-edition .library-main{padding:30px 0 40px 32px}
+.alche-edition .library-toolbar{gap:20px}
+.alche-edition .library-search{min-width:200px;max-width:none}
+.alche-edition .project-browse{gap:14px}
+.alche-edition .project-view{padding:0;border-radius:0;background:none;border:1px solid #ffffff35}
+.alche-edition .project-view button{min-height:44px;border-radius:0;font-size:11px;padding:8px 12px;font-weight:400}
+.alche-edition .project-view button[aria-pressed="true"]{background:#d0d9d1;color:#101412}
+.alche-edition #library .result-count{padding:0;border-radius:0;background:none;color:#c1cac3;font-family:var(--alche-mono);font-size:11px}
+.alche-edition .filter-status{margin:16px 0 22px;font-size:11px;color:#aab5ad}
+.alche-edition .project-categories{gap:0;border-top:1px solid var(--line)}
+.alche-edition .project-categories button{min-height:94px;padding:16px 12px;border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;color:var(--ink);box-shadow:none}
+.alche-edition .project-categories button:hover{transform:none;background:#ffffff0a}
+.alche-edition .project-categories button[aria-pressed="true"]{border-color:var(--line);background:#ffffff14;color:#fff;box-shadow:inset 2px 0 #c6d7ce}
+.alche-edition .project-categories span{font-size:14px;font-weight:400}
+.alche-edition .project-categories small{font-size:11px;color:#aeb9b1}
+.alche-edition .project-categories .category-number{color:#b6c6bb;font-family:var(--alche-mono);font-size:10px}
+.alche-edition .project-categories button .project-icon{right:8px;top:18px;border-radius:0;background:none;color:#c0c8c3}
+.alche-edition .project-categories button[aria-pressed="true"] .project-icon{background:none;color:#e6eae6}
+.alche-edition :is(.practice-list,.project-list){grid-template-columns:minmax(0,1fr);gap:0}
+.alche-edition .practice-group{margin-bottom:36px}
+:root .alche-edition :is(.practice-group,.practice-card,.resource-card,[data-topic]){--suite-accent:#c4d7cb;--suite-fill:#111713;--suite-soft:#1b251f}
+:root .alche-edition [data-topic="1"]{--suite-accent:#ccc2dd}
+:root .alche-edition [data-topic="2"]{--suite-accent:#b6d3c0}
+:root .alche-edition [data-topic="3"]{--suite-accent:#d9c5b4}
+:root .alche-edition [data-topic="4"]{--suite-accent:#d7bdcb}
+:root .alche-edition [data-topic="5"]{--suite-accent:#b2ced1}
+.alche-edition .practice-group>h2{gap:12px;font-size:19px;font-weight:400;margin-bottom:16px;color:#d5ddd7}
+.alche-edition .practice-group>h2::before{width:30px;height:30px;padding:0;border-radius:0;background:none;border:1px solid var(--line);font-family:var(--alche-mono);color:#b7c5bb}
+.alche-edition :is(.practice-card,.practice-card[data-topic],.resource-card.resource-bundle){--ink:#f1f2ee;--muted:#a7acac;position:relative;padding:24px 10px;border:0;border-top:1px solid #ffffff35;border-radius:0;background:#0d1210b8;box-shadow:none;color:var(--ink);transition:background .4s var(--motion)}
+.alche-edition :is(.practice-card,.practice-card[data-topic],.resource-card.resource-bundle):hover{background:#ffffff08;transform:none;box-shadow:none}
+.alche-edition .practice-card h3{font-size:18px;line-height:1.75;font-weight:400;margin:0 0 10px;letter-spacing:.3px}
+.alche-edition .practice-card h3 a{display:inline-block;min-height:44px;text-decoration-color:#ffffff58;text-underline-offset:5px}
+.alche-edition .suite-top{gap:12px;margin-bottom:10px}
+.alche-edition .suite-top .suite-icon{width:32px;height:32px;padding:4px;border-radius:0;background:none;box-shadow:none}
+.alche-edition .practice-card .suite-top .eyebrow{font-size:10px;letter-spacing:.7px}
+.alche-edition .practice-card :is(.practice-count,.practice-tags,.review-description){font-size:12px;margin-bottom:12px;line-height:1.9}
+.alche-edition .type-tag{padding:2px 7px;border:1px solid #ffffff26;border-radius:0;background:none;font-size:10px}
+.alche-edition .type-tag.pending-tag{border-color:#8d8064;background:none;color:#d4c49e}
+.alche-edition .practice-card details{padding:0;margin:0 0 12px;border-top:0}
+.alche-edition .practice-card summary{min-height:44px;padding:10px 0;font-size:12px;color:#d3dcd5}
+.alche-edition .practice-card ul{margin-top:0;line-height:1.9}
+.alche-edition .practice-card .practice-links{gap:10px;padding-top:0}
+.alche-edition .practice-card .practice-links a{min-height:44px;gap:14px;padding:7px 10px;border:1px solid #ffffff45;border-radius:0;background:none;color:#dbe3dd;font-size:11px;font-weight:400;transition:background .4s var(--motion)}
+.alche-edition .practice-card .practice-links a:is([data-kind="original"],[data-kind="bundle"]){background:#d4ded6;color:#121813;border-color:#d4ded6}
+.alche-edition .practice-card .practice-links a[data-kind="answers"]{background:none;color:#bed5c8;border-color:#667f70}
+.alche-edition .practice-card .practice-links a:hover{filter:none;background:#39493e;color:#fff}
+.alche-edition .download-arrow{width:24px;height:24px;border-radius:0;background:none;font-size:18px}
+.alche-edition .resource-card.resource-bundle{padding:20px 10px}
+:root .alche-edition .resource-card.resource-bundle{--suite-accent:#c4d7cb;--suite-fill:#111713;--suite-soft:#1b251f}
+.alche-edition .resource-bundle .suite-top{margin-bottom:8px}
+.alche-edition .resource-bundle h3{font-size:19px}
+.alche-edition .resource-bundle .practice-tags{max-width:none}
+.alche-edition .knowledge-points a{border:0;border-top:1px solid #ffffff24;border-radius:0;background:none;padding:12px 8px;font-size:13px;min-height:46px}
+.alche-edition .knowledge-points a:hover{background:#ffffff0a}
+.alche-edition .knowledge-point-context{font-size:11px}
+.alche-edition .project-group{--group-color:#c4d7cb!important;margin-bottom:36px}
+.alche-edition .project-group h2{font-size:22px;font-weight:400;color:#dce4dd;margin-bottom:12px}
+.alche-edition .project-group>p{font-size:12px;line-height:1.9}
+.alche-edition .project-list{border-top:1px solid #ffffff35}
+.alche-edition .project-list li{grid-template-columns:40px minmax(0,1fr);gap:18px;padding:24px 10px;border:0;border-bottom:1px solid #ffffff35;border-radius:0;background:none;box-shadow:none}
+.alche-edition .project-list li:hover{background:#ffffff08}
+.alche-edition .project-icon{width:40px;height:40px;padding:5px;border-radius:0;background:none;color:#c2d0c6}
+.alche-edition .project-list h3{font-size:17px;font-weight:400}
+.alche-edition .project-list h3 a{display:inline-flex;align-items:center;min-height:44px}
+.alche-edition .project-description{font-size:12px;line-height:1.9}
+.alche-edition .project-state{display:inline-block;padding:2px 8px;border:1px solid var(--line);border-radius:0;background:none;font-size:10px}
+.alche-edition .empty-state{border:0;border-top:1px solid var(--line);border-radius:0;background:none;box-shadow:none;min-height:360px}
+.alche-edition .text-link{min-height:44px;padding:8px 0;border-bottom:1px solid var(--line);border-radius:0;background:none}
+.alche-edition .text-link span{border-radius:0;background:none}
+.alche-edition .bottom-note{padding:18px 0;border:0;border-top:1px solid var(--line);border-radius:0;background:none}
+.alche-edition .review-more{padding:10px 24px;border-radius:0;background:none;color:#d9e3dc}
+.alche-edition .review-more:hover{background:#ffffff0c}
+.alche-edition .paper-heading{padding:40px 0 28px;border-bottom:1px solid #ffffff40;margin-bottom:28px}
+.alche-edition .paper-heading h1{font-size:clamp(28px,3.8vw,52px);font-weight:400;line-height:1.5;letter-spacing:-.5px;margin:24px 0 18px}
+.alche-edition .paper-heading>p{max-width:980px;font-size:13px;line-height:1.9;color:#b7c1ba}
+.alche-edition :is(.paper-actions a,.paper-back){display:inline-flex;align-items:center;min-height:44px;padding:10px 14px;border:1px solid #ffffff42;border-radius:0;background:none;color:#dde5de;font-size:12px}
+.alche-edition .paper-back{padding-left:0;border:0;border-bottom:1px solid #ffffff42}
+.alche-edition .paper-actions a:hover{background:#ffffff12}
+.alche-edition .paper-viewer{border-radius:0;border:1px solid #ffffff42;background:#1c211e}
+@media(min-width:1540px){.alche-edition footer{margin-right:auto;margin-left:auto}}
+@media(max-width:1200px){
+  body.alche-edition{--alche-gutter:36px}.alche-edition .header-inner{gap:20px}.alche-edition .header nav{gap:20px}.alche-toolbar{gap:14px}.alche-edition .header nav a{font-size:12px;letter-spacing:.4px}.alche-edition .home-signature{display:none}.alche-edition .entry{grid-template-columns:140px minmax(0,1fr) 44px;gap:18px}.alche-edition .entry-copy{gap:5px 22px}.alche-edition .entry h3{font-size:27px}
+}
+@media(max-width:1000px){
+  body.alche-edition{--alche-gutter:28px}.alche-edition .header-inner{min-height:96px;flex-wrap:wrap;padding:18px var(--alche-gutter);gap:0 20px}.alche-edition .header-actions{margin-left:auto}.alche-edition .header nav{display:none;order:3;flex-basis:100%;width:100%;margin-top:18px;padding:0;border-top:1px solid var(--line);border-radius:0;gap:0}.alche-edition.alche-menu-open .header nav{display:flex;flex-wrap:wrap;justify-content:flex-start}.alche-edition .header nav a{flex:0 1 auto;padding:12px 20px 12px 0;font-size:13px;letter-spacing:1px;text-align:left;min-height:48px}.alche-edition .header nav a::after{right:20px;bottom:8px}.alche-toolbar #alche-menu{display:inline-flex;min-width:44px;color:var(--ink);font-size:12px}.alche-edition #home{padding-top:42px}.alche-edition .home-heading h2{font-size:64px}.alche-edition .entry{grid-template-columns:120px minmax(0,1fr) 44px}.alche-edition .entry-copy{grid-template-columns:1fr;gap:0}.alche-edition .entry h3{grid-column:1;grid-row:1;font-size:28px}.alche-edition .entry p{grid-column:1;grid-row:2;max-width:none;margin:6px 0 9px}.alche-edition .entry-link{grid-column:1;grid-row:3}.alche-edition .library-heading h1{font-size:60px}
+}
+@media(max-width:900px){
+  .alche-edition .library-layout,.alche-edition .sidebar-page .library-layout{grid-template-columns:1fr}.alche-edition .sidebar{padding:22px 0 0;border-right:0;border-bottom:1px solid var(--line)}.alche-edition #library:is([data-page="practice"],[data-page="resources"]) .sidebar{padding-right:0}.alche-edition .sidebar details[open] #filter-fields{gap:12px}.alche-edition .field{margin-bottom:12px}.alche-edition .library-main{padding:26px 0 32px}.alche-edition .library-toolbar{gap:16px}.alche-edition .knowledge-page .library-heading{align-items:stretch;gap:28px}.alche-edition .knowledge-page .library-heading-text{flex-basis:auto;max-width:none}.alche-edition .flashcard-entry{flex-basis:auto;border-left:0;border-top:1px solid var(--line);padding:22px 0 0;min-height:100px}.alche-edition .project-categories button{min-height:88px}.alche-edition .practice-card[data-topic],.alche-edition .resource-card.resource-bundle{padding:22px 8px}.alche-edition .chapter-categories{max-height:310px}.alche-edition footer{flex-direction:row;gap:12px}.alche-edition .alche-wordmark{padding-top:36px}
+}
+@media(max-width:600px){
+  body.alche-edition{--alche-gutter:20px;font-size:14px}.alche-edition .header-inner{min-height:86px;padding:14px var(--alche-gutter);gap:0 10px}.alche-edition .brand{font-size:22px;gap:7px}.alche-edition .brand svg{width:33px;height:33px}.alche-edition .brand small{font-size:7px;letter-spacing:1.3px}.alche-toolbar{gap:12px}.alche-toolbar :is(a,button){font-size:10px;gap:5px}.alche-toolbar #alche-menu{font-size:11px}.alche-edition .header nav{margin-top:12px}.alche-edition .header nav a{font-size:12px;padding-right:18px}.alche-edition #home{padding-top:34px}.alche-edition .home-heading .eyebrow{font-size:9px;letter-spacing:1.1px;margin-bottom:22px}.alche-edition .home-heading h2{font-size:50px;line-height:1.28;letter-spacing:-2px;max-width:430px}.alche-edition .home-subtitle{font-size:12px;line-height:1.9;margin-top:20px;max-width:300px}.alche-edition .home-search{margin:28px 0 32px}.alche-edition .search{gap:10px}.alche-edition .search input{font-size:12px}.alche-edition .entry{position:relative;grid-template-columns:minmax(0,1fr) 44px;gap:14px 12px;min-height:0;padding:24px 0}.alche-edition .entry:hover{padding-left:10px;padding-right:10px}.alche-edition .card-number{grid-column:1;grid-row:1;padding:0;font-size:10px;line-height:1.8}.alche-edition .circle-arrow{grid-column:2;grid-row:1/3;align-self:start;font-size:26px;margin-top:-8px}.alche-edition .entry-copy{grid-column:1;grid-row:2}.alche-edition .entry h3{font-size:27px;line-height:1.45;margin-bottom:8px}.alche-edition .entry p{font-size:12px;line-height:1.9;margin:0 0 11px}.alche-edition .entry-link{font-size:10px;gap:12px}.alche-edition .recent{margin:40px 0}.alche-edition .recent h2{font-size:15px}.alche-edition .muted{font-size:10px}.alche-edition .recent-empty{gap:12px}.alche-edition .recent-empty h3{font-size:12px}.alche-edition .recent-empty p{font-size:10px}.alche-edition .empty-mark{width:36px;height:36px;font-size:20px}.alche-edition footer{font-size:10px;padding-top:18px;gap:4px 12px}.alche-edition footer>span{width:100%}.alche-edition .alche-wordmark{padding:32px 0 4px;font-size:11.8vw}.alche-edition .library-heading{padding:34px 0 30px}.alche-edition .library-heading h1{font-size:48px;letter-spacing:-1.5px;margin-bottom:18px}.alche-edition .library-heading .eyebrow{font-size:10px;margin-bottom:20px}.alche-edition .library-heading #library-description{font-size:12px}.alche-edition .flashcard-entry{gap:12px;flex-wrap:wrap}.alche-edition .flashcard-entry svg{width:34px}.alche-edition .flashcard-entry strong{font-size:16px}.alche-edition .flashcard-entry small{font-size:11px}.alche-edition .flashcard-badge{margin-left:46px;align-self:auto}.alche-edition .library-search{min-width:0;flex-basis:100%}.alche-edition .project-browse{width:100%;justify-content:space-between;gap:12px}.alche-edition .project-view button{font-size:10px;padding:8px 10px}.alche-edition #library .result-count{font-size:10px}.alche-edition .practice-group>h2{font-size:17px;line-height:1.7;overflow-wrap:anywhere}.alche-edition .practice-card h3{font-size:16px}.alche-edition .practice-card :is(.practice-count,.practice-tags,.review-description){font-size:11px}.alche-edition .practice-card .practice-links{gap:8px}.alche-edition .practice-card .practice-links a{max-width:100%;font-size:10px;gap:8px;padding:7px 9px}.alche-edition .knowledge-points li{padding-left:calc(min(var(--level),3)*4px)}.alche-edition .knowledge-points a{padding:12px 2px;font-size:12px;gap:8px}.alche-edition .knowledge-points a small{font-size:10px}.alche-edition .project-list li{grid-template-columns:30px minmax(0,1fr);gap:12px;padding:20px 0}.alche-edition .project-list .project-icon{width:30px;height:36px;padding:2px}.alche-edition .project-group h2{font-size:19px}.alche-edition .project-list h3{font-size:16px}.alche-edition .paper-heading{padding-top:28px}.alche-edition .paper-heading h1{font-size:27px}.alche-edition .paper-viewer{min-height:400px}
+}
+@media(max-width:360px){
+  body.alche-edition{--alche-gutter:16px}.alche-edition .brand{font-size:20px;gap:5px}.alche-edition .brand svg{width:28px;height:28px}.alche-edition .brand small{font-size:6px;letter-spacing:1px}.alche-toolbar{gap:9px}.alche-toolbar #alche-menu{min-width:44px}.alche-toolbar :is(a,button){font-size:9px}.alche-edition .home-heading h2{font-size:44px;letter-spacing:-1.8px}.alche-edition .home-heading .eyebrow{font-size:8px}.alche-edition .library-heading h1{font-size:42px}.alche-edition .entry{grid-template-columns:minmax(0,1fr) 36px}.alche-edition .entry h3{font-size:25px}.alche-edition .flashcard-entry strong{font-size:15px}
+}
+@media(prefers-reduced-motion:reduce){.alche-glow{animation:none;transform:none}.alche-edition *{scroll-behavior:auto!important}}

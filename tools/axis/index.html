@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>集合运算 · 数轴几何直觉</title>
+  <style>
+
+    :root {
+      color-scheme: dark;
+      --bg-main: #070b13; --bg-panel: #101725; --border-color: #ffffff12;
+      --text-main: #edf1fa; --text-dim: #a4b1c8;
+      --color-a: #8bbcff; --color-b: #f0bf78; --color-res: #89e1bf;
+      --spring: cubic-bezier(.22,.8,.24,1);
+      font-family: "Aptos", "Segoe UI Variable", "Microsoft YaHei UI", sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { min-height: 100dvh; color: var(--text-main); background: radial-gradient(ellipse at 12% 0%,#7663c81c,transparent 44%),radial-gradient(ellipse at 96% 30%,#227e9020,transparent 42%),var(--bg-main); }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .025; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='white' filter='url(%23n)' d='M0 0h160v160H0z'/%3E%3C/svg%3E"); }
+    button, input, select { font: inherit; }
+    button, summary, a { -webkit-tap-highlight-color: transparent; }
+    button { cursor: pointer; border: 0; min-height: 42px; color: inherit; background: transparent; transition: transform .35s var(--spring),background-color .35s var(--spring),color .35s var(--spring),box-shadow .35s var(--spring); }
+    button:hover { transform: translateY(-2px); }
+    button:active { transform: scale(.98); }
+    button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid #c5b6ff; outline-offset: 4px; }
+    a { color: inherit; text-decoration: none; }
+    .page-shell { width: min(1440px,100%); margin-inline: auto; padding: 24px 40px 40px; position: relative; }
+    .top-island { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 10px 18px 10px 12px; border-radius: 999px; background: #141b2bd9; box-shadow: inset 0 1px #ffffff14,0 16px 64px #0b173114; }
+    .brand { display: flex; gap: 12px; align-items: center; font-size: 16px; font-weight: 650; letter-spacing: .04em; }
+    .brand-mark { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: #c3b7ff; color: #24203e; box-shadow: inset 0 1px #ffffff70; }
+    .brand-mark svg { width: 27px; height: 27px; }
+    .top-meta { display: flex; gap: 22px; color: #bcc7db; font-size: 12px; letter-spacing: .06em; }
+    .status { display: inline-flex; gap: 7px; align-items: center; }
+    .status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #89e1bf; box-shadow: 0 0 12px #89e1bf50; }
+    .hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; padding: 64px 8px 40px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 9px; color: #c4b8f4; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; border-radius: 999px; padding: 7px 12px; background: #b49aff12; box-shadow: inset 0 1px #d9caff14; }
+    .hero h1 { font-size: clamp(34px,4.3vw,58px); line-height: 1.26; letter-spacing: -.055em; font-weight: 560; margin-top: 20px; }
+    .hero h1 span { color: #c5b6ff; }
+    .hero p { color: var(--text-dim); line-height: 1.9; margin-top: 16px; font-size: 14px; letter-spacing: .02em; }
+    .hero-note { padding-bottom: 7px; text-align: right; flex-shrink: 0; }
+    .hero-note p { font-size: 12px; margin-bottom: 14px; }
+    .start-pill { display: inline-flex; align-items: center; gap: 22px; border-radius: 999px; padding: 6px 6px 6px 21px; font-size: 13px; background: #d5c9ff; color: #241c3d; transition: transform .4s var(--spring); }
+    .start-pill:hover { transform: translateY(-2px); }
+    .start-pill .arrow { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #241c3d12; transition: transform .4s var(--spring); }
+    .start-pill:hover .arrow { transform: translate(2px,-1px) scale(1.04); }
+    .main-container { display: grid; grid-template-columns: minmax(0,1fr) 324px; grid-template-rows: auto auto auto; gap: 22px; align-items: start; scroll-margin-top: 24px; }
+    .sidebar-left, .canvas-container, .info-card { padding: 6px; border-radius: 28px; background: #ffffff05; box-shadow: inset 0 1px #ffffff17,0 16px 60px #06102010; min-width: 0; }
+    .panel-core, .canvas-core, .card-core { background: #101725; border-radius: 22px; box-shadow: inset 0 1px #ffffff0b; min-width: 0; }
+    .sidebar-left { grid-column: 1; grid-row: 1; }
+    .sidebar-left > .panel-core { padding: 20px; display: grid; grid-template-columns: 190px minmax(0,1fr); gap: 22px; }
+    .section-title { color: #b8c4d8; letter-spacing: .08em; font-size: 11px; margin-bottom: 12px; }
+    .section-title::before { content: ""; display: inline-block; width: 4px; height: 4px; border-radius: 50%; background: #c5b6ff; margin: 0 7px 2px 0; }
+    .select-toggle { display: flex; gap: 4px; padding: 4px; border-radius: 16px; background: #080d1770; box-shadow: inset 0 1px #ffffff06; }
+    .select-toggle button { flex: 1; min-width: 0; min-height: 42px; border-radius: 12px; color: #b8c4d8; font-size: 12px; white-space: nowrap; }
+    .select-toggle button.active { background: #d5c9ff; color: #2b2343; box-shadow: inset 0 1px #ffffff80,0 6px 20px #08081018; }
+    #universe-note { margin-top: 10px; font-size: 11px; line-height: 1.8; color: #a4b1c8; }
+    .btn-group { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }
+    .op-btn { border-radius: 14px; padding: 10px 8px; min-height: 42px; background: #ffffff05; color: #c4cfe0; font-size: 12px; text-align: center; }
+    .op-btn:hover { background: #ffffff0d; }
+    .op-btn.active { color: #9fe7ca; background: #89e1bf14; box-shadow: inset 0 0 0 1px #89e1bf40,inset 0 1px #89e1bf18; }
+    details { grid-column: 1 / -1; }
+    details summary { cursor: pointer; padding: 9px 2px 2px; color: #a4b1c8; font-size: 11px; }
+    details .op-btn { margin: 9px 4px 0 0; padding-inline: 14px; }
+    #param-box { grid-column: 1 / -1; border-radius: 16px; padding: 14px; background: #c5b6ff0b; }
+    .slider-row { display: flex; align-items: center; gap: 16px; font-size: 14px; }
+    .slider-row input { flex: 1; min-width: 0; accent-color: #c5b6ff; }
+    #param-val { color: #d5c9ff; }
+    .canvas-container { grid-column: 1; grid-row: 2; }
+    .canvas-core { overflow: hidden; background: #0a1221; }
+    .canvas-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 23px 24px 12px; }
+    .canvas-heading h2 { font-size: 16px; font-weight: 550; letter-spacing: .04em; }
+    .canvas-heading h2 small { font-size: 10px; color: #9caac3; margin-right: 10px; font-weight: 400; }
+    .plot-legend { display: flex; gap: 12px; font-size: 10px; color: #bdc8dc; }
+    .plot-legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .plot-legend i { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--color-a); }
+    .plot-legend span:nth-child(2) i { background: var(--color-b); }
+    .plot-legend span:nth-child(3) i { background: var(--color-res); }
+    .canvas-toolbar { display: flex; flex-direction: column-reverse; gap: 12px; padding: 4px 24px 0; }
+    .canvas-toolbar > span { font-size: 11px; line-height: 1.8; color: #a4b1c8; }
+    .control-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .icon-btn { border-radius: 999px; min-height: 34px; padding: 7px 12px; background: #ffffff08; color: #c7d1e1; font-size: 11px; }
+    .icon-btn:hover { background: #ffffff12; }
+    .icon-btn[aria-pressed=true] { color: #d5c9ff; background: #c5b6ff16; }
+    #reveal-btn { margin-left: auto; padding-inline: 17px; color: #231f37; background: #d5c9ff; box-shadow: inset 0 1px #ffffff70; font-weight: 600; }
+    .canvas-wrapper { position: relative; width: 100%; height: 330px; background-image: radial-gradient(#b5c5ea10 .7px,transparent .7px); background-size: 20px 20px; }
+    canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+    .canvas-footnote { display: flex; justify-content: space-between; gap: 16px; padding: 0 24px 20px; font-size: 10px; color: #a4b1c8; }
+    .canvas-footnote span:first-child { color: #c5b6ff; }
+    .sidebar-right { grid-column: 2; grid-row: 1 / span 3; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+    .card-core { padding: 20px; }
+    .info-card h4 { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 11px; font-weight: 500; color: #c3cee1; letter-spacing: .04em; margin-bottom: 15px; }
+    .info-card h4 > div { display: flex; gap: 5px; }
+    .info-card h4 .icon-btn { padding: 5px 10px; min-height: 29px; font-size: 12px; }
+    .set-a > .card-core { background: radial-gradient(ellipse at 0% 0%,#8bbcff14,transparent 80%),#101725; }
+    .set-b > .card-core { background: radial-gradient(ellipse at 0% 0%,#f0bf7812,transparent 80%),#101725; }
+    .set-a h4::before, .set-b h4::before { content: "A"; display: grid; place-items: center; width: 25px; height: 25px; border-radius: 9px; color: #aacfff; background: #8bbcff16; }
+    .set-b h4::before { content: "B"; color: #f0cb94; background: #f0bf7816; }
+    .math-expr { font-family: "Cambria Math", "Cascadia Code", Consolas, monospace; font-size: 23px; line-height: 1.55; overflow-wrap: anywhere; user-select: text; letter-spacing: -.025em; }
+    .condition { font-size: 12px; line-height: 1.8; margin: 7px 0 16px; color: #b0bfd6; overflow-wrap: anywhere; }
+    .endpoint-editor { display: grid; grid-template-columns: 30px minmax(0,1fr) 62px; gap: 8px; align-items: center; margin-top: 8px; font-size: 12px; }
+    .endpoint-editor label { color: #afbdd3; }
+    input[type=number], select { border: 0; border-radius: 12px; padding: 9px 10px; min-height: 38px; min-width: 0; color: #ecf1fc; background: #070d195c; box-shadow: inset 0 1px 3px #00000018,inset 0 0 0 1px #d4e0ff0e; }
+    input[type=number] { width: 100%; font-variant-numeric: tabular-nums; }
+    input:disabled, select:disabled { opacity: .5; }
+    select option { background: #101725; }
+    .result-card { background: #89e1bf0a; box-shadow: inset 0 1px #89e1bf28; }
+    .result-card > .card-core { background: radial-gradient(ellipse at 0 0,#89e1bf13,transparent 85%),#101d24; }
+    .result-card h4 { color: #a0e9cb; }
+    .result-caption { color: #a4c9bc; font-size: 10px; letter-spacing: .14em; margin-bottom: 11px; }
+    .highlight-res { color: #a0e9cb; font-weight: 550; font-size: 24px; }
+    #input-error { color: #ffb6ae; font-size: 12px; line-height: 1.7; padding: 12px; border-radius: 14px; background: #ffb6ae0b; }
+    #input-error:empty { display: none; }
+    .teaching-notes { grid-column: 1; grid-row: 3; display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; }
+    .teaching-notes .info-card { border-radius: 24px; }
+    .teaching-notes .card-core { border-radius: 18px; height: 100%; background: #101725c9; }
+    .teaching-notes h4 { margin-bottom: 10px; color: #d4c9f8; }
+    .geo-explain { font-size: 12px; color: #acbad0; line-height: 1.9; }
+    footer { margin-top: 36px; }
+    .lesson-heading { display: flex; gap: 18px; align-items: baseline; padding: 0 4px 18px; }
+    .examples-label { font-size: 16px; font-weight: 500; letter-spacing: .04em; }
+    .lesson-heading p { font-size: 11px; color: #a4b1c8; }
+    .lesson-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; }
+    .ex-btn { min-height: 66px; display: flex; align-items: center; gap: 12px; background: #ffffff05; border-radius: 20px; padding: 14px 16px; text-align: left; font-size: 12px; color: #c1ccdf; box-shadow: inset 0 1px #ffffff0b; }
+    .ex-btn::before { content: attr(data-number); display: grid; place-items: center; flex-shrink: 0; width: 30px; height: 30px; border-radius: 11px; background: #c5b6ff10; color: #b7a9e9; font-size: 10px; }
+    .ex-btn:hover { background: #c5b6ff0d; }
+    .ex-btn.active { background: #c5b6ff16; box-shadow: inset 0 0 0 1px #c5b6ff35,inset 0 1px #c5b6ff25; color: #e2d9ff; }
+    .ex-btn:nth-child(3n+2)::before { color: #f0bf78; background: #f0bf7810; }
+    .ex-btn:nth-child(3n)::before { color: #89e1bf; background: #89e1bf10; }
+    .page-end { margin-top: 32px; display: flex; justify-content: space-between; gap: 20px; font-size: 10px; letter-spacing: .06em; color: #8e9eb9; }
+    .reveal-item { animation: arrive .85s var(--spring) both; animation-delay: var(--delay,0s); }
+    .reveal-item:focus-within { animation: none; }
+    @keyframes arrive { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width:1100px) {
+      .page-shell { padding-inline: 24px; }
+      .main-container { grid-template-columns: minmax(0,1fr) 294px; gap: 16px; }
+      .sidebar-left > .panel-core { grid-template-columns: 1fr; gap: 16px; }
+      .select-toggle button { font-size: 12px; }
+      .sidebar-left > .panel-core > div:first-child { display: grid; grid-template-columns: 90px 1fr; align-items: center; gap: 8px; }
+      #universe-note { grid-column: 1 / -1; margin-top: 0; }
+      .sidebar-left .section-title { margin-bottom: 5px; }
+      #reveal-btn { margin-left: 0; }
+      .teaching-notes { grid-template-columns: 1fr; }
+    }
+    @media (max-width:767px) {
+      .page-shell { padding: 16px 16px 28px; }
+      .top-island { gap: 12px; padding-right: 14px; }
+      .brand { font-size: 13px; gap: 8px; }
+      .brand-mark { width: 34px; height: 34px; }
+      .top-meta { font-size: 10px; }
+      .top-meta > span:first-child { display: none; }
+      .hero { padding: 40px 4px 32px; align-items: flex-start; flex-direction: column; gap: 20px; }
+      .hero h1 { font-size: clamp(32px,7.8vw,50px); }
+      .hero p { font-size: 12px; }
+      .hero-note { display: none; }
+      .main-container { display: grid; grid-template-columns: minmax(0,1fr); gap: 16px; }
+      .sidebar-left, .canvas-container, .sidebar-right, .teaching-notes { grid-column: 1; grid-row: auto; }
+      .sidebar-right { gap: 16px; }
+      .teaching-notes { order: 4; }
+      .sidebar-left > .panel-core { padding: 18px; }
+      .sidebar-left > .panel-core > div:first-child { display: block; }
+      .sidebar-left .section-title { margin-bottom: 10px; }
+      #universe-note { margin-top: 8px; }
+      .op-btn { font-size: 11px; padding-inline: 4px; }
+      .canvas-heading { padding: 20px 16px 12px; align-items: flex-start; flex-direction: column; gap: 9px; }
+      .canvas-toolbar { padding-inline: 16px; }
+      .control-row { gap: 5px; }
+      .icon-btn { padding: 7px 10px; }
+      .canvas-wrapper { height: 310px; }
+      .canvas-footnote { padding-inline: 16px; flex-direction: column; gap: 6px; }
+      .teaching-notes { grid-template-columns: 1fr; }
+      footer { margin-top: 28px; }
+      .lesson-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+      .lesson-heading { flex-direction: column; gap: 7px; }
+      .ex-btn { font-size: 11px; gap: 8px; padding: 12px 10px; }
+      .ex-btn::before { width: 24px; height: 28px; }
+      .page-end { flex-direction: column; gap: 8px; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-shell">
+  <header class="top-island reveal-item">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.25"><path d="M3 16h26M8 12v8M24 12v8"/><path d="M12 16h8" stroke-width="3"/><circle cx="12" cy="16" r="3" fill="#c3b7ff"/><circle cx="20" cy="16" r="3" fill="currentColor"/></svg></span>数轴几何直觉</div>
+    <div class="top-meta"><span>高一 · 区间与集合</span><span class="status">离线互动课堂</span></div>
+  </header>
+  <div class="hero reveal-item" style="--delay:.08s">
+    <div><span class="eyebrow">集合与区间 · 数学探索</span><h1>在数轴上，<span>看懂集合。</span></h1><p>拖动一个端点，观察一次变化。<br>让抽象的交、并、补，成为看得见的数学直觉。</p></div>
+    <div class="hero-note"><p>先观察 · 再判断 · 后验证</p><a class="start-pill" href="#lesson-space">开始探索<span class="arrow" aria-hidden="true">↗</span></a></div>
+  </div>
+
+  <div class="main-container" id="lesson-space">
+    <aside class="sidebar-left"><div class="panel-core">
+      <div>
+        <div class="section-title">全集 U 设定</div>
+        <div class="select-toggle">
+          <button id="univ-r" class="active" onclick="setUniverse('R')">ℝ 实数</button>
+          <button id="univ-z" onclick="setUniverse('Z')">ℤ 整数</button>
+          <button id="univ-n" onclick="setUniverse('N')">ℕ 自然数</button>
+        </div>
+        <p id="universe-note"></p>
+      </div>
+
+      <div>
+        <div class="section-title">运算模式</div>
+        <div class="btn-group">
+          <button class="op-btn" data-op="NONE" onclick="setOp('NONE')">仅展示 A、B</button>
+          <button class="op-btn active" data-op="INTER" onclick="setOp('INTER')">A ∩ B (交集)</button>
+          <button class="op-btn" data-op="UNION" onclick="setOp('UNION')">A ∪ B (并集)</button>
+          <button class="op-btn" data-op="COMP_A" onclick="setOp('COMP_A')">∁ᵤ A (补集)</button>
+          <button class="op-btn" data-op="COMP_B" onclick="setOp('COMP_B')">∁ᵤ B (补集)</button>
+<details><summary>拓展：差集与对称差</summary>          <button class="op-btn" data-op="DIFF_AB" onclick="setOp('DIFF_AB')">A \ B (差集)</button>
+          <button class="op-btn" data-op="DIFF_BA" onclick="setOp('DIFF_BA')">B \ A (差集)</button>
+          <button class="op-btn" data-op="SYM_DIFF" onclick="setOp('SYM_DIFF')">A Δ B (对称差)</button></details>
+        </div>
+      </div>
+
+      <div id="param-box" style="display: none;">
+        <div class="section-title">参数 a 调整</div>
+        <div class="slider-row">
+          <input type="range" id="param-a" min="-5" max="5" step="0.5" aria-label="参数 a" value="-2" oninput="onParamChange(this.value)">
+          <span id="param-val" style="font-family: monospace;">-2.0</span>
+        </div>
+      </div>
+    </div></aside>
+
+    <section class="canvas-container"><div class="canvas-core">
+      <div class="canvas-heading"><h2><small>01 / EXPLORE</small>数轴实验区</h2><div class="plot-legend" aria-label="图例"><span><i></i>集合 A</span><span><i></i>集合 B</span><span><i></i>结果</span></div></div>
+      <div class="canvas-toolbar">
+        <span >拖动端点调整范围 · 轻点切换开闭 · 精确数值可在集合面板输入</span>
+        <div class="control-row">
+          <button class="icon-btn" onclick="zoom(1.2)">放大 +</button>
+          <button class="icon-btn" onclick="zoom(0.8)">缩小 −</button>
+          <button class="icon-btn" onclick="resetZoom()">适配范围</button>
+          <button class="icon-btn" id="reveal-btn" onclick="toggleResult()">隐藏答案</button>
+          <button class="icon-btn" onclick="loadExample(currentExample)">重置案例</button>
+          <button class="icon-btn" onclick="toggleFullscreen()">全屏 / 返回</button>
+        </div>
+      </div>
+      <div class="canvas-wrapper">
+        <canvas id="axisCanvas" role="img" aria-label="集合 A、B 与运算结果的数轴；精确数值和键盘操作请使用右侧输入控件"></canvas>
+      </div><div class="canvas-footnote"><span>拖动步长 0.5 · 支持触控</span><span>蓝色 A / 琥珀 B / 薄荷色结果</span></div>
+    </div></section>
+    <div class="teaching-notes"><div class="info-card"><div class="card-core"><h4>读图规则</h4><p class="geo-explain">● 实心：包含端点；○ 空心：不包含端点。∞ 不是实数，不能作为闭端点。整数/自然数集合只画离散点。箭头表示无限延伸；竖线截口表示端点在视野外。</p></div></div><div class="info-card"><div class="card-core">
+        <h4>几何本质直觉</h4>
+        <div class="geo-explain" id="explain-text">
+          两线段重叠部分。当端点刚好相遇时交于单点；错开则交集消失变为空集。
+        </div>
+      </div></div></div>
+
+    <aside class="sidebar-right">
+      <div class="info-card set-a"><div class="card-core">
+        <h4>集合 A
+          <div>
+            <button id="inf-A-left" class="icon-btn" aria-label="集合 A 左端无限延伸" onclick="toggleInf('A', 'left')">-∞</button>
+            <button id="inf-A-right" class="icon-btn" aria-label="集合 A 右端无限延伸" onclick="toggleInf('A', 'right')">+∞</button>
+          </div>
+        </h4>
+        <div class="math-expr" id="expr-a" style="color: var(--color-a)">A = [-3, 1]</div><div class="endpoint-editor"><label for="A-min">左端</label>
+          <input id="A-min" type="number" step="any" min="-1000000" max="1000000" onchange="editEndpoint('A','min',this)" aria-label="集合 A 左端值">
+          <select id="A-min-closed" onchange="editClosed('A','min',this.value)" aria-label="集合 A 左端开闭"><option value="open">开</option><option value="closed">闭</option></select></div><div class="endpoint-editor"><label for="A-max">右端</label>
+          <input id="A-max" type="number" step="any" min="-1000000" max="1000000" onchange="editEndpoint('A','max',this)" aria-label="集合 A 右端值">
+          <select id="A-max-closed" onchange="editClosed('A','max',this.value)" aria-label="集合 A 右端开闭"><option value="open">开</option><option value="closed">闭</option></select></div>
+      </div></div>
+
+      <div class="info-card set-b"><div class="card-core">
+        <h4>集合 B
+          <div>
+            <button id="inf-B-left" class="icon-btn" aria-label="集合 B 左端无限延伸" onclick="toggleInf('B', 'left')">-∞</button>
+            <button id="inf-B-right" class="icon-btn" aria-label="集合 B 右端无限延伸" onclick="toggleInf('B', 'right')">+∞</button>
+          </div>
+        </h4>
+        <div class="math-expr" id="expr-b" style="color: var(--color-b)">B = [-1, 3]</div><div class="endpoint-editor"><label for="B-min">左端</label>
+          <input id="B-min" type="number" step="any" min="-1000000" max="1000000" onchange="editEndpoint('B','min',this)" aria-label="集合 B 左端值">
+          <select id="B-min-closed" onchange="editClosed('B','min',this.value)" aria-label="集合 B 左端开闭"><option value="open">开</option><option value="closed">闭</option></select></div><div class="endpoint-editor"><label for="B-max">右端</label>
+          <input id="B-max" type="number" step="any" min="-1000000" max="1000000" onchange="editEndpoint('B','max',this)" aria-label="集合 B 右端值">
+          <select id="B-max-closed" onchange="editClosed('B','max',this.value)" aria-label="集合 B 右端开闭"><option value="open">开</option><option value="closed">闭</option></select></div>
+      </div></div>
+
+      <div class="info-card result-card" ><div class="card-core">
+        <h4 ><span id="result-title">A ∩ B</span></h4>
+        <p class="result-caption">运算结果 · 先判断，再验证</p><div class="math-expr highlight-res" id="expr-res" aria-live="polite">∅</div>
+      </div></div>
+
+      <div id="input-error" role="alert"></div>
+      
+      
+    </aside>
+  </div>
+
+  <footer>
+    <div class="lesson-heading"><span class="examples-label">从一个例子开始</span><p>8 个课堂场景，读懂端点背后的区别</p></div><div class="lesson-grid">
+    <button class="ex-btn" data-number="01" onclick="loadExample(1)">例1 基本闭区间</button>
+    <button class="ex-btn" data-number="02" onclick="loadExample(2)">例2 半开半闭</button>
+    <button class="ex-btn active" data-number="03" onclick="loadExample(3)">例3 交集临界拖动</button>
+    <button class="ex-btn" data-number="04" onclick="loadExample(4)">例4 分离并集</button>
+    <button class="ex-btn" data-number="05" onclick="loadExample(5)">例5 补集与全集</button>
+    <button class="ex-btn" data-number="06" onclick="loadExample(6)">例6 含参区间动态</button>
+    <button class="ex-btn" data-number="07" onclick="loadExample(7)">例7 相遇只剩一个点</button>
+    <button class="ex-btn" data-number="08" onclick="loadExample(8)">例8 相接却缺一个点</button>
+    </div>
+  </footer><div class="page-end"><span>数轴几何直觉 · 高中数学互动实验</span><span>● 包含端点　○ 不包含端点　/　自然数包含 0</span></div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('axisCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // 状态定义
+    let universe = 'R'; // 'R', 'Z', 'N'
+    let currentOp = 'INTER';
+    let currentExample = 3;
+    let resultVisible = true;
+
+    // 坐标系视图参数
+    let originX = 0;
+    let originY = 0;
+    let scale = 50; // 像素/单位长度
+    let viewWidth = 0, viewHeight = 0;
+
+    // 集合模型数据结构
+    // 集合 A 与 B 允许由多段区间拼接而成 (针对分离并集等特殊场景)
+    let setA = {
+      segments: [{ min: -3, max: 1, leftClosed: true, rightClosed: true, minInf: false, maxInf: false }]
+    };
+    let setB = {
+      segments: [{ min: -1, max: 3, leftClosed: true, rightClosed: true, minInf: false, maxInf: false }]
+    };
+
+    // 拖动追踪
+    let dragTarget = null; // { setKey: 'A'|'B', segIdx: number, endpoint: 'min'|'max' }
+    let hasDragged = false;
+    let clickStartX = 0, clickStartY = 0;
+
+    // 几何解释文案字典
+    const explanations = {
+      NONE: "仅在数轴上投射当前集合的分布位置，观察端点的包含状态。",
+      INTER: "【交集 A ∩ B】找两条线段的几何重叠段。逐点检查是否同时属于 A 和 B。两区间只在端点相遇时，双方都包含该点才得到单点集。",
+      UNION: "【并集 A ∪ B】双线段合并覆盖的总域。若两区间分离，则无法合并成单一区间，必须使用并集记号 ∪ 分离书写。",
+      DIFF_AB: "【差集 A \\ B】从集合 A 的线段中完全挖掉 B 占有的部分，保留属于 A 且不属于 B 的点；逐点判断边界，不机械套用开闭反转。",
+      DIFF_BA: "【差集 B \\ A】从集合 B 的线段中完全挖掉 A 占有的部分。",
+      COMP_A: "【全集补集 ∁ᵤ A】在当前全集 U 中取不属于 A 的元素。换全集后，补集也会改变。",
+      COMP_B: "【全集补集 ∁ᵤ B】在当前全集 U 中取不属于 B 的元素。∞ 不是可包含的端点。",
+      SYM_DIFF: "【对称差 A Δ B】属于 A 或属于 B，但不同时属于两者的部分，可能由多个区间或单点组成。"
+    };
+
+    function init() {
+      resizeCanvas();
+      window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+      setupEvents();
+      loadExample(3);
+      new ResizeObserver(() => { resizeCanvas(); draw(); }).observe(canvas.parentElement);
+    }
+
+    function resizeCanvas() {
+      const parent = canvas.parentElement;
+      viewWidth = parent.clientWidth;
+      viewHeight = parent.clientHeight;
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = Math.round(viewWidth * ratio);
+      canvas.height = Math.round(viewHeight * ratio);
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      originY = viewHeight / 2;
+      resetZoom();
+    }
+
+    function setUniverse(u) {
+      universe = u;
+      document.querySelectorAll('#univ-r, #univ-z, #univ-n').forEach(b => b.classList.remove('active'));
+      document.getElementById('univ-' + u.toLowerCase()).classList.add('active');
+      updateUI();
+      draw();
+    }
+
+    function setOp(op) {
+      currentOp = op;
+      document.querySelectorAll('.op-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.op === op);
+      });
+      document.getElementById('explain-text').innerText = explanations[op] || '';
+      updateUI();
+      draw();
+    }
+
+    function zoom(factor) {
+      scale = Math.min(Math.max(scale * factor, 0.00001), 180);
+      draw();
+    }
+
+    function resetZoom() {
+      const values = [0, ...[setA, setB].flatMap(s => s.segments.flatMap(g => [g.minInf ? null : g.min, g.maxInf ? null : g.max])).filter(Number.isFinite)];
+      const lo = Math.min(...values) - 1, hi = Math.max(...values) + 1;
+      scale = Math.min(100, Math.max(0.00001, (viewWidth - 110) / (hi - lo)));
+      originX = viewWidth / 2 - (lo + hi) / 2 * scale;
+      draw();
+    }
+
+    function toggleInf(setKey, direction) {
+      const set = setKey === 'A' ? setA : setB;
+      const seg = set.segments[0];
+      if (direction === 'left') {
+        seg.minInf = !seg.minInf;
+        if (seg.minInf) seg.leftClosed = false;
+      } else {
+        seg.maxInf = !seg.maxInf;
+        if (seg.maxInf) seg.rightClosed = false;
+      }
+      updateUI();
+      draw();
+    }
+
+    // 坐标映射
+    const xToScreen = (x) => originX + x * scale;
+    const screenToX = (sx) => (sx - originX) / scale;
+
+    // 画布渲染核心
+    function draw() {
+      ctx.clearRect(0, 0, viewWidth, viewHeight);
+      drawGridAndTicks();
+      drawIntervalSet(setA, originY - 65, '#8bbcff', 'A');
+      drawIntervalSet(setB, originY + 65, '#f0bf78', 'B');
+      if (currentOp !== 'NONE' && resultVisible) drawResultSet(calculateOperationResult(), originY, '#89e1bf');
+    }
+
+    // 绘制数轴标尺
+    function drawGridAndTicks() {
+      const y = originY;
+
+      // 主轴基线
+      ctx.beginPath();
+      ctx.strokeStyle = '#a6b3ca';
+      ctx.lineWidth = 2;
+      ctx.moveTo(30, y);
+      ctx.lineTo(viewWidth - 30, y);
+      ctx.stroke();
+
+      // 左右正负无穷大箭头
+      drawArrow(30, y, Math.PI);
+      drawArrow(viewWidth - 30, y, 0);
+
+      // 计算刻度间距
+      const rawStep = 70 / scale;
+      const magnitude = 10 ** Math.floor(Math.log10(rawStep));
+      let step = [1, 2, 5, 10].find(n => n * magnitude >= rawStep) * magnitude;
+      if (universe !== 'R') step = Math.max(1, step);
+
+      const minVal = Math.floor(screenToX(0));
+      const maxVal = Math.ceil(screenToX(viewWidth));
+
+      ctx.fillStyle = '#a6b3ca';
+      ctx.font = '14px Cascadia Code, Consolas, monospace';
+      ctx.textAlign = 'center';
+
+      for (let v = Math.floor(minVal / step) * step; v <= maxVal; v += step) {
+        const sx = xToScreen(v);
+        if (sx < 40 || sx > viewWidth-40) continue;
+        const isZero = Math.abs(v) < 1e-6;
+
+        ctx.beginPath();
+        ctx.strokeStyle = isZero ? '#c9d1d9' : '#56647b';
+        ctx.lineWidth = isZero ? 2 : 1;
+        ctx.moveTo(sx, y - 8);
+        ctx.lineTo(sx, y + 8);
+        ctx.stroke();
+
+        ctx.fillText(Number(v.toPrecision(10)), sx, y + 24);
+      }
+
+      // 坐标轴两端标注
+      ctx.fillStyle = '#a6b3ca';
+      ctx.fillText("-∞", 18, y + 4);
+      ctx.fillText("+∞", viewWidth - 15, y + 4);
+    }
+
+    function drawArrow(x, y, angle, color = '#a6b3ca') {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-8, -4);
+      ctx.lineTo(-8, 4);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 绘制单独的区间集合
+    function drawIntervalSet(set, y, color, label) {
+      drawSegments(set.segments, y, color);
+      drawBoundaryHandles(set, y, color);
+      ctx.fillStyle = color;
+      ctx.font = '600 16px Aptos, Microsoft YaHei UI, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(formatSetExpr(set) === '∅' ? label + '：∅' : label, 12, y - 18);
+      ctx.font = '13px sans-serif'; ctx.textAlign = 'center';
+      for (const seg of set.segments) {
+        if (!validSegment(seg)) continue;
+        for (const endpoint of ['min','max']) {
+          if (seg[endpoint+'Inf'] || (endpoint === 'max' && seg.min === seg.max)) continue;
+          const x = xToScreen(seg[endpoint]);
+          if (x >= 35 && x <= viewWidth-35) ctx.fillText(String(seg[endpoint]), x, y+22);
+        }
+      }
+    }
+
+    function drawResultSet(segments, y, color) {
+      drawSegments(segments, y, color);
+      ctx.fillStyle = color;
+      ctx.font = '14px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(formatResultExpr(segments) === '∅' ? '结果：∅' : '结果', 12, y - 22);
+    }
+
+    function drawSegments(segments, y, color) {
+      if (universe !== 'R') {
+        // Only actual elements are dots; endpoint boundary handles use square markers.
+        const lo = Math.ceil(screenToX(35)), hi = Math.floor(screenToX(viewWidth - 35));
+        const stride = Math.max(1, Math.ceil(10 / scale));
+        if (stride > 1) {
+          ctx.fillStyle = color; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+          ctx.fillText('点过密，请放大查看全部元素', viewWidth / 2, y + 40);
+        } else {
+          for (let n = lo; n <= hi; n++) {
+            if ((universe !== 'N' || n >= 0) && evalSetPoint({segments}, n)) drawEndpoint(xToScreen(n), y, true, color);
+          }
+        }
+        return;
+      }
+      for (const seg of segments.filter(validSegment)) {
+        const left = seg.minInf ? -Infinity : xToScreen(seg.min);
+        const right = seg.maxInf ? Infinity : xToScreen(seg.max);
+        if (right < 35 || left > viewWidth - 35) continue;
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 6; ctx.lineCap = 'butt';
+        ctx.moveTo(Math.max(35, left), y); ctx.lineTo(Math.min(viewWidth - 35, right), y); ctx.stroke();
+        if (left >= 35 && Number.isFinite(left)) drawEndpoint(left, y, seg.leftClosed, color);
+        else if (seg.minInf) drawArrow(35, y, Math.PI, color);
+        else drawCut(35,y,color);
+        if (right <= viewWidth - 35 && Number.isFinite(right)) drawEndpoint(right, y, seg.rightClosed, color);
+        else if (seg.maxInf) drawArrow(viewWidth - 35, y, 0, color);
+        else drawCut(viewWidth - 35,y,color);
+      }
+    }
+
+    function drawCut(x,y,color) {
+      ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2;
+      ctx.moveTo(x,y-9); ctx.lineTo(x,y+9); ctx.stroke();
+    }
+
+    // 绘制实心/空心端点
+    function drawEndpoint(x, y, isClosed, color, isResult = false) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x, y, isResult ? 6 : 5, 0, Math.PI * 2);
+      if (isClosed) {
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#0a1221';
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = '#0a1221';
+        ctx.fill();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = color;
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // 离散全集下的采样点高亮 (Z/N)
+    function drawBoundaryHandles(set, y, color) {
+      if (universe === 'R') return;
+      for (const seg of set.segments) for (const endpoint of ['min', 'max']) {
+        if (seg[endpoint + 'Inf']) continue;
+        const x = xToScreen(seg[endpoint]);
+        ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.strokeRect(x - 7, y - 7, 14, 14);
+      }
+    }
+
+    // 严谨区间代数运算：集合点评估器
+    function evalSetPoint(set, x) {
+      for (let seg of set.segments) {
+        const leftOk = seg.minInf ? true : (seg.leftClosed ? x >= seg.min : x > seg.min);
+        const rightOk = seg.maxInf ? true : (seg.rightClosed ? x <= seg.max : x < seg.max);
+        if (leftOk && rightOk) return true;
+      }
+      return false;
+    }
+
+    function validSegment(s) {
+      const lo = s.minInf ? -Infinity : s.min, hi = s.maxInf ? Infinity : s.max;
+      return lo < hi || (lo === hi && Number.isFinite(lo) && s.leftClosed && s.rightClosed);
+    }
+
+    function testOperation(a, b) {
+      switch (currentOp) {
+        case 'INTER': return a && b;
+        case 'UNION': return a || b;
+        case 'DIFF_AB': return a && !b;
+        case 'DIFF_BA': return b && !a;
+        case 'COMP_A': return !a;
+        case 'COMP_B': return !b;
+        case 'SYM_DIFF': return a !== b;
+        default: return false;
+      }
+    }
+
+    function calculateOperationResult() {
+      if (currentOp === 'NONE') return [];
+      const sets = [setA, setB].map(s => ({segments: s.segments.filter(validSegment)}));
+      const points = [...new Set(sets.flatMap(s => s.segments.flatMap(g => [g.minInf ? null : g.min, g.maxInf ? null : g.max])).filter(Number.isFinite))].sort((a,b) => a-b);
+      const bounds = [-Infinity, ...points, Infinity];
+      const atoms = [];
+      const make = (lo, hi, lc, rc) => ({min:lo, max:hi, minInf:lo === -Infinity, maxInf:hi === Infinity, leftClosed:lc, rightClosed:rc});
+      for (let i = 0; i < bounds.length - 1; i++) {
+        const lo = bounds[i], hi = bounds[i+1];
+        // Endpoint partition: membership is constant on each open cell, no epsilon or sentinel.
+        const inside = sets.map(s => s.segments.some(g => (g.minInf ? -Infinity : g.min) <= lo && (g.maxInf ? Infinity : g.max) >= hi));
+        if (testOperation(...inside)) atoms.push(make(lo,hi,false,false));
+        if (Number.isFinite(hi) && testOperation(...sets.map(s => evalSetPoint(s,hi)))) atoms.push(make(hi,hi,true,true));
+      }
+      const merged = [];
+      for (const atom of atoms) {
+        const prev = merged[merged.length-1];
+        if (prev && prev.max === atom.min && (prev.rightClosed || atom.leftClosed)) {
+          prev.max = atom.max; prev.maxInf = atom.maxInf; prev.rightClosed = atom.rightClosed;
+        } else merged.push({...atom});
+      }
+      return merged;
+    }
+
+    function formatInterval(s) {
+      if (!validSegment(s)) return '∅';
+      if (!s.minInf && !s.maxInf && s.min === s.max) return `{${s.min}}`;
+      return `${s.minInf ? '(-∞' : (s.leftClosed ? '[' : '(') + s.min}, ${s.maxInf ? '+∞)' : s.max + (s.rightClosed ? ']' : ')')}`;
+    }
+
+    function integerRanges(segments) {
+      const ranges = segments.filter(validSegment).map(s => ({
+        lo: s.minInf ? -Infinity : (s.leftClosed ? Math.ceil(s.min) : Math.floor(s.min)+1),
+        hi: s.maxInf ? Infinity : (s.rightClosed ? Math.floor(s.max) : Math.ceil(s.max)-1)
+      })).map(r => ({lo: universe === 'N' ? Math.max(0,r.lo) : r.lo, hi:r.hi})).filter(r => r.lo <= r.hi).sort((a,b) => a.lo-b.lo);
+      const merged = [];
+      for (const r of ranges) {
+        const p = merged[merged.length-1];
+        if (p && r.lo <= p.hi+1) p.hi = Math.max(p.hi,r.hi);
+        else merged.push({...r});
+      }
+      return merged;
+    }
+
+    function formatSetExpr(set) { return formatResultExpr(set.segments); }
+
+    function formatCondition(set) {
+      const s = set.segments[0];
+      if (!validSegment(s) || formatSetExpr(set) === '∅') return '没有满足条件的元素（空集）';
+      const domain = {R:'x ∈ ℝ', Z:'x ∈ ℤ', N:'x ∈ ℕ'}[universe];
+      if (s.minInf && s.maxInf) return domain;
+      if (!s.minInf && !s.maxInf && s.min === s.max) return `${domain}，x = ${s.min}`;
+      if (s.minInf) return `${domain}，x ${s.rightClosed ? '≤' : '<'} ${s.max}`;
+      if (s.maxInf) return `${domain}，x ${s.leftClosed ? '≥' : '>'} ${s.min}`;
+      return `${domain}，${s.min} ${s.leftClosed ? '≤' : '<'} x ${s.rightClosed ? '≤' : '<'} ${s.max}`;
+    }
+
+    function formatResultExpr(segments) {
+      if (universe === 'R') return segments.filter(validSegment).map(formatInterval).join(' ∪ ') || '∅';
+      return integerRanges(segments).map(r => {
+        if (r.lo === -Infinity && r.hi === Infinity) return 'ℤ';
+        if (r.lo === -Infinity) return `{…, ${r.hi-2}, ${r.hi-1}, ${r.hi}}`;
+        if (r.hi === Infinity) return `{${r.lo}, ${r.lo+1}, ${r.lo+2}, …}`;
+        if (r.hi-r.lo < 8) return '{' + Array.from({length:r.hi-r.lo+1}, (_,i) => r.lo+i).join(', ') + '}';
+        return `{${r.lo}, ${r.lo+1}, …, ${r.hi-1}, ${r.hi}}`;
+      }).join(' ∪ ') || '∅';
+    }
+
+    const opLabels = {NONE:'仅展示 A、B', INTER:'A ∩ B', UNION:'A ∪ B', DIFF_AB:'A \\ B', DIFF_BA:'B \\ A', COMP_A:'∁ᵤ A', COMP_B:'∁ᵤ B', SYM_DIFF:'A Δ B'};
+    function updateUI() {
+      document.getElementById('expr-a').innerText = `A = ${formatSetExpr(setA)}`;
+      document.getElementById('expr-b').innerText = `B = ${formatSetExpr(setB)}`;
+      for (const key of ['a','b']) {
+        const expr = document.getElementById('expr-'+key);
+        let note = document.getElementById('condition-'+key);
+        if (!note) { note = document.createElement('p'); note.id = 'condition-'+key; note.className = 'condition'; expr.after(note); }
+        note.innerText = formatCondition(key === 'a' ? setA : setB);
+      }
+      document.getElementById('result-title').innerText = opLabels[currentOp];
+      document.getElementById('expr-res').innerText = currentOp === 'NONE' ? '请选择一种运算' : resultVisible ? formatResultExpr(calculateOperationResult()) : '先判断，再点击「显示答案」';
+      document.getElementById('reveal-btn').innerText = resultVisible ? '隐藏答案' : '显示答案';
+      document.getElementById('reveal-btn').setAttribute('aria-pressed', String(resultVisible));
+      document.getElementById('universe-note').innerText = {R:'U = ℝ：所有实数。', Z:'U = ℤ：只取整数；方框是可拖动的范围边界。', N:'U = ℕ = {0, 1, 2, …}：本页自然数包含 0；方框表示范围边界。'}[universe];
+      document.querySelectorAll('.op-btn').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.op === currentOp)));
+      document.querySelectorAll('#univ-r, #univ-z, #univ-n').forEach(b => b.setAttribute('aria-pressed', String(b.id === 'univ-'+universe.toLowerCase())));
+      for (const key of ['A','B']) {
+        const seg = (key === 'A' ? setA : setB).segments[0];
+        for (const endpoint of ['min','max']) {
+          const input = document.getElementById(`${key}-${endpoint}`), select = document.getElementById(`${key}-${endpoint}-closed`);
+          input.value = seg[endpoint]; input.disabled = seg[endpoint+'Inf'];
+          document.getElementById(`inf-${key}-${endpoint === 'min' ? 'left' : 'right'}`).setAttribute('aria-pressed', String(seg[endpoint+'Inf']));
+          select.value = seg[endpoint === 'min' ? 'leftClosed' : 'rightClosed'] ? 'closed' : 'open'; select.disabled = seg[endpoint+'Inf'];
+        }
+      }
+      if (currentExample === 6) {
+        document.getElementById('param-a').value = setA.segments[0].min;
+        document.getElementById('param-val').innerText = String(setA.segments[0].min);
+      }
+    }
+
+    function editEndpoint(key, endpoint, input) {
+      if (input.value.trim() === '' || !Number.isFinite(input.valueAsNumber) || Math.abs(input.valueAsNumber) > 1000000) {
+        document.getElementById('input-error').innerText = '请输入 −1000000 到 1000000 之间的有限数值。'; updateUI(); return;
+      }
+      (key === 'A' ? setA : setB).segments[0][endpoint] = input.valueAsNumber;
+      document.getElementById('input-error').innerText = '';
+      updateUI(); resetZoom(); draw();
+    }
+    function editClosed(key, endpoint, value) {
+      (key === 'A' ? setA : setB).segments[0][endpoint === 'min' ? 'leftClosed' : 'rightClosed'] = value === 'closed';
+      updateUI(); draw();
+    }
+    function toggleResult() { resultVisible = !resultVisible; updateUI(); draw(); }
+    async function toggleFullscreen() {
+      try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); }
+      catch { document.getElementById('input-error').innerText = '浏览器未允许全屏，可使用浏览器的 F11 键。'; }
+    }
+
+    // 交互拾取与拖拽
+    function setupEvents() {
+      canvas.addEventListener('pointerdown', e => {
+        if (!e.isPrimary || e.button !== 0) return;
+        const rect = canvas.getBoundingClientRect();
+        clickStartX = e.clientX; clickStartY = e.clientY; hasDragged = false;
+        dragTarget = hitTest(e.clientX-rect.left, e.clientY-rect.top);
+        if (dragTarget) { canvas.setPointerCapture(e.pointerId); e.preventDefault(); }
+      });
+      canvas.addEventListener('pointermove', e => {
+        if (!dragTarget || !e.isPrimary) return;
+        if (Math.hypot(e.clientX-clickStartX,e.clientY-clickStartY) <= 4 && !hasDragged) return;
+        hasDragged = true;
+        const rect = canvas.getBoundingClientRect();
+        const mathX = Math.max(-1000000,Math.min(1000000,Math.round(screenToX(e.clientX-rect.left)*2)/2));
+        const set = dragTarget.setKey === 'A' ? setA : setB;
+        set.segments[dragTarget.segIdx][dragTarget.endpoint] = mathX;
+        updateUI(); draw();
+      });
+      canvas.addEventListener('pointerup', e => {
+        if (!e.isPrimary) return;
+        if (dragTarget && !hasDragged) {
+          const seg = (dragTarget.setKey === 'A' ? setA : setB).segments[dragTarget.segIdx];
+          const key = dragTarget.endpoint === 'min' ? 'leftClosed' : 'rightClosed'; seg[key] = !seg[key];
+          updateUI(); draw();
+        }
+        dragTarget = null;
+        if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
+      });
+      canvas.addEventListener('pointercancel', () => { dragTarget = null; });
+      canvas.addEventListener('lostpointercapture', () => { dragTarget = null; });
+    }
+
+    function hitTest(mx, my) {
+      const checkHit = (setKey, set, y) => {
+        for (let i = 0; i < set.segments.length; i++) {
+          const seg = set.segments[i];
+          if (!seg.minInf) {
+            const sx = xToScreen(seg.min);
+            if (Math.hypot(mx - sx, my - y) < 20) {
+              return { setKey, segIdx: i, endpoint: 'min' };
+            }
+          }
+          if (!seg.maxInf) {
+            const sx = xToScreen(seg.max);
+            if (Math.hypot(mx - sx, my - y) < 20) {
+              return { setKey, segIdx: i, endpoint: 'max' };
+            }
+          }
+        }
+        return null;
+      };
+
+      return checkHit('A', setA, originY - 65) || checkHit('B', setB, originY + 65);
+    }
+
+    // 教学系统：6大预设例子
+    function loadExample(num) {
+      currentExample = num;
+      document.querySelectorAll('.ex-btn').forEach((b, idx) => {
+        b.classList.toggle('active', (idx + 1) === num);
+        b.setAttribute('aria-pressed', String(idx+1 === num));
+      });
+      document.getElementById('param-box').style.display = (num === 6) ? 'block' : 'none';
+
+      document.getElementById('input-error').innerText = '';
+      switch (num) {
+        case 1: // 基本闭区间
+          universe = 'R';
+          setUniverse('R');
+          setA = { segments: [{ min: -2, max: 3, leftClosed: true, rightClosed: true, minInf: false, maxInf: false }] };
+          setB = { segments: [{ min: 1, max: 5, leftClosed: true, rightClosed: true, minInf: false, maxInf: false }] };
+          setOp('NONE');
+          break;
+        case 2: // 半开半闭
+          universe = 'R';
+          setUniverse('R');
+          setA = { segments: [{ min: -2, max: 3, leftClosed: false, rightClosed: true, minInf: false, maxInf: false }] };
+          setB = { segments: [{ min: 0, max: 4, leftClosed: true, rightClosed: false, minInf: false, maxInf: false }] };
+          setOp('INTER');
+          break;
+        case 3: // 交集拖动临界演示
+          universe = 'R';
+          setUniverse('R');
+          setA = { segments: [{ min: -3, max: 1, leftClosed: true, rightClosed: true, minInf: false, maxInf: false }] };
+          setB = { segments: [{ min: -1, max: 3, leftClosed: true, rightClosed: true, minInf: false, maxInf: false }] };
+          setOp('INTER');
+          break;
+        case 4: // 分离并集
+          universe = 'R';
+          setUniverse('R');
+          setA = { segments: [{ min: -4, max: -1, leftClosed: true, rightClosed: true, minInf: false, maxInf: false }] };
+          setB = { segments: [{ min: 2, max: 5, leftClosed: true, rightClosed: true, minInf: false, maxInf: false }] };
+          setOp('UNION');
+          break;
+        case 5: // 补集延伸两极
+          universe = 'R';
+          setUniverse('R');
+          setA = { segments: [{ min: -2, max: 2, leftClosed: true, rightClosed: true, minInf: false, maxInf: false }] };
+          setB = { segments: [{ min: 0, max: 3, leftClosed: false, rightClosed: true, minInf: false, maxInf: false }] };
+          setOp('COMP_A');
+          break;
+        case 7:
+          setUniverse('R');
+          setA = {segments:[{min:-2,max:1,leftClosed:true,rightClosed:true,minInf:false,maxInf:false}]};
+          setB = {segments:[{min:1,max:4,leftClosed:true,rightClosed:true,minInf:false,maxInf:false}]};
+          setOp('INTER'); break;
+        case 8:
+          setUniverse('R');
+          setA = {segments:[{min:-2,max:1,leftClosed:true,rightClosed:false,minInf:false,maxInf:false}]};
+          setB = {segments:[{min:1,max:4,leftClosed:false,rightClosed:true,minInf:false,maxInf:false}]};
+          setOp('UNION'); break;
+        case 6: // 含参动态
+          universe = 'R';
+          setUniverse('R');
+          document.getElementById('param-a').value = '-2';
+          const aVal = -2;
+          setA = { segments: [{ min: aVal, max: 3, leftClosed: false, rightClosed: false, minInf: false, maxInf: false }] };
+          setB = { segments: [{ min: 0, max: 4, leftClosed: true, rightClosed: true, minInf: false, maxInf: false }] };
+          setOp('INTER');
+          break;
+      }
+      updateUI();
+      resetZoom();
+      draw();
+    }
+
+    function onParamChange(val) {
+      const numVal = parseFloat(val);
+      document.getElementById('param-val').innerText = numVal.toFixed(1);
+      setA.segments[0].min = numVal;
+      updateUI();
+      draw();
+    }
+
+    window.onload = () => {
+      init();
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(entries => {
+          for (const entry of entries) if (entry.isIntersecting) {
+            entry.target.classList.add('reveal-item');
+            observer.unobserve(entry.target);
+          }
+        }, {threshold: .08});
+        document.querySelectorAll('.sidebar-left, .canvas-container, .sidebar-right .info-card, .teaching-notes, footer').forEach(el => observer.observe(el));
+      }
+    };
+  </script>
+</body>
+</html>

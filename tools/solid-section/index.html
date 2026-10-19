@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>高中数学立体几何截面动态切割器 (3D Solid Explorer)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+    body {
+      background: #0f172a;
+      color: #f1f5f9;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #viewport-container {
+      flex: 1;
+      position: relative;
+      height: 100%;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    #sidebar {
+      width: 380px;
+      background: #1e293b;
+      border-left: 1px solid #334155;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.3);
+    }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      font-size: 0.75rem;
+      background: #0284c7;
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 9999px;
+    }
+    .panel-section {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .section-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .btn-group {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    button.choice-btn {
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #e2e8f0;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+    button.choice-btn:hover {
+      background: #334155;
+      border-color: #64748b;
+    }
+    button.choice-btn.active {
+      background: #0284c7;
+      border-color: #38bdf8;
+      color: #fff;
+      font-weight: 600;
+    }
+    .slider-group {
+      margin-bottom: 12px;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: #38bdf8;
+      cursor: pointer;
+    }
+    .stats-card {
+      background: rgba(56, 189, 248, 0.05);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 0.9rem;
+      border-bottom: 1px solid #1e293b;
+    }
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+    .stat-label {
+      color: #94a3b8;
+    }
+    .stat-value {
+      font-weight: 600;
+      color: #38bdf8;
+    }
+    .tip-box {
+      font-size: 0.78rem;
+      color: #94a3b8;
+      line-height: 1.5;
+      background: rgba(148, 163, 184, 0.05);
+      padding: 10px;
+      border-radius: 6px;
+      border-left: 3px solid #38bdf8;
+    }
+    .hud-overlay {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 12px 18px;
+      pointer-events: none;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    .hud-title {
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 4px;
+    }
+  </style>
+  <script src="../../vendor/cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="../../vendor/cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+  <div id="viewport-container">
+    <div class="hud-overlay">
+      <div class="hud-title">三维视角交互指引</div>
+      <div>• 鼠标左键按住拖动：三维全景旋转</div>
+      <div>• 鼠标滚轮缩放：放大 / 缩小模型</div>
+      <div>• 鼠标右键拖动：平移空间镜头</div>
+    </div>
+    <div id="canvas-container" style="width: 100%; height: 100%;"></div>
+  </div>
+
+  <div id="sidebar">
+    <div>
+      <h1>几何截面实验室 <span class="badge">必修/选修</span></h1>
+      <p style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">高中立体几何截面与二面角动态分析</p>
+    </div>
+
+    <!-- 几何体选择 -->
+    <div class="panel-section">
+      <div class="section-title">选择空间多面体</div>
+      <div class="btn-group">
+        <button class="choice-btn active" onclick="setSolid('cube')">正方体</button>
+        <button class="choice-btn" onclick="setSolid('tetrahedron')">正四面体</button>
+        <button class="choice-btn" onclick="setSolid('pyramid')">正四棱锥</button>
+        <button class="choice-btn" onclick="setSolid('prism')">正六棱柱</button>
+      </div>
+    </div>
+
+    <!-- 截面控制参数 -->
+    <div class="panel-section">
+      <div class="section-title">截面法向量与位置调节</div>
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>法向量俯仰角 θ</span>
+          <span id="val-pitch">35°</span>
+        </div>
+        <input type="range" id="slider-pitch" min="-90" max="90" value="35" oninput="updatePlane()">
+      </div>
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>法向量方位角 φ</span>
+          <span id="val-yaw">45°</span>
+        </div>
+        <input type="range" id="slider-yaw" min="0" max="180" value="45" oninput="updatePlane()">
+      </div>
+      <div class="slider-group">
+        <div class="slider-header">
+          <span>截面法向偏置距离 d</span>
+          <span id="val-offset">0.00</span>
+        </div>
+        <input type="range" id="slider-offset" min="-1.8" max="1.8" step="0.02" value="0" oninput="updatePlane()">
+      </div>
+    </div>
+
+    <!-- 经典考题预设 -->
+    <div class="panel-section">
+      <div class="section-title">经典高考截面预设</div>
+      <div class="btn-group">
+        <button class="choice-btn" onclick="applyPreset('hex')">正六边形截面</button>
+        <button class="choice-btn" onclick="applyPreset('tri')">中点等边三角形</button>
+        <button class="choice-btn" onclick="applyPreset('trapezoid')">等腰梯形截面</button>
+        <button class="choice-btn" onclick="applyPreset('pentagon')">五边形截面</button>
+      </div>
+    </div>
+
+    <!-- 几何分析与特征 -->
+    <div class="panel-section stats-card">
+      <div class="section-title" style="color: #38bdf8;">截面特征实时诊断</div>
+      <div class="stat-row">
+        <span class="stat-label">截交点个数：</span>
+        <span class="stat-value" id="stat-count">6 个</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">截面多边形判定：</span>
+        <span class="stat-value" id="stat-poly">正六边形</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">截面法向量 (A, B, C)：</span>
+        <span class="stat-value" id="stat-normal">(0.58, 0.57, 0.58)</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">估算截面面积：</span>
+        <span class="stat-value" id="stat-area">2.12</span>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <strong>教学考点提示：</strong><br>
+      若平面截多面体的两相对平行面，所得交线必然互相平行（平行平面性质定理）。观察正六边形和梯形对边的空间方向。
+    </div>
+  </div>
+
+  <script>
+    let scene, camera, renderer, controls;
+    let solidMesh, wireframeMesh, sectionMesh, sectionBorderMesh;
+    let currentSolidType = 'cube';
+
+    const solids = {
+      cube: {
+        name: '正方体',
+        vertices: [
+          new THREE.Vector3(-1, -1, -1), new THREE.Vector3(1, -1, -1),
+          new THREE.Vector3(1, 1, -1), new THREE.Vector3(-1, 1, -1),
+          new THREE.Vector3(-1, -1, 1), new THREE.Vector3(1, -1, 1),
+          new THREE.Vector3(1, 1, 1), new THREE.Vector3(-1, 1, 1)
+        ],
+        edges: [
+          [0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],
+          [0,4],[1,5],[2,6],[3,7]
+        ]
+      },
+      tetrahedron: {
+        name: '正四面体',
+        vertices: [
+          new THREE.Vector3(1.2, 1.2, 1.2),
+          new THREE.Vector3(-1.2, -1.2, 1.2),
+          new THREE.Vector3(-1.2, 1.2, -1.2),
+          new THREE.Vector3(1.2, -1.2, -1.2)
+        ],
+        edges: [
+          [0,1],[0,2],[0,3],[1,2],[2,3],[3,1]
+        ]
+      },
+      pyramid: {
+        name: '正四棱锥',
+        vertices: [
+          new THREE.Vector3(-1.2, -1, -1.2),
+          new THREE.Vector3(1.2, -1, -1.2),
+          new THREE.Vector3(1.2, -1, 1.2),
+          new THREE.Vector3(-1.2, -1, 1.2),
+          new THREE.Vector3(0, 1.5, 0)
+        ],
+        edges: [
+          [0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[2,4],[3,4]
+        ]
+      },
+      prism: {
+        name: '正六棱柱',
+        vertices: (function(){
+          let vs = [];
+          for(let i=0; i<6; i++){
+            let ang = i * Math.PI / 3;
+            vs.push(new THREE.Vector3(1.3 * Math.cos(ang), -1.2, 1.3 * Math.sin(ang)));
+          }
+          for(let i=0; i<6; i++){
+            let ang = i * Math.PI / 3;
+            vs.push(new THREE.Vector3(1.3 * Math.cos(ang), 1.2, 1.3 * Math.sin(ang)));
+          }
+          return vs;
+        })(),
+        edges: [
+          [0,1],[1,2],[2,3],[3,4],[4,5],[5,0],
+          [6,7],[7,8],[8,9],[9,10],[10,11],[11,6],
+          [0,6],[1,7],[2,8],[3,9],[4,10],[5,11]
+        ]
+      }
+    };
+
+    function init() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0a0f1d);
+
+      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+      camera.position.set(3.5, 2.5, 4.5);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+
+      // 坐标网格与辅助光源
+      const grid = new THREE.GridHelper(8, 16, 0x334155, 0x1e293b);
+      grid.position.y = -1.8;
+      scene.add(grid);
+
+      const ambLight = new THREE.AmbientLight(0xffffff, 0.7);
+      scene.add(ambLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+      dirLight.position.set(5, 10, 7);
+      scene.add(dirLight);
+
+      buildSolid();
+      updatePlane();
+
+      window.addEventListener('resize', onWindowResize);
+      animate();
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function setSolid(type) {
+      currentSolidType = type;
+      document.querySelectorAll('.panel-section:first-of-type button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      buildSolid();
+      updatePlane();
+    }
+
+    function buildSolid() {
+      if (wireframeMesh) scene.remove(wireframeMesh);
+      const solid = solids[currentSolidType];
+      
+      const lineGeom = new THREE.BufferGeometry();
+      const linePositions = [];
+      solid.edges.forEach(([i, j]) => {
+        const p1 = solid.vertices[i];
+        const p2 = solid.vertices[j];
+        linePositions.push(p1.x, p1.y, p1.z, p2.x, p2.y, p2.z);
+      });
+      lineGeom.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+      
+      const lineMat = new THREE.LineBasicMaterial({ color: 0x94a3b8, linewidth: 2 });
+      wireframeMesh = new THREE.LineSegments(lineGeom, lineMat);
+      scene.add(wireframeMesh);
+    }
+
+    function updatePlane() {
+      const pitch = parseFloat(document.getElementById('slider-pitch').value) * Math.PI / 180;
+      const yaw = parseFloat(document.getElementById('slider-yaw').value) * Math.PI / 180;
+      const offset = parseFloat(document.getElementById('slider-offset').value);
+
+      document.getElementById('val-pitch').textContent = document.getElementById('slider-pitch').value + '°';
+      document.getElementById('val-yaw').textContent = document.getElementById('slider-yaw').value + '°';
+      document.getElementById('val-offset').textContent = offset.toFixed(2);
+
+      // 计算单位法向量 n = (nx, ny, nz)
+      const nx = Math.cos(pitch) * Math.sin(yaw);
+      const ny = Math.sin(pitch);
+      const nz = Math.cos(pitch) * Math.cos(yaw);
+      const normal = new THREE.Vector3(nx, ny, nz).normalize();
+
+      document.getElementById('stat-normal').textContent = `(${normal.x.toFixed(2)}, ${normal.y.toFixed(2)}, ${normal.z.toFixed(2)})`;
+
+      computeCrossSection(normal, offset);
+    }
+
+    function computeCrossSection(normal, offset) {
+      if (sectionMesh) scene.remove(sectionMesh);
+      if (sectionBorderMesh) scene.remove(sectionBorderMesh);
+
+      const solid = solids[currentSolidType];
+      const intersections = [];
+
+      // 棱与平面的交点计算: normal · P + offset = 0
+      solid.edges.forEach(([i1, i2]) => {
+        const p1 = solid.vertices[i1];
+        const p2 = solid.vertices[i2];
+        const d1 = normal.dot(p1) + offset;
+        const d2 = normal.dot(p2) + offset;
+
+        if ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) {
+          const t = -d1 / (d2 - d1);
+          const pt = new THREE.Vector3().lerpVectors(p1, p2, t);
+          intersections.push(pt);
+        } else if (Math.abs(d1) < 1e-5) {
+          intersections.push(p1.clone());
+        }
+      });
+
+      // 去重
+      const uniquePoints = [];
+      intersections.forEach(p => {
+        if (!uniquePoints.some(u => u.distanceTo(p) < 1e-3)) {
+          uniquePoints.push(p);
+        }
+      });
+
+      const count = uniquePoints.length;
+      document.getElementById('stat-count').textContent = count + ' 个';
+
+      if (count < 3) {
+        document.getElementById('stat-poly').textContent = '未形成封闭截面';
+        document.getElementById('stat-area').textContent = '0.00';
+        return;
+      }
+
+      // 计算质心
+      const center = new THREE.Vector3();
+      uniquePoints.forEach(p => center.add(p));
+      center.divideScalar(count);
+
+      // 极角排序形成凸闭合环
+      let u = new THREE.Vector3();
+      if (Math.abs(normal.y) < 0.9) {
+        u.crossVectors(normal, new THREE.Vector3(0, 1, 0)).normalize();
+      } else {
+        u.crossVectors(normal, new THREE.Vector3(1, 0, 0)).normalize();
+      }
+      let v = new THREE.Vector3().crossVectors(normal, u).normalize();
+
+      uniquePoints.sort((a, b) => {
+        const da = new THREE.Vector3().subVectors(a, center);
+        const db = new THREE.Vector3().subVectors(b, center);
+        const angA = Math.atan2(da.dot(v), da.dot(u));
+        const angB = Math.atan2(db.dot(v), db.dot(u));
+        return angA - angB;
+      });
+
+      // 构建截面网格几何体
+      const shapeGeom = new THREE.BufferGeometry();
+      const vertices = [];
+      for (let i = 1; i < count - 1; i++) {
+        vertices.push(uniquePoints[0].x, uniquePoints[0].y, uniquePoints[0].z);
+        vertices.push(uniquePoints[i].x, uniquePoints[i].y, uniquePoints[i].z);
+        vertices.push(uniquePoints[i+1].x, uniquePoints[i+1].y, uniquePoints[i+1].z);
+      }
+      shapeGeom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+      shapeGeom.computeVertexNormals();
+
+      const shapeMat = new THREE.MeshStandardMaterial({
+        color: 0x0284c7,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.75,
+        roughness: 0.3
+      });
+      sectionMesh = new THREE.Mesh(shapeGeom, shapeMat);
+      scene.add(sectionMesh);
+
+      // 截面外边缘粗线高亮
+      const borderPoints = [...uniquePoints, uniquePoints[0]];
+      const borderGeom = new THREE.BufferGeometry().setFromPoints(borderPoints);
+      const borderMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, linewidth: 3 });
+      sectionBorderMesh = new THREE.Line(borderGeom, borderMat);
+      scene.add(sectionBorderMesh);
+
+      // 多边形名称推断与面积计算
+      let polyName = '';
+      if (count === 3) polyName = '三角形';
+      else if (count === 4) polyName = '四边形 (梯形/平行四边形)';
+      else if (count === 5) polyName = '五边形';
+      else if (count === 6) polyName = '六边形';
+      else polyName = `${count} 边形`;
+
+      let totalArea = 0;
+      for (let i = 1; i < count - 1; i++) {
+        const v1 = new THREE.Vector3().subVectors(uniquePoints[i], uniquePoints[0]);
+        const v2 = new THREE.Vector3().subVectors(uniquePoints[i+1], uniquePoints[0]);
+        const cross = new THREE.Vector3().crossVectors(v1, v2);
+        totalArea += 0.5 * cross.length();
+      }
+
+      document.getElementById('stat-poly').textContent = polyName;
+      document.getElementById('stat-area').textContent = totalArea.toFixed(2);
+    }
+
+    function applyPreset(type) {
+      if (currentSolidType !== 'cube') {
+        currentSolidType = 'cube';
+        document.querySelectorAll('.panel-section:first-of-type button').forEach(b => b.classList.remove('active'));
+        document.querySelector('.panel-section:first-of-type button').classList.add('active');
+        buildSolid();
+      }
+
+      if (type === 'hex') {
+        document.getElementById('slider-pitch').value = 35;
+        document.getElementById('slider-yaw').value = 45;
+        document.getElementById('slider-offset').value = 0.0;
+      } else if (type === 'tri') {
+        document.getElementById('slider-pitch').value = 35;
+        document.getElementById('slider-yaw').value = 45;
+        document.getElementById('slider-offset').value = -1.0;
+      } else if (type === 'trapezoid') {
+        document.getElementById('slider-pitch').value = 45;
+        document.getElementById('slider-yaw').value = 90;
+        document.getElementById('slider-offset').value = -0.3;
+      } else if (type === 'pentagon') {
+        document.getElementById('slider-pitch').value = 40;
+        document.getElementById('slider-yaw').value = 30;
+        document.getElementById('slider-offset').value = -0.6;
+      }
+      updatePlane();
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

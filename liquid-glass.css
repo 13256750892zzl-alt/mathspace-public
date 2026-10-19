@@ -1,0 +1,133 @@
+@font-face{font-family:"Instrument Serif";src:url("assets/liquid/InstrumentSerif-Regular.ttf") format("truetype");font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:"Instrument Serif";src:url("assets/liquid/InstrumentSerif-Italic.ttf") format("truetype");font-style:italic;font-weight:400;font-display:swap}
+
+:root{--bg:#f5f3ef;--surface:#fffefa;--panel:#eae7e1;--ink:#252623;--muted:#62645f;--line:#d9d8d1;--green:#345d50;--cyan:#415d78;--blue:#415d78;--purple:#655579;--peach:#835c40;--tint:#eaece6;--button-ink:#ffffff;--glass-shine:#ffffffc9;--glass-edge:#969b9380;--glass-shadow:#1e26110a;--glass-fill:#fffefa99;--card-glow:#ffffff36}
+:root[data-theme="dark"]{--bg:#000000;--surface:#141615;--panel:#222623;--ink:#f5f4ef;--muted:#b4b8b2;--line:#303631;--green:#c7dfce;--cyan:#c1d4e2;--blue:#c1d4e2;--purple:#d4c9e1;--peach:#e6cbb0;--tint:#19231e;--button-ink:#17231b;--glass-shine:#ffffff73;--glass-edge:#ffffff26;--glass-shadow:#00000030;--glass-fill:#141815a8;--card-glow:#c7dfce0d}
+body{background:var(--bg);-webkit-font-smoothing:antialiased}
+
+/* The same edge treatment serves static glass and cards rendered by app.js. */
+:is(.liquid-glass,.search,.entry,.flashcard-entry,.project-categories button,.project-list li,.practice-card[data-topic],.empty-state,.bottom-note,.project-view){background:var(--glass-fill);background-blend-mode:luminosity;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);border:none;box-shadow:inset 0 1px 1px #ffffff1a,0 12px 32px var(--glass-shadow);position:relative;overflow:hidden}
+:is(.liquid-glass,.search,.entry,.flashcard-entry,.project-categories button,.project-list li,.practice-card[data-topic],.empty-state,.bottom-note,.project-view)::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.4px;background:linear-gradient(180deg,var(--glass-shine) 0%,var(--glass-edge) 20%,transparent 40%,transparent 60%,var(--glass-edge) 80%,var(--glass-shine) 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;z-index:2}
+.header{border:0;padding:22px 28px 0;position:relative;z-index:3}
+.header-inner{max-width:1240px;min-height:72px;padding:12px 24px;border-radius:50px;gap:20px}
+.brand{font-size:22px;font-weight:600;gap:10px}
+.brand svg{stroke:var(--ink);width:33px;height:33px}
+.brand small{font-family:"Instrument Serif",Georgia,serif;font-size:11px;letter-spacing:2px}
+.header nav{background:none;box-shadow:none;padding:2px;gap:2px}
+.header nav a{font-size:14px;font-weight:500;padding:10px 17px;color:var(--muted)}
+.header nav a:hover{color:var(--ink)}
+.header nav a[aria-current]{background:var(--ink);color:var(--bg)}
+.header-actions{gap:14px}
+.preview-badge{font-size:10px}
+.preview-badge i{background:var(--green)}
+#theme-toggle{background:transparent;border-color:var(--glass-edge);min-height:42px;padding:9px 14px}
+main{max-width:1280px}
+#home{position:relative;isolation:isolate;scroll-margin-top:180px}
+.home-atmosphere{position:absolute;inset:0 -40px 40px;z-index:-1;pointer-events:none;overflow:hidden;background:url("assets/liquid/poster.jpg") center 52%/cover no-repeat;opacity:.14;-webkit-mask-image:linear-gradient(transparent,#000 15%,#000 70%,transparent);mask-image:linear-gradient(transparent,#000 15%,#000 70%,transparent)}
+:root[data-theme="dark"] .home-atmosphere{opacity:.8}
+.home-atmosphere::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#0006,#0000 40%,#000b 85%,#000)}
+.home-atmosphere video{width:100%;height:100%;object-fit:cover;object-position:center 52%;opacity:0}
+.home-top{padding:20px 0 16px}
+.search{border-radius:50px;padding:8px 8px 8px 22px;min-height:56px}
+.home-search{max-width:650px;margin:0 auto}
+.search:focus-within{box-shadow:0 0 0 2px var(--green)}
+.search input{font-size:13px}
+.search button{width:40px;height:40px;background:var(--ink);color:var(--bg)}
+.home-heading{position:relative;margin-bottom:24px;gap:16px}
+.home-heading .eyebrow{display:flex;width:max-content;line-height:1.5;font-size:9px;letter-spacing:2.5px;color:var(--muted);margin-bottom:9px}
+.home-heading .eyebrow::before{background:var(--ink);width:4px;height:4px}
+.home-heading h2{font-family:"Noto Serif CJK SC","Songti SC",SimSun,serif;font-size:40px;font-weight:400;letter-spacing:1px;line-height:1.4}
+.gradient-word{background:none;color:var(--ink)}
+.home-subtitle{font-size:12px;margin-top:6px}
+.home-signature{font-family:"Instrument Serif",Georgia,serif;font-size:42px;line-height:1.02;letter-spacing:-.5px;margin-left:auto;color:var(--muted);max-width:260px}
+.home-signature em{display:block;color:var(--ink);font-size:58px;font-weight:400}
+#motion-toggle{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:auto;min-width:112px;min-height:40px;border-radius:50px;padding:8px 12px;color:var(--ink);align-self:flex-start;margin-top:8px;font-size:12px;white-space:nowrap;flex-shrink:0}
+#motion-toggle[aria-pressed="true"]{background:var(--panel)}
+.entry-grid{grid-template-rows:218px 240px;gap:16px}
+.entry{--card-ink:var(--ink);--card-muted:var(--muted);--card-bg:var(--surface);--entry-accent:var(--green);padding:24px 28px;border-radius:26px;background:linear-gradient(135deg,var(--card-glow),transparent 65%),var(--glass-fill);color:var(--card-ink)}
+.entry:hover{background-color:var(--surface);box-shadow:inset 0 1px 1px var(--glass-shine),0 12px 32px var(--glass-shadow);transform:translateY(-4px)}
+.practice-entry{--entry-accent:var(--blue)}
+.lab-entry{--entry-accent:var(--peach)}
+.resources-entry{--entry-accent:var(--purple)}
+.card-number{font-family:"Instrument Serif",Georgia,serif;font-size:13px;font-weight:400;letter-spacing:1.7px;color:var(--card-muted)}
+.circle-arrow{width:35px;height:35px;background:var(--panel);box-shadow:inset 0 1px var(--glass-shine);color:var(--ink)}
+.entry h3{font-family:"Noto Serif CJK SC","Songti SC",SimSun,serif;font-weight:400;font-size:26px;letter-spacing:1px}
+.knowledge-entry h3{font-size:32px}
+.entry p{color:var(--card-muted);font-size:12px}
+.entry-link{font-size:11px;font-weight:500;letter-spacing:.5px;gap:18px;color:var(--entry-accent)}
+.entry-link>span{background:var(--panel);color:var(--entry-accent)}
+.card-art{color:var(--entry-accent)}
+.knowledge-art{min-height:170px;margin:8px 0 16px}
+.graph-sheet{background:transparent;box-shadow:none;border-radius:0;width:86%;padding:8px 12px;transform:rotate(-3deg);color:var(--green)}
+.graph-curve{stroke:var(--green);stroke-width:2}
+.graph-chord{stroke:var(--blue)}
+.graph-sheet circle{fill:var(--peach);stroke:var(--surface);stroke-width:1.5}
+.graph-label,.graph-note{opacity:1;color:var(--muted)}
+.formula-orbit{font-family:"Instrument Serif",Georgia,serif;font-size:36px;color:var(--green);background:var(--glass-fill);border:1px solid var(--glass-edge);border-radius:18px}
+.art-spark{color:var(--green);font-size:28px}
+.practice-art{opacity:.6}
+.card-art:not(.knowledge-art) svg{fill:var(--glass-edge);stroke-width:1}
+.recent{margin:28px 0 30px}
+.recent h2{font-size:16px;font-weight:500}
+.recent-empty{padding:18px 0}
+.empty-mark{border-radius:50%;color:var(--muted)}
+.recent-empty h3{font-size:13px;font-weight:500}
+.recent-empty p{font-size:11px}
+footer{font-size:11px;padding-top:20px}
+.library-heading{padding:34px 0 26px}
+.library-heading h1,.paper-heading h1{font-family:"Noto Serif CJK SC","Songti SC",SimSun,serif;font-weight:400;letter-spacing:1px}
+.library-heading .eyebrow{background:var(--surface);color:var(--muted);font-family:"Instrument Serif",Georgia,serif;font-size:12px;letter-spacing:2px}
+.flashcard-entry{background:var(--glass-fill);color:var(--ink);border-radius:24px}
+.flashcard-entry strong{font-family:"Noto Serif CJK SC","Songti SC",SimSun,serif;font-weight:400}
+.flashcard-entry small{color:var(--muted)}
+.flashcard-entry svg{stroke:var(--purple);fill:var(--panel)}
+.flashcard-badge{background:var(--panel);color:var(--purple)}
+.sidebar{border-color:var(--line)}
+.field select,.book-filter select{border-radius:18px;background:var(--surface)}
+.project-categories button{background:var(--glass-fill);box-shadow:inset 3px 0 var(--category),inset 0 1px var(--glass-edge)}
+.project-categories button[aria-pressed="true"]{background:var(--category);color:var(--bg)}
+.project-categories span{font-weight:500}
+.project-group h2{font-weight:500}
+.project-list li{background:var(--glass-fill);border-radius:22px}
+.project-state{background:var(--panel)}
+.project-view{border-radius:50px}
+.project-view button{border-radius:50px}
+.empty-state,.bottom-note{background:var(--glass-fill)}
+.practice-card[data-topic]{background:linear-gradient(145deg,var(--suite-fill),var(--surface));box-shadow:inset 0 1px 1px var(--glass-shine)}
+.practice-card[data-topic]:hover{box-shadow:inset 0 1px 1px var(--glass-shine),0 10px 28px var(--glass-shadow)}
+.practice-card h3{font-weight:500}
+.practice-card .practice-links a{min-height:44px}
+.practice-card.resource-bundle{background:linear-gradient(125deg,var(--suite-soft),var(--suite-fill))}
+/* Download bundles are compact rows; use the library's colors instead of the old peach banner. */
+#library[data-page="resources"]{--resource-ink:var(--ink);--resource-muted:var(--muted);--resource-surface:var(--surface);--resource-panel:var(--panel);--resource-accent:var(--purple)}
+#library[data-page="resources"] .resource-list{gap:12px}
+#library[data-page="resources"] .resource-card.resource-bundle{--ink:var(--resource-ink);--muted:var(--resource-muted);--suite-accent:var(--resource-accent);--suite-fill:var(--resource-surface);--suite-soft:var(--resource-panel);display:grid;grid-template-columns:40px minmax(0,1fr) auto;column-gap:16px;row-gap:4px;align-items:center;padding:16px 20px;border-radius:18px;background:var(--resource-surface);box-shadow:inset 0 1px 1px var(--glass-edge)}
+#library[data-page="resources"] .resource-bundle:hover{transform:none;background:var(--resource-panel)}
+#library[data-page="resources"] .resource-bundle .suite-top{display:contents}
+#library[data-page="resources"] .resource-bundle .suite-icon{grid-column:1;grid-row:1/4;align-self:center;width:40px;height:40px;margin:0;padding:9px;border-radius:12px}
+#library[data-page="resources"] .resource-bundle .eyebrow{grid-column:2;grid-row:1;margin:0;font-size:10px;line-height:1.5;color:var(--suite-accent)}
+#library[data-page="resources"] .resource-bundle h3{grid-column:2;grid-row:2;margin:0;font-size:16px;line-height:1.6;font-weight:500;letter-spacing:0}
+#library[data-page="resources"] .resource-bundle .practice-tags{grid-column:2;grid-row:3;margin:0;max-width:none;font-size:11px;line-height:1.7;color:var(--muted)}
+#library[data-page="resources"] .resource-bundle .practice-links{grid-column:3;grid-row:1/4;margin:0;padding:0;align-self:center}
+#library[data-page="resources"] .resource-bundle .practice-links a[data-kind="bundle"]{background:var(--suite-accent);color:var(--resource-surface);white-space:nowrap;padding-left:14px;min-height:44px}
+@media(max-width:640px){#library[data-page="resources"] .resource-card.resource-bundle{grid-template-columns:32px minmax(0,1fr);gap:6px 12px;padding:16px}#library[data-page="resources"] .resource-bundle .suite-icon{width:32px;height:32px;padding:6px;align-self:start}#library[data-page="resources"] .resource-bundle .practice-links{grid-column:2;grid-row:4;margin-top:6px}#library[data-page="resources"] .resource-bundle h3{font-size:15px}}
+.paper-actions a,.paper-back{border-radius:50px}
+@media(min-width:901px) and (max-width:1100px){.header-inner{gap:12px;padding:12px 18px}.header nav a{padding:10px 12px}.home-signature{font-size:34px;max-width:210px}.home-signature em{font-size:46px}.home-atmosphere{inset-inline:-28px}}
+@media(max-width:900px){
+  .header{padding:14px 16px 0}.header-inner{border-radius:28px;padding:14px 16px;gap:12px;min-height:0}
+  .header nav{border-radius:50px;padding:3px;background:var(--glass-shadow);box-shadow:inset 0 1px var(--glass-edge)}
+  .header nav a{font-size:12px;padding:10px 3px;border-radius:50px}.header-actions{margin-left:auto}
+  #theme-toggle{min-height:40px;padding:8px 10px;font-size:10px}
+  main{padding:0 20px}.home-top{padding:10px 0 12px}.search{padding-left:16px;min-height:52px}.home-search input{font-size:12px}
+  .home-heading{margin-bottom:16px;align-items:flex-start}.home-heading h2{font-size:28px;letter-spacing:0}.home-heading .eyebrow{font-size:8px;letter-spacing:1.5px}.home-subtitle{font-size:11px;max-width:none}.home-signature{display:none}
+  #motion-toggle{position:absolute;right:0;top:-6px;margin:0;min-width:0;min-height:32px;padding:6px 9px;gap:5px;font-size:10px}
+  .home-atmosphere{inset:0 -20px 0;background-position:45% 0;background-size:auto 740px;background-repeat:no-repeat;opacity:.08}
+  :root[data-theme="dark"] .home-atmosphere{opacity:.65}.home-atmosphere video{object-position:45% 0;height:740px}
+  .entry-grid{grid-template-rows:none;gap:16px}.entry{padding:22px 24px;min-height:230px}.knowledge-entry{min-height:395px}
+  .entry h3{font-size:26px}.knowledge-entry h3{font-size:30px}.knowledge-art{min-height:170px}.formula-orbit{width:48px;height:48px;font-size:30px}
+  .library-heading{padding:28px 0 24px}.flashcard-entry{padding:18px}.library-heading h1{font-size:30px}.practice-card[data-topic]{padding:20px}
+}
+@media(max-width:360px){.header{padding:10px 10px 0}.header-inner{padding:12px}.header nav a{font-size:11px}main{padding:0 16px}.home-heading h2{font-size:25px}.home-subtitle{font-size:10px}.home-heading .eyebrow{letter-spacing:1px}.entry{padding:22px}.practice-art{width:72px;right:12px}.home-atmosphere{inset-inline:-16px}}
+@media(prefers-reduced-motion:reduce){.home-atmosphere video,#motion-toggle{display:none}.entry:hover,.practice-card[data-topic]:hover{transform:none}}
+@media(prefers-reduced-transparency:reduce){:is(.liquid-glass,.search,.entry,.flashcard-entry,.project-categories button,.project-list li){background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none}.home-atmosphere{display:none}}
+@supports not (mask-composite:exclude){:is(.liquid-glass,.search,.entry,.flashcard-entry,.project-categories button,.project-list li,.practice-card[data-topic],.empty-state,.bottom-note,.project-view){border:1px solid var(--glass-edge)}:is(.liquid-glass,.search,.entry,.flashcard-entry,.project-categories button,.project-list li,.practice-card[data-topic],.empty-state,.bottom-note,.project-view)::before{display:none}}

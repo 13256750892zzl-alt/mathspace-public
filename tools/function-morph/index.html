@@ -1,0 +1,1630 @@
+<!DOCTYPE html>
+<!-- 函数图像变换演示器：单文件 HTML，所有 HTML/CSS/JS 内联，依赖通过 CDN 引入 -->
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <!-- 视口设置：保证移动端响应式适配 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>函数图像变换演示器</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23c5efd9'/%3E%3Cpath d='M7 30c7 0 7-20 13-20s6 20 13 20' fill='none' stroke='%23213e32' stroke-width='2'/%3E%3C/svg%3E" />
+
+    <!-- math.js：用于解析与求值函数表达式 -->
+    <script src="../../vendor/cdn.jsdelivr.net/npm/mathjs@12.4.1/lib/browser/math.js"></script>
+    <!-- KaTeX 样式与脚本：用于渲染数学公式 -->
+    <link rel="stylesheet" href="../../vendor/cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <script defer src="../../vendor/cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <!-- jQuery：MathQuill 0.10.x 的运行依赖，必须在 MathQuill 之前加载 -->
+    <script src="../../vendor/cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <!-- MathQuill：可编辑数学输入区（占位框、光标穿梭、上标/分数/根号实时排版） -->
+    <link rel="stylesheet" href="../../vendor/cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.css" />
+    <script src="../../vendor/cdn.jsdelivr.net/npm/mathquill@0.10.1/build/mathquill.min.js"></script>
+
+<style>
+
+:root {
+    color-scheme: dark;
+    --page: #101a2d; --panel: #18253b; --ink: #eff4ff; --muted: #afbed5;
+    --mint: #c5efd9; --peach: #ffddbf; --lilac: #ddd4ff; --blue: #d1e7ff;
+    --curve: #ff89bb; --axis: #78d9dd; --ease: cubic-bezier(.22,.8,.25,1);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+    color: var(--ink); font: 14px/1.6 "Segoe UI Variable", "Microsoft YaHei", sans-serif;
+    background: radial-gradient(ellipse at 3% 3%, #2a344e 0, transparent 48%),
+                radial-gradient(ellipse at 97% 98%, #203b42 0, transparent 42%), var(--page);
+}
+body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23fff' filter='url(%23n)' d='M0 0h160v160H0z'/%3E%3C/svg%3E");
+}
+button, input { font: inherit; }
+button { cursor: pointer; }
+button, a, label { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible {
+    outline: 3px solid #5ce4da; outline-offset: 4px;
+}
+button { transition: transform .25s var(--ease), background .25s var(--ease), box-shadow .25s var(--ease); }
+button:active:not(:disabled) { transform: scale(.96); }
+button:disabled { opacity: .4; cursor: not-allowed; }
+.hidden { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+svg { display: block; flex-shrink: 0; }
+.app-header {
+    position: relative; z-index: 1; height: 68px; margin: 14px 20px 12px; padding: 8px 15px 8px 9px;
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    border-radius: 40px; background: #213049; box-shadow: inset 0 1px 0 #ffffff19, 0 10px 45px #071a3026;
+}
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand-mark { width: 47px; height: 47px; border-radius: 50%; color: #1d3046; background: var(--mint); display: grid; place-items: center; }
+.brand-mark svg { width: 31px; height: 31px; }
+.brand-eyebrow { font-size: 9px; letter-spacing: .2em; color: #b9c7df; }
+h1 { margin: 1px 0 0; font-size: 20px; font-weight: 650; letter-spacing: .06em; line-height: 1.4; }
+.header-note { display: flex; gap: 16px; align-items: center; color: #c1cde1; font-size: 12px; }
+.header-pill { padding: 8px 15px; border-radius: 30px; background: #33445f; color: #f0e7ff; font-size: 11px; letter-spacing: .05em; }
+.workspace {
+    position: relative; z-index: 1; height: calc(100dvh - 114px); min-height: 510px;
+    display: grid; grid-template-columns: 358px minmax(0,1fr); gap: 16px; margin: 0 20px 20px;
+}
+.controls { display: grid; grid-template-rows: minmax(0,1fr) auto; gap: 12px; min-height: 0; }
+.control-scroll { display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow-y: auto; padding: 1px 5px 1px 1px; scrollbar-width: thin; scrollbar-color: #586681 transparent; }
+.card-shell { padding: 5px; border-radius: 25px; background: #ffffff09; box-shadow: inset 0 1px 0 #ffffff22; }
+.control-card { border-radius: 20px; padding: 16px; background: var(--panel); box-shadow: inset 0 1px 0 #ffffff16; }
+.card-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 13px; }
+.heading-title { display: flex; align-items: center; gap: 8px; }
+.section-index { font-size: 10px; line-height: 1; letter-spacing: .05em; color: #c6b9eb; padding: 6px 7px; border-radius: 20px; background: #b5a0e81a; }
+h2 { font-size: 14px; font-weight: 650; margin: 0; letter-spacing: .04em; }
+.heading-hint { font-size: 10px; color: #aebbd1; }
+#baseFuncGroup { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.base-group { --tint: var(--peach); --text: #614027; padding: 9px; margin: 0; min-width: 0; border: 0; border-radius: 15px; color: var(--text); background: var(--tint); box-shadow: inset 0 1px 0 #ffffffa3; }
+.base-group[data-base-group="absolute"] { --tint: var(--lilac); --text: #44366d; }
+.base-group[data-base-group="exponential-log"] { --tint: var(--mint); --text: #28503f; }
+.base-group[data-base-group="trigonometric"] { --tint: var(--blue); --text: #28486a; }
+.group-caption { display: flex; justify-content: space-between; align-items: center; gap: 4px; margin-bottom: 7px; font-size: 10px; font-weight: 600; }
+.group-caption svg { width: 18px; height: 18px; opacity: .8; }
+.group-options { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.base-choice { position: relative; display: flex; align-items: center; justify-content: center; min-height: 32px; padding: 4px; border-radius: 9px; background: #ffffff73; font: 13px/1.4 "Cambria Math", "Microsoft YaHei", serif; white-space: nowrap; cursor: pointer; transition: background .25s var(--ease), transform .25s var(--ease), box-shadow .25s var(--ease); }
+.base-choice:hover { background: #ffffffb8; transform: translateY(-1px); }
+.base-choice:has(input:checked) { background: var(--text); color: white; box-shadow: 0 3px 12px #18243b1a; }
+.base-choice:has(input:focus-visible) { outline: 3px solid var(--text); outline-offset: 2px; }
+.input-shell { background: #96d9bc22; }
+.input-card { background: var(--mint); color: #203f34; }
+.input-card .section-index { background: #284e3b14; color: #345346; }
+.input-card .heading-hint { color: #456453; }
+.clear-button { display: flex; align-items: center; gap: 7px; padding: 3px 4px 3px 10px; border: 0; border-radius: 24px; background: #ecfff47a; color: #294a3b; font-size: 11px; }
+.clear-button .button-icon { width: 24px; height: 24px; display: grid; place-items: center; background: #284e3b12; border-radius: 50%; transition: transform .3s var(--ease); }
+.clear-button:hover .button-icon { transform: rotate(-14deg); }
+.input-bezel { padding: 4px; background: #213e3210; border-radius: 15px; }
+.math-input-row { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 11px; min-height: 49px; background: #f3fff7; box-shadow: inset 0 1px 1px #ffffff; }
+.input-prefix { color: #48705a; font: italic 18px "Cambria Math", serif; white-space: nowrap; }
+#mathField { display: flex; align-items: center; flex: 1; min-width: 0; min-height: 25px; overflow-x: auto; }
+#mathField.mq-editable-field, #mathField .mq-math-mode, #mathField .mq-editable-field { color: #254c3a; border: 0; background: transparent; box-shadow: none; font-size: 17px; }
+#mathField.mq-focused { box-shadow: none; }
+#mathField:focus-within { outline: 2px solid #548b71; outline-offset: 4px; border-radius: 3px; }
+.mq-cursor { border-color: #254c3a !important; }
+.mq-empty { background: #28654918 !important; }
+.kb-toggle { width: 32px; height: 32px; flex: none; display: grid; place-items: center; border: 0; border-radius: 10px; background: #dfefe5; color: #264d3b; font-size: 20px; }
+.kb-toggle:hover, .kb-toggle.kb-active { background: #254c3a; color: #effff4; }
+#formulaPreview { margin-top: 11px; padding: 4px 2px; min-height: 30px; overflow-x: auto; text-align: center; font-size: 13px; color: #234c39; }
+#parseError { margin-top: 8px; font-size: 12px; line-height: 1.7; color: #80372a; }
+.steps-card { background: #233047; }
+.steps-card .section-index { background: #ffbf8518; color: #ffd0a4; }
+.steps-card h2 { color: #ffdbbb; }
+#stepList { display: flex; flex-direction: column; gap: 7px; margin: 0; padding: 0; list-style: none; counter-reset: steps; }
+#stepList li { position: relative; min-height: 52px; padding: 10px 11px 10px 43px; border-radius: 13px; border: 0; background: #ffffff06; box-shadow: inset 0 1px 0 #ffffff08; cursor: pointer; counter-increment: steps; transition: background .3s var(--ease), transform .3s var(--ease); }
+#stepList li::before { content: counter(steps, decimal-leading-zero); position: absolute; top: 11px; left: 10px; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; color: #d3cce8; background: #c6b6e91a; font-size: 10px; }
+#stepList li:nth-child(2)::before { background: #a9e5cd1a; color: #c0f2dd; }
+#stepList li:nth-child(3)::before { background: #ffc08f1a; color: #ffd7b6; }
+#stepList li:nth-child(4)::before { background: #9fcfff1a; color: #c0e1ff; }
+#stepList li:hover { background: #ffffff0c; transform: translateX(2px); }
+#stepList li.step-active { background: #ffdcbb13; box-shadow: inset 3px 0 0 #f4be8c; }
+#stepList li > div:first-child { color: #f2f5fd; font-size: 13px; font-weight: 600; }
+#stepList li > div + div { color: #bac8dc; font-size: 12px; margin-top: 3px; line-height: 1.7; }
+#stepList:empty::after { content: '输入目标函数后，在这里查看变换步骤'; color: #c1cce0; font-size: 12px; padding: 8px 2px; }
+.transport-card { background: var(--lilac); color: #3b315b; }
+.transport-card .section-index { color: #50446f; background: #43356012; }
+.transport-controls { display: grid; grid-template-columns: 1fr 1.4fr 1fr 1fr; gap: 7px; }
+.ctrl-btn { min-height: 42px; border: 0; border-radius: 30px; background: #f7f4ff9c; color: #453960; font-size: 16px; }
+.ctrl-btn:hover:not(:disabled) { background: #fff; box-shadow: 0 5px 18px #51436d14; transform: translateY(-1px); }
+#btnPlay { color: #fff; background: #4e416f; }
+#btnPlay:hover { background: #3e325b; }
+.speed-row { margin-top: 13px; display: flex; align-items: center; gap: 11px; font-size: 11px; }
+#speedSlider { min-width: 0; width: 100%; flex: 1; accent-color: #584475; height: 18px; }
+#speedLabel { min-width: 31px; font-variant-numeric: tabular-nums; }
+.stage-shell { min-width: 0; min-height: 0; padding: 6px; border-radius: 29px; background: #ffffff08; box-shadow: inset 0 1px 0 #ffffff26; }
+.stage-core { height: 100%; display: flex; flex-direction: column; overflow: hidden; border-radius: 23px; background: #131f34; box-shadow: inset 0 1px 0 #ffffff0b; }
+.stage-topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 19px 23px 16px; flex: none; }
+.stage-eyebrow { font-size: 9px; color: #a6b7d2; letter-spacing: .21em; }
+.stage-title { margin-top: 2px; font-size: 18px; font-weight: 550; letter-spacing: .05em; }
+.stage-legend { display: flex; align-items: center; gap: 16px; font-size: 11px; color: #bdcce1; }
+.stage-legend span { display: flex; align-items: center; gap: 6px; }
+.legend-line { display: inline-block; width: 20px; height: 0; border-top: 2px solid var(--curve); }
+.legend-line.base { border-top: 2px dashed #a4b2c7; }
+.plot-area { position: relative; min-height: 230px; flex: 1; margin: 0 12px; border-radius: 18px; overflow: hidden; background: radial-gradient(ellipse at 50% 65%, #1c31483b, transparent 65%), #101b2e; box-shadow: inset 0 0 0 1px #a4b9de12; }
+#plot { display: block; width: 100%; height: 100%; }
+.plot-caption { position: absolute; left: 16px; bottom: 13px; margin: 0; padding: 4px 9px; border-radius: 20px; color: #a5b8d1; background: #101b2ee8; font-size: 10px; pointer-events: none; }
+.data-dock { flex: none; padding: 16px 17px 17px; }
+.dock-heading { display: flex; align-items: center; gap: 7px; margin: 0 0 9px 3px; color: #cad8ec; font-size: 11px; font-weight: 500; }
+.dock-heading::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #b9e9d4; }
+.data-grid { display: grid; grid-template-columns: minmax(0,1.25fr) minmax(0,1fr) minmax(0,1.15fr); gap: 9px; }
+.data-tile { min-width: 0; padding: 4px; border-radius: 16px; background: #ffffff09; box-shadow: inset 0 1px 0 #ffffff26; }
+.data-tile-core { height: 100%; min-height: 82px; border-radius: 12px; padding: 11px 13px; color: #293d56; background: var(--blue); box-shadow: inset 0 1px 0 #ffffffa6; }
+.data-tile:nth-child(2) .data-tile-core { color: #5c3d2a; background: var(--peach); }
+.data-tile:nth-child(3) .data-tile-core { color: #3f365e; background: var(--lilac); }
+.data-label { margin-bottom: 6px; color: inherit; font-size: 10px; }
+.data-value { font-size: 13px; font-weight: 600; overflow-x: auto; }
+#dataExpr { font-size: 12px; }
+.mouse-readout { display: flex; justify-content: space-between; gap: 8px; margin: 10px 3px 0; font-size: 10px; color: #afc1d9; font-variant-numeric: tabular-nums; }
+.kb-popup { position: fixed; z-index: 20; width: 560px; max-width: calc(100vw - 24px); overflow-x: auto; padding: 10px; border-radius: 23px; background: #22334cf5; box-shadow: inset 0 1px 0 #ffffff32, 0 18px 60px #0a244440; backdrop-filter: blur(18px); }
+.kb-zones { display: flex; gap: 7px; }
+.kb-num, .kb-func, .kb-act { display: grid; gap: 4px; padding: 5px; border-radius: 15px; }
+.kb-num { flex: 4; grid-template-columns: repeat(4,1fr); background: #ffddbf12; }
+.kb-func { flex: 4; grid-template-columns: repeat(4,1fr); background: #c5efd912; }
+.kb-act { flex: 2; grid-template-columns: repeat(2,1fr); background: #ddd4ff12; }
+.kb-key { min-height: 39px; padding: 7px 3px; border: 0; border-radius: 9px; color: #f5f5ff; background: #ffffff0e; font-size: 13px; }
+.kb-key:hover { background: #ffffff23; }
+.kb-num .kb-accent { color: #ffddbf; }
+.kb-func .kb-key { color: #ccf4e0; }
+.kb-act .kb-key { color: #eadfff; }
+@keyframes settle { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.reveal-wait { opacity: 0; transform: translateY(14px); }
+.reveal-wait.is-visible { animation: settle .85s var(--ease) both; }
+.input-shell { animation-delay: .06s; }
+.steps-shell { animation-delay: .12s; }
+.transport-shell { animation-delay: .18s; }
+.stage-shell { animation-delay: .08s; }
+@media (min-width: 1500px) {
+    .workspace { grid-template-columns: 390px minmax(0,1fr); gap: 20px; }
+    .control-card { padding: 20px; }
+    .base-choice { min-height: 36px; font-size: 14px; }
+}
+@media (min-width: 768px) and (max-height: 850px) {
+    .control-card { padding: 12px; }
+    .card-heading { margin-bottom: 9px; }
+    .base-group { padding: 7px; }
+    .group-caption { margin-bottom: 4px; }
+    .base-choice { min-height: 26px; padding: 3px; line-height: 1.25; }
+    .math-input-row { min-height: 43px; padding: 7px 9px; }
+    #formulaPreview { min-height: 24px; margin-top: 6px; padding: 2px; }
+    .transport-card .card-heading { margin-bottom: 9px; }
+    .speed-row { margin-top: 8px; }
+}
+@media (max-width: 1000px) and (min-width: 768px) {
+    .workspace { grid-template-columns: 310px minmax(0,1fr); margin-inline: 12px; gap: 10px; }
+    .app-header { margin-inline: 12px; }
+    .stage-topbar { padding: 17px 15px; flex-wrap: wrap; }
+    .data-grid { grid-template-columns: 1fr 1fr; }
+    .data-tile:first-child { grid-column: 1/-1; }
+    .data-tile-core { min-height: 65px; }
+    .stage-title { font-size: 16px; }
+    .header-note > span:first-child { display: none; }
+}
+@media (max-width: 767px) {
+    .app-header { height: 66px; margin: 12px 12px 14px; padding-right: 12px; }
+    .brand { gap: 9px; } .brand-mark { width: 42px; height: 42px; }
+    h1 { font-size: 16px; letter-spacing: .02em; } .brand-eyebrow { font-size: 8px; }
+    .header-note { display: none; }
+    .workspace { height: auto; min-height: 0; margin: 0 12px 22px; display: flex; flex-direction: column; gap: 16px; }
+    .stage-shell { order: -1; width: 100%; }
+    .stage-core { height: auto; }
+    .stage-topbar { padding: 15px 13px; flex-wrap: wrap; gap: 9px; }
+    .stage-title { font-size: 16px; }
+    .stage-legend { font-size: 10px; gap: 10px; }
+    .plot-area { flex: none; height: clamp(270px, 48vh, 390px); margin: 0 6px; }
+    .data-dock { padding: 13px 9px; }
+    .data-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .data-tile:first-child { grid-column: 1/-1; }
+    .data-tile-core { min-height: 65px; padding: 10px; }
+    .data-value { font-size: 12px; }
+    .controls { display: flex; flex-direction: column; gap: 12px; }
+    .control-scroll { display: contents; }
+    .control-card { padding: 17px; }
+    .base-choice { min-height: 40px; padding-inline: 1px; font-size: clamp(12px,3.45vw,14px); }
+    .group-caption { font-size: 12px; }
+    .kb-key { min-height: 40px; font-size: 12px; }
+    .kb-zones { min-width: 300px; }
+    .kb-popup { max-width: calc(100vw - 16px); padding: 6px; }
+    .transport-controls .ctrl-btn { min-height: 46px; }
+    #stepList li > div:first-child { font-size: 13px; }
+    #stepList li > div + div { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .reveal-wait { opacity: 1; transform: none; }
+}
+
+    </style>
+</head>
+
+
+<body>
+    <header class="app-header">
+        <div class="brand">
+            <span class="brand-mark"><svg width="31" height="31" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18c4 0 4-12 9-12s5 12 9 12M3 21V3M3 21h18"/></svg></span>
+            <div><div class="brand-eyebrow">FUNCTION MORPH / 函数实验室</div><h1>函数图像变换演示器</h1></div>
+        </div>
+        <div class="header-note"><span>从一个函数，看见每一步变化</span><span class="header-pill">高中数学 · 图像变换</span></div>
+    </header>
+    <main class="workspace">
+        <aside class="controls" aria-label="函数与动画设置">
+            <div class="control-scroll">
+            <div class="card-shell"><section class="control-card">
+                <div class="card-heading"><div class="heading-title"><span class="section-index">01</span><h2>选择基本函数</h2></div><span class="heading-hint">从这里出发</span></div>
+                <div class="grid grid-cols-2" id="baseFuncGroup"><fieldset class="base-group" data-base-group="power" aria-label="幂函数"><div class="group-caption"><span>幂函数</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18c5 0 5-12 8-12s3 12 8 12M4 21h16"/></svg></div><div class="group-options grid-cols-2"><label class="base-choice"><input type="radio" name="baseFunc" value="x" class="sr-only" /><span>y = x</span></label><label class="base-choice"><input type="radio" name="baseFunc" value="x2" class="sr-only" checked/><span>y = x²</span></label><label class="base-choice"><input type="radio" name="baseFunc" value="x3" class="sr-only" /><span>y = x³</span></label></div></fieldset><fieldset class="base-group" data-base-group="absolute" aria-label="绝对值"><div class="group-caption"><span>绝对值</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 5 8 14 8-14"/></svg></div><div class="group-options grid-cols-2"><label class="base-choice"><input type="radio" name="baseFunc" value="abs" class="sr-only" /><span>y = |x|</span></label></div></fieldset><fieldset class="base-group" data-base-group="exponential-log" aria-label="指数 / 对数"><div class="group-caption"><span>指数 / 对数</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19c11 0 14-5 16-15M4 21h16"/></svg></div><div class="group-options grid-cols-2"><label class="base-choice"><input type="radio" name="baseFunc" value="exp" class="sr-only" /><span>y = eˣ</span></label><label class="base-choice"><input type="radio" name="baseFunc" value="log" class="sr-only" /><span>y = ln x</span></label></div></fieldset><fieldset class="base-group" data-base-group="trigonometric" aria-label="三角函数"><div class="group-caption"><span>三角函数</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12c4-12 6-12 10 0s6 12 10 0"/></svg></div><div class="group-options grid-cols-2"><label class="base-choice"><input type="radio" name="baseFunc" value="sin" class="sr-only" /><span>y = sin x</span></label><label class="base-choice"><input type="radio" name="baseFunc" value="cos" class="sr-only" /><span>y = cos x</span></label></div></fieldset></div>
+            </section></div>
+            <div class="card-shell input-shell"><section class="control-card input-card">
+                <div class="card-heading"><div class="heading-title"><span class="section-index">02</span><h2>输入目标函数</h2></div>
+                    <button id="btnClearInput" type="button" class="clear-button" title="清空目标函数" aria-label="清空目标函数">清空<span class="button-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5H5v4M5 5l5 5M5 5a8 8 0 1 1-1 10"/></svg></span></button>
+                </div>
+                <div class="input-bezel"><div class="math-input-row">
+                    <span class="input-prefix">y =</span><span id="mathField"></span>
+                    <button id="kbToggle" type="button" class="kb-toggle" aria-label="切换数学键盘" title="切换数学键盘">⌨</button>
+                </div></div>
+                <input id="targetInput" type="hidden" value="-2(x-1)^2+3" />
+                <div id="formulaPreview" aria-live="polite"></div>
+                <div id="parseError" class="hidden" role="status"></div>
+            </section></div>
+            <div class="card-shell steps-shell"><section class="control-card steps-card">
+                <div class="card-heading"><div class="heading-title"><span class="section-index">03</span><h2>变换步骤</h2></div><span class="heading-hint">点击步骤查看</span></div>
+                <ol id="stepList"></ol>
+            </section></div>
+            </div>
+            <div class="card-shell transport-shell"><section class="control-card transport-card">
+                <div class="card-heading"><div class="heading-title"><span class="section-index">04</span><h2>播放变换</h2></div></div>
+                <div class="transport-controls">
+                    <button id="btnPrev" class="ctrl-btn" title="上一步" aria-label="上一步">◀</button>
+                    <button id="btnPlay" class="ctrl-btn" title="播放/暂停" aria-label="播放或暂停连续演示">▶</button>
+                    <button id="btnNext" class="ctrl-btn" title="下一步" aria-label="下一步">▶|</button>
+                    <button id="btnReplay" class="ctrl-btn" title="重播" aria-label="重新播放">↺</button>
+                </div>
+                <div class="speed-row"><span>速度</span><input id="speedSlider" type="range" min="0.5" max="2" step="0.1" value="1" title="动画速度" aria-label="动画速度" /><span id="speedLabel">1.0x</span></div>
+            </section></div>
+        </aside>
+        <section class="stage-shell" aria-label="函数图像工作区"><div class="stage-core">
+            <div class="stage-topbar"><div><div class="stage-eyebrow">THE TRANSFORMATION</div><div class="stage-title">让变化，有迹可循。</div></div>
+                <div class="stage-legend"><span><i class="legend-line base"></i>基本函数</span><span><i class="legend-line"></i>当前曲线</span></div>
+            </div>
+            <div class="plot-area"><canvas id="plot" role="img" aria-label="基本函数与变换曲线；解析式和步骤在周围面板中显示"></canvas><p class="plot-caption">滚轮缩放 · 拖动画布平移</p></div>
+            <div class="data-dock"><h3 class="dock-heading">目标函数信息</h3><div class="data-grid">
+                <div class="data-tile"><div class="data-tile-core"><div class="data-label">解析式</div><div id="dataExpr" class="data-value"></div></div></div>
+                <div class="data-tile"><div class="data-tile-core"><div class="data-label" id="vertexLabel">顶点</div><div id="dataVertex" class="data-value"></div></div></div>
+                <div class="data-tile"><div class="data-tile-core"><div class="data-label">对称轴 / 性质</div><div id="dataAxis" class="data-value"></div></div></div>
+            </div><div class="mouse-readout"><span>画布读数</span><span id="dataMouse">—</span></div></div>
+        </div></section>
+    </main>
+    <div id="kbPopup" class="kb-popup hidden" role="group" aria-label="数学键盘"><div id="mathKeyboard"></div></div>
+
+    <script>
+    // =====================================================================
+    // 配置区：集中管理颜色、网格、动画时长等常量，避免魔法数字散落
+    // =====================================================================
+    const CONFIG = {
+        bg: '#101b2e',                 // 画布背景色
+        gridMinor: 'rgba(156,182,219,0.11)', // 次网格线颜色（暗色几何线）
+        gridMajor: 'rgba(120,217,221,0.18)',  // 主网格线颜色（轻微荧光绿）
+        axis: 'rgba(120,217,221,0.65)',       // 坐标轴颜色（冰蓝）
+        baseCurve: 'rgba(198,211,231,0.52)', // 母函数参照虚线颜色（半透明白）
+        neon: '#ff89bb',                // 目标/当前曲线主色（霓虹粉）
+        neonAccent: '#9de4d2',          // 强调色（冰蓝）
+        glowBlur: 10,                   // 霓虹外发光模糊半径
+        stepDuration: 1200,             // 每步动画基准时长（毫秒）
+        defaultScale: 40,               // 默认缩放：每个单位对应的像素数
+        minScale: 12,                   // 最小缩放
+        maxScale: 160,                  // 最大缩放
+        plotStepPx: 2                   // 曲线采样步长（像素），越小越平滑
+    };
+
+    // =====================================================================
+    // 虚拟数学键盘按键定义（严格按第二张 Desmos 图分区与排列）
+    //   分三区：num 数字区(4列) / func 函数区(4列) / act 动作区(2列)
+    //   mq: [方法, 参数] 描述点击后对 MathQuill 的操作
+    //       'type'      → typedText(参数)：按字符键入（自动识别函数名/括号配对）
+    //       'cmd'       → cmd(参数)：插入命令/模板（如 ^、\sqrt、\nthroot、/ 分数、| 绝对值）
+    //       'write'     → write(参数)：写入一段 LaTeX
+    //       'keystroke' → keystroke(参数)：模拟按键（Backspace / Left / Right）
+    //   action: 'confirm' 等自定义动作；accent: 霓虹粉点缀；span/rowSpan: 跨列/跨行
+    // =====================================================================
+    const KEYBOARD_KEYS = {
+        // 数字区（4 列 4 行）：7 8 9 + / 4 5 6 − / 1 2 3 × / 0(跨2列) . ÷
+        num: [
+            { label: '7', mq: ['type', '7'] }, { label: '8', mq: ['type', '8'] }, { label: '9', mq: ['type', '9'] }, { label: '+', mq: ['type', '+'], accent: true },
+            { label: '4', mq: ['type', '4'] }, { label: '5', mq: ['type', '5'] }, { label: '6', mq: ['type', '6'] }, { label: '−', mq: ['type', '-'], accent: true },
+            { label: '1', mq: ['type', '1'] }, { label: '2', mq: ['type', '2'] }, { label: '3', mq: ['type', '3'] }, { label: '×', mq: ['cmd', '\\cdot'], accent: true },
+            { label: '0', mq: ['type', '0'], span: 2 }, { label: '.', mq: ['type', '.'] }, { label: '÷', mq: ['cmd', '\\div'], accent: true }
+        ],
+        // 函数区（4 列 4 行）：sin cos tan x / e π log ln / 幂 n次根 √ x^▯ / |▯| ( ) 分数
+        func: [
+            { label: 'sin', mq: ['type', 'sin('] }, { label: 'cos', mq: ['type', 'cos('] }, { label: 'tan', mq: ['type', 'tan('] }, { label: 'x', mq: ['type', 'x'] },
+            { label: 'e', mq: ['type', 'e'] }, { label: 'π', mq: ['cmd', '\\pi'] }, { label: 'log', mq: ['type', 'log('] }, { label: 'ln', mq: ['type', 'ln('] },
+            { label: '▢^▢', mq: ['cmd', '^'] }, { label: 'ⁿ√', mq: ['cmd', '\\nthroot'] }, { label: '√', mq: ['cmd', '\\sqrt'] }, { label: 'x^▢', mq: ['type', 'x^'] },
+            { label: '|▢|', mq: ['cmd', '|'] }, { label: '(', mq: ['type', '('] }, { label: ')', mq: ['type', ')'] }, { label: '▢/▢', mq: ['cmd', '/'] }
+        ],
+        // 动作区（2 列）：⌫(跨2列) / ↵(跨2列且跨2行) / ← →
+        act: [
+            { label: '⌫', mq: ['keystroke', 'Backspace'], accent: true, span: 2 },
+            { label: '↵', action: 'confirm', accent: true, span: 2, rowSpan: 2 },
+            { label: '←', mq: ['keystroke', 'Left'], accent: true }, { label: '→', mq: ['keystroke', 'Right'], accent: true }
+        ]
+    };
+
+    // 缓动函数 easeInOutQuad：t∈[0,1]，先加速后减速，动画更丝滑
+    function easeInOutQuad(t) {
+        // 前半段二次加速，后半段二次减速
+        return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    }
+
+    // 数值近似相等判断（浮点误差容忍）
+    function approxEqual(a, b, eps = 1e-6) {
+        return Math.abs(a - b) < eps; // 差值小于阈值即视为相等
+    }
+
+    // 数值一阶导数（中心差分）：用于三角函数反推相位/系数
+    function nDeriv1(fn, x, dx = 1e-3) {
+        return (fn(x + dx) - fn(x - dx)) / (2 * dx); // (f(x+δ)-f(x-δ))/2δ
+    }
+    // 数值二阶导数（中心差分）：用于三角函数由 y''=-b²(y-k) 反推角频率 b
+    function nDeriv2(fn, x, dx = 1e-3) {
+        return (fn(x + dx) - 2 * fn(x) + fn(x - dx)) / (dx * dx); // (f(x+δ)-2f(x)+f(x-δ))/δ²
+    }
+
+    // =====================================================================
+    // 基函数定义：每个基函数含求值函数 f、中文名、KaTeX latex 与类型标记 power
+    //   power 用于驱动「参数反推 fitParams」「步骤构建 buildSteps」「数据面板」的分支
+    //   统一变换模型：g(x) = a · f( b·(x − h) ) + k
+    //     a 纵向伸缩/翻转、b 横向伸缩/翻转、h 左右平移、k 上下平移
+    // =====================================================================
+    const BASE_FUNCS = {
+        x:  { name: 'x',  power: 1, latex: 'y=x',   f: (x) => x },          // 一次函数
+        x2: { name: 'x²', power: 2, latex: 'y=x^2', f: (x) => x * x },      // 二次函数
+        x3: { name: 'x³', power: 3, latex: 'y=x^3', f: (x) => x * x * x },  // 三次函数
+        abs:{ name: '|x|', power: 'abs', latex: 'y=|x|', f: (x) => Math.abs(x) }, // 绝对值函数（V 形折线）
+        exp:{ name: 'eˣ', power: 'exp', latex: 'y=e^x', f: (x) => Math.exp(x) },  // 指数函数（以 e 为底）
+        log:{ name: 'ln x', power: 'log', latex: 'y=\\ln x', f: (x) => Math.log(x) }, // 对数函数（自然对数）
+        sin:{ name: 'sin x', power: 'sin', latex: 'y=\\sin x', f: (x) => Math.sin(x) }, // 三角函数（正弦）
+        cos:{ name: 'cos x', power: 'cos', latex: 'y=\\cos x', f: (x) => Math.cos(x) }  // 三角函数（余弦）
+    };
+
+    // =====================================================================
+    // 全局状态：集中存放视图、动画、解析结果，避免散落的全局变量
+    // =====================================================================
+    const state = {
+        baseKey: 'x2',          // 当前选中的基函数键（默认 y=x²）
+        params: null,           // 解析出的标准形式参数 {a, h, k}
+        decomposable: true,     // 当前函数是否可拆解为基函数的标准变换
+        rawEval: null,          // 不可拆解时保存原函数 (x)=>y，用于静态绘制
+        compositeEvaluators: null, // 复合绝对值函数各步骤的求值器；普通变换为 null
+        steps: [],              // 变换步骤数组（每步含描述与目标参数快照）
+        snapshots: [],          // 每步完成后的参数快照（用于动画插值）
+        currentStep: -1,        // 当前已完成到的步骤索引（-1 表示尚未开始）
+        // 动画运行时状态
+        anim: {
+            running: false,     // 是否正在播放某一步动画
+            playingAll: false,  // 是否处于连续播放模式
+            startTime: 0,       // 当前步动画起始时间戳
+            from: null,         // 动画起点参数快照
+            to: null,           // 动画终点参数快照
+            fromStep: -1,       // 复合曲线动画的起始步骤索引
+            duration: CONFIG.stepDuration, // 当前步时长
+            current: null       // 当前帧实时插值出的参数（用于绘制）
+        },
+        speed: 1,               // 动画速度倍率（0.5x~2x）
+        // 视图状态（缩放与平移）
+        view: {
+            scale: CONFIG.defaultScale, // 每单位像素数
+            targetScale: CONFIG.defaultScale, // 缩放目标值（用于淡入淡出过渡）
+            originX: 0,         // 原点屏幕坐标 x（像素），初始化时居中
+            originY: 0           // 原点屏幕坐标 y（像素）
+        },
+        mouse: { x: null, y: null, inside: false }, // 鼠标在画布内的像素坐标
+        // 顶点闪烁动画相关
+        vertexFlash: { active: false, start: 0 }
+    };
+
+    // =====================================================================
+    // DOM 引用：集中获取，便于后续使用
+    // =====================================================================
+    const dom = {
+        canvas: document.getElementById('plot'),               // 画布元素
+        targetInput: document.getElementById('targetInput'),   // 函数输入框（兼显示框）
+        mathKeyboard: document.getElementById('mathKeyboard'), // 虚拟数学键盘容器（位于浮层内）
+        kbToggle: document.getElementById('kbToggle'),         // 键盘开关图标按钮
+        kbPopup: document.getElementById('kbPopup'),           // 浮层键盘容器
+        formulaPreview: document.getElementById('formulaPreview'), // 公式预览
+        parseError: document.getElementById('parseError'),     // 错误提示
+        btnClearInput: document.getElementById('btnClearInput'), // 一键清空目标函数
+        stepList: document.getElementById('stepList'),          // 步骤列表
+        btnPrev: document.getElementById('btnPrev'),            // 上一步按钮
+        btnPlay: document.getElementById('btnPlay'),            // 播放/暂停按钮
+        btnNext: document.getElementById('btnNext'),            // 下一步按钮
+        btnReplay: document.getElementById('btnReplay'),        // 重播按钮
+        speedSlider: document.getElementById('speedSlider'),    // 速度滑块
+        speedLabel: document.getElementById('speedLabel'),      // 速度数值标签
+        dataExpr: document.getElementById('dataExpr'),          // 数据面板：解析式
+        dataVertex: document.getElementById('dataVertex'),      // 数据面板：顶点
+        vertexLabel: document.getElementById('vertexLabel'),    // 数据面板：顶点标签文字
+        dataAxis: document.getElementById('dataAxis'),          // 数据面板：对称轴
+        dataMouse: document.getElementById('dataMouse')         // 数据面板：鼠标坐标
+    };
+    const ctx = dom.canvas.getContext('2d'); // 2D 绘图上下文
+
+    // =====================================================================
+    // 数学解析模块：用 math.js 解析目标表达式并反推标准形式参数 (a, h, k)
+    // 模型：g(x) = a * f(x - h) + k，其中 f 为当前基函数（横向伸缩 b=1 并入 a）
+    // =====================================================================
+
+    // 预处理用户输入：去掉前缀 y=、统一上标与减号、便于 math.js 解析
+    function sanitizeExpr(raw) {
+        let s = raw.trim();                       // 去首尾空白
+        s = s.replace(/^y\s*=\s*/i, '');          // 去掉可能的 "y=" 前缀
+        s = s.replace(/²/g, '^2').replace(/³/g, '^3'); // 上标转 ^2 / ^3
+        s = s.replace(/[−–—]/g, '-');             // 各种 Unicode 减号转普通减号
+        s = s.replace(/×/g, '*').replace(/·/g, '*'); // 乘号统一为 *
+        return s;                                  // 返回清洗后的表达式
+    }
+
+    // 用 math.js 编译表达式，返回一个 (x)=>y 的求值函数；失败抛出异常
+    function compileExpr(expr) {
+        const node = math.parse(expr);            // 解析为表达式树（隐式乘法如 2(x-1) 受支持）
+        const code = node.compile();              // 编译以加速反复求值
+        return (x) => code.evaluate({ x });       // 返回闭包：给定 x 求 y
+    }
+
+    // 根据基函数指数，通过采样反推标准形式参数 {a, h, k}
+    // 思路：把 g(x) 视为多项式，用有限差分求系数后换算到顶点式
+    function fitParams(baseKey, evalFn) {
+        const power = BASE_FUNCS[baseKey].power;  // 基函数次数
+        if (power === 'abs') {
+            // 绝对值族 g(x)=a|x-h|+k：左右两支是斜率为 ±a 的直线，交点即顶点 (h,k)
+            const slopeR = (evalFn(10) - evalFn(5)) / 5;   // 右支斜率（远离顶点处采样）即系数 a
+            const slopeL = (evalFn(-5) - evalFn(-10)) / 5; // 左支斜率为 -a
+            const a = slopeR;                              // 右支斜率即纵向伸缩/翻转系数 a
+            const bR = evalFn(5) - slopeR * 5;             // 右支直线截距
+            const bL = evalFn(-5) - slopeL * (-5);         // 左支直线截距
+            // 两支直线交点横坐标即顶点 h（两斜率相等说明退化为直线，置 h=0 待后续误差校验剔除）
+            const h = approxEqual(slopeR - slopeL, 0) ? 0 : (bL - bR) / (slopeR - slopeL);
+            const k = evalFn(h);                           // 顶点纵坐标 = g(h)
+            return { a, h, k, b: 1 };                       // 返回标准变换参数（幂/绝对值族无横向伸缩，b=1）
+        }
+        if (power === 'exp') {
+            // 指数族 g(x)=a·e^(b·x)+k（横向平移与 a 冗余，故 h=0）
+            // 取三点等距采样 x=0,1,2：令 r=e^b，则 (g2-g1)/(g1-g0)=r，逐步解出 a,b,k
+            const g0 = evalFn(0), g1 = evalFn(1), g2 = evalFn(2); // 等距采样
+            const r = (g2 - g1) / (g1 - g0);      // 公比 r = e^b（非指数函数时会得到异常值，后续 fitError 兜底）
+            const b = Math.log(r);                // 角率 b = ln(r)
+            const a = (g1 - g0) / (r - 1);        // 纵向伸缩系数 a
+            const k = g0 - a;                     // 水平渐近线 y=k（x→-∞ 时的极限）
+            return { a, h: 0, k, b };             // 指数族无独立横向平移，h=0
+        }
+        if (power === 'log') {
+            // 对数族 g(x)=a·ln(x-h)+k（底数变化并入 a，故 b=1；定义域 x>h）
+            // 先在网格上找到最小的有定义采样点，从而把竖直渐近线 h 夹在半个步长内
+            let xlo = null;                       // 定义域左端（首个有限采样点）
+            for (let x = -19.5; x <= 20; x += 0.5) { if (isFinite(evalFn(x))) { xlo = x; break; } }
+            if (xlo === null) return { a: NaN, h: NaN, k: NaN, b: 1 }; // 全程无定义→交由 fitError 兜底
+            const x1 = xlo + 1, x2 = xlo + 3, x3 = xlo + 7; // 域内三个稳定探测点
+            const g1 = evalFn(x1), g2 = evalFn(x2), g3 = evalFn(x3); // 对应函数值
+            const Rdata = (g2 - g1) / (g3 - g2);  // 实测差分比
+            // 模型差分比 R(h)=ln((x2-h)/(x1-h)) / ln((x3-h)/(x2-h))，关于 h 单调，二分求解
+            const Rmodel = (hh) => Math.log((x2 - hh) / (x1 - hh)) / Math.log((x3 - hh) / (x2 - hh));
+            let lo = xlo - 0.5, hi = xlo - 1e-6;  // 渐近线 h 必落在 [xlo-0.5, xlo)
+            const fLo = Rmodel(lo) - Rdata, fHi = Rmodel(hi) - Rdata; // 区间端点残差
+            let h;                                // 求得的渐近线横坐标
+            if (Math.abs(fLo) < 1e-10) {
+                h = lo;                           // 渐近线恰好落在扫描区间左端点
+            } else if (Math.abs(fHi) < 1e-10) {
+                h = hi;                           // 渐近线恰好落在扫描区间右端点
+            } else if (isFinite(fLo) && isFinite(fHi) && fLo * fHi < 0) {
+                for (let i = 0; i < 80; i++) {    // 80 次二分足够收敛到机器精度
+                    const mid = (lo + hi) / 2; const fm = Rmodel(mid) - Rdata; // 中点残差
+                    if (fLo * fm <= 0) hi = mid; else lo = mid; // 按符号收缩区间
+                }
+                h = (lo + hi) / 2;                // 取区间中点为解
+            } else {
+                h = xlo - 0.25;                   // 无法夹逼时给个保守估计（最终由 fitError 决定是否采纳）
+            }
+            const a = (g2 - g1) / Math.log((x2 - h) / (x1 - h)); // 纵向伸缩系数 a
+            const k = g1 - a * Math.log(x1 - h);  // 纵向平移 k
+            return { a, h, k, b: 1 };             // 对数族横向伸缩并入 a，b=1
+        }
+        if (power === 'sin' || power === 'cos') {
+            // 三角族 g(x)=a·f(b·(x-h))+k（f 为 sin 或 cos）：扫描求中线与振幅，再由二阶导反推角频率与相位
+            // sin 与 cos 同样满足 y''=-b²(y-k)，故振幅/中线/角频率求法一致，仅相位分量公式不同
+            let M = -Infinity, m = Infinity;      // 全局最大/最小值
+            for (let x = -20; x <= 20; x += 0.05) { const y = evalFn(x); if (!isFinite(y)) continue; if (y > M) M = y; if (y < m) m = y; }
+            const k = (M + m) / 2;                // 中线（垂直平移）= (max+min)/2
+            const a = (M - m) / 2;                // 振幅 a = (max-min)/2（取正，翻转并入相位）
+            let xExt = 0, maxAbs = -1;            // 距中线最远点（≈极值处，幅值≈±1 最稳定）
+            for (let x = -20; x <= 20; x += 0.05) { const y = evalFn(x); if (!isFinite(y)) continue; const d = Math.abs(y - k); if (d > maxAbs) { maxAbs = d; xExt = x; } }
+            const y2 = nDeriv2(evalFn, xExt);     // 极值处二阶导
+            const b = Math.sqrt(Math.abs(-y2 / (evalFn(xExt) - k))); // 由 y''=-b²(y-k) 解出角频率 b
+            const val = (evalFn(xExt) - k) / a;   // 归一化幅值 (g-k)/a
+            const d1 = nDeriv1(evalFn, xExt);     // 极值处一阶导（用于拆出正交分量）
+            let s, c;                             // 相位角的 sin/cos 分量
+            if (power === 'sin') {                // sin 基：g=a·sin(θ)+k → sin(θ)=(g-k)/a，cos(θ)=g'/(a·b)
+                s = val; c = d1 / (a * b);
+            } else {                              // cos 基：g=a·cos(θ)+k → cos(θ)=(g-k)/a，sin(θ)=-g'/(a·b)
+                c = val; s = -d1 / (a * b);
+            }
+            let theta = Math.atan2(s, c);         // 相位角 b(x-h)
+            let h = xExt - theta / b;             // 解出相位平移 h
+            const P = 2 * Math.PI / b;            // 周期 P=2π/b
+            h = h - Math.round(h / P) * P;        // 把 h 归一到 (-P/2, P/2]，避免显示成超大平移
+            return { a, h, k, b };                // 返回振幅/相位/中线/角频率
+        }
+        if (power === 1) {
+            // 一次函数：g(x)=A·x+B；横向平移对直线冗余，故 h=0，k=B
+            const B = evalFn(0);                  // 截距
+            const A = evalFn(1) - evalFn(0);      // 斜率
+            return { a: A, h: 0, k: B, b: 1 };    // 纵向伸缩 A、纵向平移 B（直线无横向伸缩，b=1）
+        } else if (power === 2) {
+            // 二次函数：g(x)=A·x²+B·x+C，用三点采样求系数
+            const C = evalFn(0);                  // 常数项 = g(0)
+            const A = (evalFn(1) + evalFn(-1) - 2 * C) / 2; // 二次项系数
+            const B = (evalFn(1) - evalFn(-1)) / 2;          // 一次项系数
+            const h = -B / (2 * A);               // 顶点横坐标 = -B/(2A)
+            const k = C - (B * B) / (4 * A);      // 顶点纵坐标
+            return { a: A, h, k, b: 1 };          // a 即开口/伸缩系数（二次函数无横向伸缩，b=1）
+        } else {
+            // 三次函数：g(x)=A·x³+B·x²+C·x+D，用四点采样求系数
+            const D = evalFn(0);                  // 常数项 = g(0)
+            const g1 = evalFn(1), gm1 = evalFn(-1), g2 = evalFn(2); // 采样点
+            // 由 g(1)、g(-1) 消去得到组合，逐步解出 A、B、C
+            const A = (g2 - 3 * g1 + 3 * D - gm1) / 6; // 三次项系数（标准有限差分）
+            const B = (g1 + gm1 - 2 * D) / 2;          // 二次项系数
+            const C = (g1 - gm1) / 2 - A;              // 一次项系数
+            // 标准形式 a(x-h)³+k 中无二次项时 h=-B/(3A)；按此近似求拐点
+            const h = approxEqual(A, 0) ? 0 : -B / (3 * A); // 拐点横坐标
+            const k = evalFn(h);                   // 拐点纵坐标 = g(h)
+            return { a: A, h, k, b: 1 };           // a 为伸缩/翻转系数（三次函数无横向伸缩，b=1）
+        }
+    }
+
+    // =====================================================================
+    // 变换链构建模块：根据参数与基函数，按教学顺序生成有序步骤
+    // 顺序：本体现身 → 左右平移(h) → 纵向伸缩+翻转(a) → 上下平移(k)
+    // =====================================================================
+    function buildSteps(baseKey, params) {
+        const { a, h, k, b } = params;            // 解构参数（含横向伸缩 b）
+        const power = BASE_FUNCS[baseKey].power;   // 基函数类型
+        const steps = [];                          // 步骤数组
+
+        // 第一步：本体现身（绘制基函数）。drawn 表示绘制进度参数
+        steps.push({
+            title: '本体现身',
+            desc: `荧光线平滑绘制出标准函数 ${BASE_FUNCS[baseKey].latex}`,
+            // 该步完成后的完整参数快照：未平移、横纵系数为1、未升降、绘制完成
+            snapshot: { ha: 0, ba: 1, aa: 1, ka: 0, drawn: 1 }
+        });
+
+        // 第二步：左右平移（仅当 h 不为 0；一次函数/指数函数 h 恒为 0 故跳过）
+        if (!approxEqual(h, 0)) {
+            const dir = h > 0 ? '右' : '左';        // h>0 向右、h<0 向左
+            steps.push({
+                title: '左右平移',
+                desc: `左加右减：x → (x${h > 0 ? '-' : '+'}${formatNum(Math.abs(h))})，向${dir}平移 ${formatNum(Math.abs(h))} 个单位`,
+                snapshot: { ha: h, ba: 1, aa: 1, ka: 0, drawn: 1 } // 平移到位，其余不变
+            });
+        }
+
+        // 第三步：横向伸缩/翻转（仅当 b 不等于 1 时；幂函数族 b 恒为 1 故跳过）
+        if (!approxEqual(b, 1)) {
+            const parts = [];                       // 组合提示文字
+            if (b < 0) parts.push('系数为负：关于 y 轴翻转'); // b<0 为左右翻转
+            const absB = Math.abs(b);               // 横向伸缩倍率
+            if (!approxEqual(absB, 1)) {
+                // 横坐标变为原来的 1/b 倍：b>1 横向压缩、0<b<1 横向拉伸
+                parts.push(`横坐标${absB > 1 ? '压缩' : '拉伸'}为原来的 ${formatNum(1 / absB)} 倍`);
+            }
+            // 三角函数额外标注周期，强化教学含义（sin/cos 周期 2π/b）
+            if (power === 'sin' || power === 'cos') parts.push(`周期变为 ${formatNum(2 * Math.PI / absB)}`);
+            steps.push({
+                title: '横向伸缩',
+                desc: parts.join('；'),
+                snapshot: { ha: h, ba: b, aa: 1, ka: 0, drawn: 1 } // 应用横向系数 b
+            });
+        }
+
+        // 第四步：纵向伸缩与翻转（仅当 a 不等于 1 时）
+        if (!approxEqual(a, 1)) {
+            const parts = [];                       // 组合提示文字
+            if (a < 0) parts.push((power === 2 || power === 'abs') ? '系数为负：开口向下' : '系数为负：关于 x 轴翻转'); // 翻转说明（二次/绝对值为开口翻转）
+            const absA = Math.abs(a);               // 伸缩倍数
+            if (!approxEqual(absA, 1)) {
+                // 伸缩说明：>1 为拉伸，<1 为压缩
+                parts.push(`系数为 ${formatNum(absA)}：纵坐标${absA > 1 ? '拉伸' : '压缩'}为原来的 ${formatNum(absA)} 倍`);
+            }
+            steps.push({
+                title: '伸缩与翻转',
+                desc: parts.join('；'),
+                snapshot: { ha: h, ba: b, aa: a, ka: 0, drawn: 1 } // 应用系数 a
+            });
+        }
+
+        // 第五步：上下平移（仅当 k 不为 0 时）
+        if (!approxEqual(k, 0)) {
+            const dir = k > 0 ? '上' : '下';         // k>0 向上、k<0 向下
+            steps.push({
+                title: '上下平移',
+                desc: `上加下减：${k > 0 ? '+' : '-'}${formatNum(Math.abs(k))}，向${dir}平移 ${formatNum(Math.abs(k))} 个单位`,
+                snapshot: { ha: h, ba: b, aa: a, ka: k, drawn: 1 } // 应用上下平移 k
+            });
+        }
+
+        return steps;                               // 返回完整步骤链
+    }
+
+    // 构建 y=|a(x-h)²+k| 的复合变换步骤：外层绝对值保留，逐步改造内部二次函数
+    function buildAbsQuadraticSteps(params, targetEval) {
+        const { a, h, k } = params;
+        const steps = [];
+        const evaluators = [];
+        const push = (title, desc, evalFn) => {
+            steps.push({
+                title,
+                desc,
+                snapshot: { ha: 0, ba: 1, aa: 1, ka: 0, drawn: 1 }
+            });
+            evaluators.push(evalFn);
+        };
+
+        push('本体现身', '荧光线平滑绘制出标准函数 y=|x|', (x) => Math.abs(x));
+        push('内部函数升次', '把绝对值内部的 x 替换为 x²，得到 y=|x²|', (x) => Math.abs(x * x));
+
+        if (!approxEqual(h, 0)) {
+            const dir = h > 0 ? '右' : '左';
+            push(
+                '内部左右平移',
+                `绝对值内部：x² → (x${h > 0 ? '-' : '+'}${formatNum(Math.abs(h))})²，向${dir}平移 ${formatNum(Math.abs(h))} 个单位`,
+                (x) => Math.abs((x - h) ** 2)
+            );
+        }
+
+        if (!approxEqual(a, 1)) {
+            const parts = [];
+            if (a < 0) parts.push('内部二次函数关于 x 轴翻转');
+            if (!approxEqual(Math.abs(a), 1)) parts.push(`内部纵坐标伸缩为原来的 ${formatNum(Math.abs(a))} 倍`);
+            push('内部伸缩与翻转', parts.join('；'), (x) => Math.abs(a * (x - h) ** 2));
+        }
+
+        if (!approxEqual(k, 0)) {
+            const dir = k > 0 ? '上' : '下';
+            push(
+                '内部上下平移',
+                `绝对值内部 ${k > 0 ? '+' : '-'}${formatNum(Math.abs(k))}，向${dir}平移 ${formatNum(Math.abs(k))} 个单位后再取绝对值`,
+                (x) => Math.abs(a * (x - h) ** 2 + k)
+            );
+        }
+
+        evaluators[evaluators.length - 1] = targetEval; // 最后一步锁定用户输入，避免拟合误差
+        return { steps, evaluators };
+    }
+
+    // 识别 y=|二次函数|，并确认绝对值内部可准确拟合为 a(x-h)²+k
+    function tryBuildAbsQuadratic(expr, targetEval) {
+        if (state.baseKey !== 'abs') return null;
+        const node = math.parse(expr);
+        if (!node.isFunctionNode || node.fn.name !== 'abs' || node.args.length !== 1) return null;
+
+        const innerCode = node.args[0].compile();
+        const innerEval = (x) => innerCode.evaluate({ x });
+        const params = fitParams('x2', innerEval);
+        if (![params.a, params.h, params.k].every(isFinite) || approxEqual(params.a, 0)) return null;
+
+        let maxErr = 0;
+        let count = 0;
+        for (let x = -9; x <= 9; x += 0.5) {
+            const real = innerEval(x);
+            if (!isFinite(real)) continue;
+            const fitted = params.a * (x - params.h) ** 2 + params.k;
+            maxErr = Math.max(maxErr, Math.abs(fitted - real));
+            count++;
+        }
+        if (count < 4 || maxErr > 0.05) return null;
+
+        return { params, ...buildAbsQuadraticSteps(params, targetEval) };
+    }
+
+    // =====================================================================
+    // 坐标变换工具：数学坐标 <-> 屏幕像素坐标
+    // =====================================================================
+    function toScreenX(mx) { return state.view.originX + mx * state.view.scale; } // 数学x→像素x
+    function toScreenY(my) { return state.view.originY - my * state.view.scale; } // 数学y→像素y（y轴向下取反）
+    function toMathX(px) { return (px - state.view.originX) / state.view.scale; } // 像素x→数学x
+    function toMathY(py) { return (state.view.originY - py) / state.view.scale; } // 像素y→数学y
+
+    // 计算某组参数下的函数值：y = aa * f( ba * (x - ha) ) + ka
+    function evalTransformed(p, x) {
+        const f = BASE_FUNCS[state.baseKey].f;      // 当前基函数
+        const ba = (p.ba === undefined) ? 1 : p.ba; // 横向伸缩系数（缺省视为 1，兼容旧调用）
+        return p.aa * f(ba * (x - p.ha)) + p.ka;    // 套用横向伸缩 → 平移 → 纵向伸缩/翻转 → 升降
+    }
+
+    // =====================================================================
+    // Canvas 渲染模块
+    // =====================================================================
+
+    // 根据容器尺寸与设备像素比设置画布分辨率，避免高分屏模糊
+    function resizeCanvas() {
+        const dpr = window.devicePixelRatio || 1;   // 设备像素比
+        const rect = dom.canvas.getBoundingClientRect(); // 画布显示尺寸
+        dom.canvas.width = Math.round(rect.width * dpr);  // 物理像素宽
+        dom.canvas.height = Math.round(rect.height * dpr); // 物理像素高
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);      // 缩放上下文以匹配 dpr
+        // 若原点尚未初始化或需要居中，则把原点放在画布中心
+        state.view.originX = rect.width / 2;         // 水平居中
+        state.view.originY = rect.height / 2;        // 垂直居中
+    }
+
+    // 绘制网格与坐标轴
+    function drawGrid(w, h) {
+        const scale = state.view.scale;              // 当前缩放
+        // 动态决定网格间隔（单位），保证屏幕上网格疏密适中
+        let unit = 1;                                // 网格步长（数学单位）
+        const targetPx = 60;                         // 期望的网格像素间距
+        while (unit * scale < targetPx) unit *= 2;   // 太密则放大步长
+        while (unit * scale > targetPx * 2) unit /= 2; // 太疏则减小步长
+
+        // 计算可见数学范围
+        const xMin = toMathX(0), xMax = toMathX(w);  // 可见 x 区间
+        const yMin = toMathY(h), yMax = toMathY(0);  // 可见 y 区间
+
+        ctx.lineWidth = 1;                           // 网格线宽
+        // 绘制竖向网格线
+        for (let x = Math.ceil(xMin / unit) * unit; x <= xMax; x += unit) {
+            const sx = toScreenX(x);                 // 该网格线屏幕 x
+            ctx.strokeStyle = approxEqual(x, 0) ? CONFIG.axis : CONFIG.gridMinor; // x=0 用坐标轴色
+            ctx.beginPath();
+            ctx.moveTo(sx, 0); ctx.lineTo(sx, h);    // 从顶到底
+            ctx.stroke();
+        }
+        // 绘制横向网格线
+        for (let y = Math.ceil(yMin / unit) * unit; y <= yMax; y += unit) {
+            const sy = toScreenY(y);                 // 该网格线屏幕 y
+            ctx.strokeStyle = approxEqual(y, 0) ? CONFIG.axis : CONFIG.gridMinor; // y=0 用坐标轴色
+            ctx.beginPath();
+            ctx.moveTo(0, sy); ctx.lineTo(w, sy);    // 从左到右
+            ctx.stroke();
+        }
+
+        // 绘制坐标轴刻度数字
+        ctx.fillStyle = 'rgba(230,237,243,0.5)';     // 刻度文字颜色
+        ctx.font = '11px sans-serif';                // 刻度字体
+        ctx.textAlign = 'center';
+        for (let x = Math.ceil(xMin / unit) * unit; x <= xMax; x += unit) {
+            if (approxEqual(x, 0)) continue;         // 原点不重复标注
+            ctx.fillText(formatNum(x), toScreenX(x), toScreenY(0) + 14); // x 轴刻度
+        }
+        ctx.textAlign = 'right';
+        for (let y = Math.ceil(yMin / unit) * unit; y <= yMax; y += unit) {
+            if (approxEqual(y, 0)) continue;         // 原点不重复标注
+            ctx.fillText(formatNum(y), toScreenX(0) - 6, toScreenY(y) + 4); // y 轴刻度
+        }
+    }
+
+    // 数字格式化：去除多余小数位
+    function formatNum(n) {
+        const r = Math.round(n * 100) / 100;         // 保留两位小数
+        return Number.isInteger(r) ? String(r) : r.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+    }
+
+    // 绘制一条函数曲线
+    // p: 参数快照；style: 颜色；opts: { dash 虚线, glow 发光, drawn 绘制进度 }
+    function drawCurve(p, style, opts = {}) {
+        const w = dom.canvas.getBoundingClientRect().width;  // 画布宽
+        const dash = opts.dash || null;              // 虚线样式
+        const glow = opts.glow || false;             // 是否外发光
+        const drawn = opts.drawn !== undefined ? opts.drawn : 1; // 绘制进度（本体现身用）
+
+        ctx.save();                                  // 保存绘图状态
+        ctx.strokeStyle = style;                     // 线条颜色
+        ctx.lineWidth = glow ? 3 : 1.6;              // 发光线更粗
+        ctx.globalAlpha = opts.alpha !== undefined ? opts.alpha : 1; // 透明度（残影用）
+        if (dash) ctx.setLineDash(dash);             // 设置虚线
+        if (glow) {                                  // 霓虹外发光效果
+            ctx.shadowColor = style;                 // 阴影颜色同线条色
+            ctx.shadowBlur = CONFIG.glowBlur;        // 模糊半径
+        }
+
+        // 本体现身阶段：以基函数锚点 ha 为中心，向两侧逐渐展开绘制
+        const xMinFull = toMathX(0);                 // 可见左边界
+        const xMaxFull = toMathX(w);                 // 可见右边界
+        const halfSpan = Math.max(Math.abs(xMaxFull - p.ha), Math.abs(xMinFull - p.ha)); // 最大半跨度
+        const reveal = halfSpan * drawn;             // 当前已展开的半跨度
+
+        ctx.beginPath();                             // 开始路径
+        let started = false;                         // 是否已落笔
+        for (let px = 0; px <= w; px += CONFIG.plotStepPx) {
+            const x = toMathX(px);                   // 像素转数学 x
+            if (Math.abs(x - p.ha) > reveal) {       // 超出已展开范围则跳过（实现绘制动画）
+                started = false;                     // 断开路径
+                continue;
+            }
+            const y = evalTransformed(p, x);         // 求函数值
+            if (!isFinite(y)) { started = false; continue; } // 跳过非有限值
+            const sy = toScreenY(y);                 // 转屏幕 y
+            if (!started) { ctx.moveTo(px, sy); started = true; } // 起笔
+            else ctx.lineTo(px, sy);                 // 连线
+        }
+        ctx.stroke();                                // 描边
+        ctx.restore();                               // 恢复绘图状态
+    }
+
+    // 直接按 evalFn(x) 绘制曲线；供不可拆解静态图与复合函数动画共用
+    function drawRawCurve(evalFn, style, opts = {}) {
+        const w = dom.canvas.getBoundingClientRect().width;  // 画布宽
+        const glow = opts.glow !== false;
+        const drawn = opts.drawn !== undefined ? opts.drawn : 1;
+        const xMin = toMathX(0), xMax = toMathX(w);
+        const reveal = Math.max(Math.abs(xMin), Math.abs(xMax)) * drawn;
+        ctx.save();                                  // 保存绘图状态
+        ctx.strokeStyle = style;                     // 线条颜色
+        ctx.lineWidth = glow ? 3 : 1.6;
+        ctx.globalAlpha = opts.alpha !== undefined ? opts.alpha : 1;
+        if (glow) {
+            ctx.shadowColor = style;                 // 外发光颜色
+            ctx.shadowBlur = CONFIG.glowBlur;        // 外发光模糊半径
+        }
+        ctx.beginPath();                             // 开始路径
+        let started = false;                         // 是否已落笔
+        for (let px = 0; px <= w; px += CONFIG.plotStepPx) {
+            const x = toMathX(px);
+            if (Math.abs(x) > reveal) { started = false; continue; }
+            const y = evalFn(x);                     // 直接求原函数值
+            if (!isFinite(y)) { started = false; continue; } // 跳过非有限值（断点）
+            const sy = toScreenY(y);                 // 转屏幕 y
+            if (!started) { ctx.moveTo(px, sy); started = true; } // 起笔
+            else ctx.lineTo(px, sy);                 // 连线
+        }
+        ctx.stroke();                                // 描边
+        ctx.restore();                               // 恢复绘图状态
+    }
+
+    // 绘制鼠标悬停的十字准星与坐标/函数值
+    function drawHover() {
+        if (!state.mouse.inside || state.mouse.x === null) return; // 鼠标不在画布内则跳过
+        const px = state.mouse.x, py = state.mouse.y; // 鼠标像素坐标
+        const mx = toMathX(px);                       // 对应数学 x
+        const p = state.anim.current || lastSnapshot(); // 当前显示的曲线参数
+        const compositeEval = currentCompositeEvaluator();
+        // 复合函数 / 不可拆解函数直接求值，普通变换使用参数快照
+        const my = compositeEval
+            ? compositeEval(mx)
+            : ((!state.decomposable && state.rawEval)
+                ? state.rawEval(mx)
+                : (p ? evalTransformed(p, mx) : toMathY(py)));
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(57,211,255,0.4)';     // 准星颜色（冰蓝）
+        ctx.setLineDash([4, 4]);                      // 虚线准星
+        ctx.beginPath();
+        ctx.moveTo(px, 0); ctx.lineTo(px, dom.canvas.getBoundingClientRect().height); // 竖线
+        ctx.moveTo(0, py); ctx.lineTo(dom.canvas.getBoundingClientRect().width, py);   // 横线
+        ctx.stroke();
+        ctx.setLineDash([]);                          // 关闭虚线
+
+        // 在曲线上标出该点
+        if (p && isFinite(my)) {
+            const sy = toScreenY(my);                 // 函数值对应屏幕 y
+            ctx.fillStyle = CONFIG.neon;              // 点用霓虹粉
+            ctx.shadowColor = CONFIG.neon; ctx.shadowBlur = 10; // 发光
+            ctx.beginPath();
+            ctx.arc(px, sy, 4, 0, Math.PI * 2);       // 画小圆点
+            ctx.fill();
+        }
+        ctx.restore();
+
+        // 更新数据面板的鼠标坐标显示
+        const yShow = (p && isFinite(my)) ? formatNum(my) : '—'; // 函数值
+        dom.dataMouse.textContent = `x=${formatNum(mx)}, f(x)=${yShow}`;
+    }
+
+    // 计算用于闪烁标注的"特征点"横坐标（保证落在曲线上，各函数取最具代表性的点）
+    function getMarkerX() {
+        const power = BASE_FUNCS[state.baseKey].power; // 当前基函数类型
+        if (power === 'exp') return 0;                 // 指数：标 y 轴交点 (0, a+k)
+        if (power === 'log') return state.params.h + 1;// 对数：标 ln=0 处 (h+1, k)
+        return state.params.h;                         // 幂/绝对值/三角：标顶点/相位中点 (h, k)
+    }
+
+    // 绘制特征点闪烁标记（最后一步完成后调用）
+    function drawVertexFlash() {
+        if (!state.vertexFlash.active || !state.params) return; // 未激活则跳过
+        const mx = getMarkerX();                      // 特征点横坐标
+        const snap = state.anim.current || lastSnapshot(); // 当前曲线参数
+        const compositeEval = currentCompositeEvaluator();
+        const my = compositeEval ? compositeEval(mx) : evalTransformed(snap, mx); // 该点纵坐标
+        if (!isFinite(my)) return;                    // 非有限值则不标注
+        const t = (performance.now() - state.vertexFlash.start) / 1000; // 经过秒数
+        const pulse = 0.5 + 0.5 * Math.sin(t * 4);    // 0~1 周期脉冲（呼吸闪烁）
+        const sx = toScreenX(mx), sy = toScreenY(my); // 特征点屏幕坐标
+
+        ctx.save();
+        ctx.fillStyle = CONFIG.neon;                  // 特征点用霓虹粉
+        ctx.shadowColor = CONFIG.neon;
+        ctx.shadowBlur = 10 + pulse * 20;             // 随脉冲变化的发光强度
+        ctx.beginPath();
+        ctx.arc(sx, sy, 5 + pulse * 3, 0, Math.PI * 2); // 半径随脉冲变化
+        ctx.fill();
+        // 标注坐标文字
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`(${formatNum(mx)}, ${formatNum(my)})`, sx + 10, sy - 10); // 在特征点旁标坐标
+        ctx.restore();
+    }
+
+    // 取得最后一次已完成步骤的参数快照（无动画时的静态显示）
+    function lastSnapshot() {
+        if (state.currentStep < 0) return { ha: 0, ba: 1, aa: 1, ka: 0, drawn: 0 }; // 尚未开始
+        return state.snapshots[state.currentStep];     // 当前步骤快照
+    }
+
+    // 当前复合函数求值器：动画中在前后两步曲线之间逐点插值
+    function currentCompositeEvaluator() {
+        if (!state.compositeEvaluators || state.currentStep < 0) return null;
+        const toEval = state.compositeEvaluators[state.currentStep];
+        if (!state.anim.running || state.anim.fromStep < 0) return toEval;
+        const fromEval = state.compositeEvaluators[state.anim.fromStep];
+        const t = animProgress();
+        return (x) => fromEval(x) + (toEval(x) - fromEval(x)) * t;
+    }
+
+    // 主渲染函数：每帧调用，绘制网格、母函数、残影、当前曲线、悬停、顶点
+    function render() {
+        const rect = dom.canvas.getBoundingClientRect(); // 画布显示尺寸
+        const w = rect.width, h = rect.height;       // 宽高
+
+        ctx.clearRect(0, 0, w, h);                   // 清空画布
+        drawGrid(w, h);                              // 绘制网格与坐标轴
+
+        // 母函数参照：始终以半透明灰色虚线绘制基函数（未做任何变换）
+        drawCurve({ ha: 0, aa: 1, ka: 0 }, CONFIG.baseCurve, { dash: [6, 6], drawn: 1 });
+
+        if (state.compositeEvaluators) {
+            const t = state.anim.running ? animProgress() : 1;
+            if (state.anim.running && state.anim.fromStep >= 0) {
+                drawRawCurve(state.compositeEvaluators[state.anim.fromStep], CONFIG.neonAccent, {
+                    alpha: 0.25 * (1 - t),
+                    glow: false
+                });
+            }
+            const evalFn = currentCompositeEvaluator();
+            if (evalFn) {
+                const drawn = state.anim.running && state.anim.fromStep < 0 ? t : 1;
+                drawRawCurve(evalFn, CONFIG.neon, { glow: true, drawn });
+            }
+        } else if (!state.decomposable && state.rawEval) {
+            // 不可拆解：静态绘制原函数（不做分步动画）
+            drawRawCurve(state.rawEval, CONFIG.neon);
+        } else {
+            // 动画进行中：绘制起点状态的淡出残影
+            if (state.anim.running && state.anim.from) {
+                const t = animProgress();
+                drawCurve(state.anim.from, CONFIG.neonAccent, { alpha: 0.25 * (1 - t), drawn: state.anim.from.drawn });
+            }
+            // 可拆解：用实时插值参数（动画中）或最后快照（静止）绘制霓虹发光曲线
+            const cur = state.anim.current || lastSnapshot(); // 当前参数
+            if (state.currentStep >= 0 || state.anim.running) {
+                drawCurve(cur, CONFIG.neon, { glow: true, drawn: cur.drawn }); // 霓虹发光主曲线
+            }
+        }
+
+        drawVertexFlash();                           // 顶点闪烁（若激活）
+        drawHover();                                 // 鼠标悬停准星
+    }
+
+    // =====================================================================
+    // 动画引擎模块：requestAnimationFrame 主循环 + easeInOutQuad 缓动
+    // =====================================================================
+
+    // 计算当前步动画的归一化进度（0~1，已应用缓动）
+    function animProgress() {
+        if (!state.anim.running) return 1;            // 未在动画则视为完成
+        const elapsed = performance.now() - state.anim.startTime; // 已用时
+        const raw = Math.min(elapsed / state.anim.duration, 1);   // 线性进度
+        return easeInOutQuad(raw);                    // 应用缓动
+    }
+
+    // 在两个参数快照之间按进度 t 线性插值，得到当前帧参数
+    function lerpSnapshot(from, to, t) {
+        const fb = (from.ba === undefined) ? 1 : from.ba; // 起点横向系数（兼容缺省）
+        const tb = (to.ba === undefined) ? 1 : to.ba;     // 终点横向系数（兼容缺省）
+        return {
+            ha: from.ha + (to.ha - from.ha) * t,      // 横向平移插值
+            ba: fb + (tb - fb) * t,                   // 横向伸缩插值（实现周期/陡缓的丝滑过渡）
+            aa: from.aa + (to.aa - from.aa) * t,      // 纵向系数插值（经过0实现丝滑翻转）
+            ka: from.ka + (to.ka - from.ka) * t,      // 纵向平移插值
+            drawn: from.drawn + (to.drawn - from.drawn) * t // 绘制进度插值
+        };
+    }
+
+    // 启动从当前步到目标步的动画
+    function animateTo(targetStep) {
+        if (targetStep < 0 || targetStep >= state.steps.length) return; // 越界保护
+        state.anim.fromStep = state.currentStep;       // 保存复合曲线动画的起始步骤
+        // 起点：当前步快照（-1 时用初始空白状态）
+        const fromSnap = state.currentStep < 0
+            ? { ha: 0, ba: 1, aa: 1, ka: 0, drawn: 0 }
+            : { ...state.snapshots[state.currentStep] };
+        const toSnap = { ...state.snapshots[targetStep] }; // 终点快照
+
+        state.anim.from = fromSnap;                   // 记录起点
+        state.anim.to = toSnap;                       // 记录终点
+        state.anim.startTime = performance.now();     // 记录起始时间
+        state.anim.duration = CONFIG.stepDuration / state.speed; // 时长随速度调节
+        state.anim.running = true;                    // 标记动画运行
+        state.vertexFlash.active = false;             // 动画期间关闭顶点闪烁
+        state.currentStep = targetStep;               // 目标步设为当前步
+        updateStepHighlight();                        // 更新步骤高亮（动画中即点亮）
+    }
+
+    // 主循环：持续渲染，并在动画结束时收尾
+    function loop() {
+        // 缩放平滑过渡：当前 scale 缓慢逼近目标 scale（实现网格淡入淡出般的细腻感）
+        if (!approxEqual(state.view.scale, state.view.targetScale, 0.01)) {
+            state.view.scale += (state.view.targetScale - state.view.scale) * 0.2; // 指数逼近
+        }
+
+        if (state.anim.running) {                     // 动画进行中
+            const t = animProgress();                 // 当前进度
+            state.anim.current = lerpSnapshot(state.anim.from, state.anim.to, t); // 插值参数
+            if (t >= 1) {                             // 动画完成
+                state.anim.running = false;           // 停止动画
+                state.anim.current = { ...state.anim.to }; // 锁定到终点
+                onStepFinished();                     // 触发步骤完成回调
+            }
+        }
+
+        render();                                     // 渲染当前帧
+        requestAnimationFrame(loop);                  // 预约下一帧，保证 60fps
+    }
+
+    // 单步动画完成后的处理：更新数据面板、判断是否连续播放、是否触发顶点闪烁
+    function onStepFinished() {
+        updateDataPanel();                            // 刷新数据面板
+        // 若已到最后一步，激活顶点闪烁
+        if (state.currentStep === state.steps.length - 1) {
+            state.vertexFlash.active = true;          // 开启闪烁
+            state.vertexFlash.start = performance.now(); // 记录起始时间
+        }
+        // 连续播放模式：自动推进到下一步
+        if (state.anim.playingAll) {
+            if (state.currentStep < state.steps.length - 1) {
+                setTimeout(() => animateTo(state.currentStep + 1), 200); // 略作停顿后继续
+            } else {
+                state.anim.playingAll = false;        // 播完结束
+                dom.btnPlay.textContent = '▶';        // 恢复播放图标
+            }
+        }
+        updateButtons();                              // 刷新按钮可用态
+    }
+
+    // =====================================================================
+    // UI 控制模块：步骤列表渲染、按钮状态、事件绑定
+    // =====================================================================
+
+    // 渲染步骤列表到左栏
+    function renderStepList() {
+        dom.stepList.innerHTML = '';                  // 清空旧列表
+        state.steps.forEach((step, i) => {
+            const li = document.createElement('li');  // 创建步骤项
+            li.className = 'p-2 rounded border border-white/10 bg-techbg/50 transition-all'; // 基础样式
+            li.dataset.index = i;                     // 记录索引
+            // 步骤标题 + 描述
+            li.innerHTML = `<div class="font-semibold text-white/90">${i + 1}. ${step.title}</div>
+                            <div class="text-xs text-white/60 mt-0.5">${step.desc}</div>`;
+            // 点击步骤项可直接跳转到该步
+            li.addEventListener('click', () => {
+                state.anim.playingAll = false;        // 取消连续播放
+                animateTo(i);                         // 动画到该步
+            });
+            dom.stepList.appendChild(li);             // 加入列表
+        });
+        updateStepHighlight();                        // 初始化高亮
+    }
+
+    // 更新当前步骤的高亮样式
+    function updateStepHighlight() {
+        Array.from(dom.stepList.children).forEach((li, i) => {
+            li.classList.toggle('step-active', i === state.currentStep); // 当前步加高亮类
+        });
+    }
+
+    // 更新动画控制按钮的可用状态
+    function updateButtons() {
+        dom.btnPrev.disabled = state.currentStep <= 0;                       // 首步时禁用上一步
+        dom.btnNext.disabled = state.currentStep >= state.steps.length - 1;  // 末步时禁用下一步
+    }
+
+    // 清空目标函数后的待输入状态：保留所选母函数，清除旧目标函数及动画结果
+    function showEmptyState() {
+        state.decomposable = true;
+        state.rawEval = null;
+        state.compositeEvaluators = null;
+        state.params = null;
+        state.steps = [];
+        state.snapshots = [];
+        state.currentStep = -1;
+        state.anim.running = false;
+        state.anim.current = null;
+        state.anim.playingAll = false;
+        state.vertexFlash.active = false;
+        dom.btnPlay.textContent = '▶';
+        dom.formulaPreview.textContent = '';
+        dom.parseError.textContent = '';
+        dom.parseError.classList.add('hidden');
+        dom.dataExpr.textContent = '—';
+        dom.vertexLabel.textContent = '状态';
+        dom.dataVertex.textContent = '等待输入目标函数';
+        dom.dataAxis.textContent = `已选择 ${BASE_FUNCS[state.baseKey].latex}`;
+        renderStepList();
+        updateButtons();
+    }
+
+    // 清空输入并回到待输入状态；基本函数切换与清空按钮共用
+    function clearTargetFunction() {
+        mathField.latex('');                      // 清空可见数学输入区
+        clearTimeout(editTimer);                  // 取消清空动作触发的重复防抖解析
+        dom.targetInput.value = '';               // 同步清空解析用隐藏域
+        showEmptyState();                         // 清除公式预览、步骤与旧动画结果
+        mathField.focus();                        // 聚焦输入区，方便立即重新输入
+    }
+
+    // 定义域可不连续或不覆盖原点；只要绘图区内存在足够的有限实数值即可继续解析
+    function hasEnoughFiniteSamples(evalFn) {
+        let count = 0;
+        for (let x = -20; x <= 20; x += 0.5) {
+            try {
+                if (isFinite(evalFn(x)) && ++count >= 4) return true;
+            } catch (e) { /* 当前点不在定义域，继续采样 */ }
+        }
+        return false;
+    }
+
+    // 激活一条可拆解变换链；普通参数动画与复合函数动画共用同一套播放控制
+    function activateDecomposable(params, steps, compositeEvaluators = null) {
+        state.decomposable = true;
+        state.rawEval = null;
+        state.compositeEvaluators = compositeEvaluators;
+        state.params = params;
+        state.steps = steps;
+        state.snapshots = steps.map((step) => step.snapshot);
+        state.currentStep = -1;
+        state.anim.running = false;
+        state.anim.current = null;
+        state.anim.playingAll = false;
+        state.anim.fromStep = -1;
+        state.vertexFlash.active = false;
+        dom.btnPlay.textContent = '▶';
+        renderStepList();
+        updateButtons();
+        animateTo(0);
+    }
+
+    // 重新解析输入并重建步骤（数学区编辑或基函数变化时调用）
+    function reparse() {
+        const raw = dom.targetInput.value;            // 读取隐藏域中的 math.js 表达式
+        dom.parseError.classList.add('hidden');       // 先隐藏错误
+        try {
+            const expr = sanitizeExpr(raw);           // 清洗表达式
+            if (!expr) {                              // 空输入是正常待输入状态，不显示解析错误
+                showEmptyState();
+                return;
+            }
+            renderFormulaPreview(expr);               // 先刷新预览，避免后续校验失败时残留旧公式
+            const evalFn = compileExpr(expr);         // 编译求值函数
+            if (!hasEnoughFiniteSamples(evalFn)) throw new Error('函数在绘图区内没有足够的实数值');
+
+            // 绝对值外层包裹二次函数：沿“保留绝对值、逐步改造内部函数”的路径演示
+            const absQuadratic = tryBuildAbsQuadratic(expr, evalFn);
+            if (absQuadratic) {
+                activateDecomposable(absQuadratic.params, absQuadratic.steps, absQuadratic.evaluators);
+                return;
+            }
+
+            // 用当前选中的基函数拟合标准变换参数，并评估拟合误差
+            let params = fitParams(state.baseKey, evalFn); // 反推标准变换参数
+            let maxErr = fitError(evalFn, params);    // 拟合误差：判断能否拆解为标准变换
+
+            if (maxErr > 0.05) {                      // 显式选择优先：不自动改换用户选中的基本函数
+                showUndecomposable(expr, evalFn);     // 静态绘制并提示该目标不属于当前函数族
+                return;
+            }
+
+            activateDecomposable(params, buildSteps(state.baseKey, params)); // 普通参数变换
+        } catch (e) {
+            // 解析失败：显示友好错误，不中断页面
+            dom.parseError.textContent = '⚠️ 无法解析该函数，请检查表达式（如 -2(x-1)^2+3）';
+            dom.parseError.classList.remove('hidden');
+        }
+    }
+
+    // 无法拆解分支：清空步骤、静态绘制原函数、给出明确提示
+    function showUndecomposable(expr, evalFn) {
+        state.decomposable = false;                   // 标记不可拆解
+        state.rawEval = evalFn;                       // 保存原函数用于静态绘制
+        state.compositeEvaluators = null;             // 清除复合函数步骤
+        state.params = null;                          // 不再有标准变换参数
+        state.steps = [];                             // 清空步骤
+        state.snapshots = [];                         // 清空快照
+        state.currentStep = -1;                       // 重置进度
+        state.anim.running = false;                   // 停止动画
+        state.anim.current = null;                    // 清空当前帧参数
+        state.anim.playingAll = false;                // 取消连续播放
+        state.vertexFlash.active = false;             // 关闭顶点闪烁
+        dom.btnPlay.textContent = '▶';                // 复位播放图标
+        renderStepList();                             // 渲染（空）步骤列表
+        updateButtons();                              // 刷新按钮（首末步禁用）
+        updateDataPanelRaw(expr);                     // 数据面板显示简化信息
+        dom.parseError.textContent = 'ℹ️ 该函数无法拆解为基本函数的标准变换，已静态绘制原函数图像';
+        dom.parseError.classList.remove('hidden');    // 显示提示
+    }
+
+    // 拟合误差：拟合参数还原的曲线与原函数的最大抽样偏差（纯计算，无副作用）
+    // 加宽采样区间以覆盖指数/对数/三角的特征；并对非有限值与样本不足做保护，避免误判可拆解
+    function fitError(evalFn, params) {
+        let maxErr = 0;                               // 最大偏差
+        let n = 0;                                    // 有效对比样本数
+        for (let x = -9; x <= 9; x += 0.5) {          // 加宽抽样比较区间
+            const real = evalFn(x);                   // 真实值
+            if (!isFinite(real)) continue;            // 原函数无定义处（如对数定义域外）跳过
+            const approx = evalTransformed({ ha: params.h, ba: params.b, aa: params.a, ka: params.k }, x); // 拟合值
+            if (!isFinite(approx)) return Infinity;   // 拟合在有定义处却发散→参数非法，判为拟合失败
+            maxErr = Math.max(maxErr, Math.abs(approx - real)); // 更新偏差
+            n++;                                      // 计入有效样本
+        }
+        if (n < 4) return Infinity;                   // 有效样本过少无法验证→视为失败，触发兜底
+        return maxErr;                                // 返回最大偏差供调用方决策
+    }
+
+    // 用 KaTeX 渲染输入框对应的公式预览
+    function renderFormulaPreview(expr) {
+        try {
+            // 借助 math.js 把表达式转为 LaTeX，再交给 KaTeX 渲染
+            const tex = math.parse(expr).toTex({ implicit: 'hide' }); // 转 LaTeX
+            katex.render('y = ' + tex, dom.formulaPreview, { throwOnError: false }); // 渲染
+        } catch (e) {
+            dom.formulaPreview.textContent = '';      // 失败则清空预览
+        }
+    }
+
+    // 更新右上角数据面板：解析式、顶点、对称轴、开口方向
+    function updateDataPanel() {
+        if (!state.params) return;                    // 无参数则跳过
+        const { a, h, k, b } = state.params;          // 解构参数（含横向系数 b）
+        const power = BASE_FUNCS[state.baseKey].power; // 基函数类型
+
+        // 解析式（用 KaTeX 渲染当前完整目标函数）
+        try {
+            const expr = sanitizeExpr(dom.targetInput.value); // 当前表达式
+            const tex = math.parse(expr).toTex({ implicit: 'hide' }); // 转 LaTeX
+            katex.render('y = ' + tex, dom.dataExpr, { throwOnError: false }); // 渲染
+        } catch (e) { dom.dataExpr.textContent = '—'; }
+
+        if (state.compositeEvaluators) {
+            dom.vertexLabel.textContent = '内部二次函数顶点';
+            dom.dataVertex.textContent = `(${formatNum(h)}, ${formatNum(k)})`;
+            dom.dataAxis.textContent = `对称轴 x = ${formatNum(h)}；外层对函数值取绝对值`;
+            return;
+        }
+
+        // 顶点 / 拐点
+        if (power === 2 || power === 'abs') {
+            dom.vertexLabel.textContent = '顶点';                      // 二次函数 / 绝对值函数均称顶点
+            dom.dataVertex.textContent = `(${formatNum(h)}, ${formatNum(k)})`;
+            // 对称轴与开口方向
+            dom.dataAxis.textContent = `x = ${formatNum(h)}；开口${a > 0 ? '向上' : '向下'}`;
+        } else if (power === 3) {
+            dom.vertexLabel.textContent = '对称中心';                  // 三次函数称对称中心
+            dom.dataVertex.textContent = `(${formatNum(h)}, ${formatNum(k)})`;
+            dom.dataAxis.textContent = `中心对称；${a > 0 ? '递增' : '递减'}趋势`;
+        } else if (power === 'exp') {
+            dom.vertexLabel.textContent = '水平渐近线';                // 指数函数有水平渐近线
+            dom.dataVertex.textContent = `y = ${formatNum(k)}`;        // 渐近线 y=k
+            dom.dataAxis.textContent = `${a * b > 0 ? '单调递增' : '单调递减'}；过点 (0, ${formatNum(a + k)})`; // 单调性由 a·b 符号决定
+        } else if (power === 'log') {
+            dom.vertexLabel.textContent = '竖直渐近线';                // 对数函数有竖直渐近线
+            dom.dataVertex.textContent = `x = ${formatNum(h)}`;        // 渐近线 x=h
+            dom.dataAxis.textContent = `定义域 x > ${formatNum(h)}；${a > 0 ? '单调递增' : '单调递减'}`; // 定义域与单调性
+        } else if (power === 'sin' || power === 'cos') {
+            dom.vertexLabel.textContent = '振幅 / 周期';               // 正弦/余弦关注振幅与周期
+            dom.dataVertex.textContent = `A = ${formatNum(Math.abs(a))}，T = ${formatNum(2 * Math.PI / Math.abs(b))}`; // 振幅 A、周期 T=2π/b
+            dom.dataAxis.textContent = `中线 y = ${formatNum(k)}；相位移 ${formatNum(h)}`; // 中线与相位
+        } else {
+            dom.vertexLabel.textContent = '特征点';                    // 一次函数
+            dom.dataVertex.textContent = `斜率 ${formatNum(a)}`;
+            dom.dataAxis.textContent = `截距 ${formatNum(k)}；${a > 0 ? '递增' : '递减'}`;
+        }
+    }
+
+    // 数据面板（不可拆解分支）：只显示解析式与"非标准函数"说明
+    function updateDataPanelRaw(expr) {
+        try {
+            const tex = math.parse(expr).toTex({ implicit: 'hide' }); // 转 LaTeX
+            katex.render('y = ' + tex, dom.dataExpr, { throwOnError: false }); // 渲染解析式
+        } catch (e) { dom.dataExpr.textContent = '—'; }
+        dom.vertexLabel.textContent = '类型';                          // 标签改为"类型"
+        dom.dataVertex.textContent = '非标准函数';                     // 说明非标准
+        dom.dataAxis.textContent = '无法拆解为当前所选基本函数的标准变换'; // 说明与当前选择不匹配
+    }
+
+    // =====================================================================
+    // 虚拟数学键盘模块（MathQuill）：点击按键操作数学区，LaTeX→表达式→reparse
+    // =====================================================================
+
+    let mathField = null;          // MathQuill 数学区实例
+    let editTimer = null;          // 数学区编辑后的防抖计时器
+
+    // 把 MathQuill 的 LaTeX 转换成 math.js 可解析的表达式串
+    function latexToExpr(latex) {
+        let s = latex;                                              // 待转换串
+        s = s.replace(/\\left\|([^|]*)\\right\|/g, 'abs($1)');      // 绝对值 |A| → abs(A)
+        s = s.replace(/\\left/g, '').replace(/\\right/g, '');       // 去掉 \left \right（保留括号）
+        let prev;                                                   // 上一轮结果（用于由内到外转换嵌套结构）
+        do {
+            prev = s;
+            s = s.replace(/\^\{([^{}]*)\}/g, '^($1)');             // 上标 ^{A} → ^(A)
+            s = s.replace(/\\sqrt\[([^\]{}]*)\]\{([^{}]*)\}/g, 'nthRoot(($2),($1))'); // n 次根
+            s = s.replace(/\\sqrt\{([^{}]*)\}/g, 'sqrt(($1))');    // 平方根
+            s = s.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, '(($1)/($2))'); // 分数
+        } while (s !== prev);
+        s = s.replace(/\\sin/g, 'sin').replace(/\\cos/g, 'cos').replace(/\\tan/g, 'tan'); // 三角函数
+        s = s.replace(/\\ln/g, 'log').replace(/\\log/g, 'log10'); // ln→自然对数 log；log→以10为底 log10
+        s = s.replace(/\\pi/g, 'pi');                              // 圆周率
+        s = s.replace(/\\cdot/g, '*').replace(/\\times/g, '*').replace(/\\div/g, '/'); // 乘除符号
+        s = s.replace(/_\{[^{}]*\}/g, '');                         // 去掉下标（如 log 的底数标注）
+        s = s.replace(/[{}]/g, '');                                // 去掉残留花括号
+        s = s.replace(/\\,/g, '').replace(/\s+/g, ' ').trim();     // 去掉细间距与多余空白
+        return s;                                                  // 返回 math.js 表达式
+    }
+
+    // MathQuill 编辑回调：取 LaTeX → 转表达式 → 写入隐藏域 → 防抖后解析
+    function onMathEdit() {
+        if (!mathField) return;                                    // 实例未就绪
+        dom.targetInput.value = latexToExpr(mathField.latex());    // 同步到隐藏域
+        clearTimeout(editTimer);                                   // 清除上次计时
+        editTimer = setTimeout(reparse, 200);                      // 200ms 防抖后解析
+    }
+
+    // 初始化 MathQuill 数学区，并填入默认示例
+    function initMathField() {
+        const MQ = MathQuill.getInterface(2);                      // 取 MathQuill v2 接口
+        mathField = MQ.MathField(document.getElementById('mathField'), {
+            spaceBehavesLikeTab: true,                             // 空格如 Tab，便于跳出占位框
+            handlers: { edit: onMathEdit }                         // 每次编辑触发回调
+        });
+        mathField.latex('-2\\left(x-1\\right)^2+3');               // 默认示例（与隐藏域一致）
+    }
+
+    // 渲染一个分区的按键到指定容器，按 span/rowSpan 设置跨格
+    function renderZone(keys, className) {
+        const zone = document.createElement('div');                // 分区容器
+        zone.className = className;                                 // 套用对应网格样式
+        keys.forEach((key) => {
+            const btn = document.createElement('button');          // 创建按键
+            btn.type = 'button';                                   // 避免表单提交
+            btn.textContent = key.label;                           // 按键文字
+            btn.className = 'kb-key' + (key.accent ? ' kb-accent' : ''); // 基础 + 强调色
+            if (key.span) btn.style.gridColumn = 'span ' + key.span;     // 跨列（如 0、⌫、↵）
+            if (key.rowSpan) btn.style.gridRow = 'span ' + key.rowSpan;  // 跨行（如 ↵）
+            btn.addEventListener('click', () => handleKeyPress(key));    // 绑定点击
+            zone.appendChild(btn);                                 // 加入分区
+        });
+        return zone;                                               // 返回分区元素
+    }
+
+    // 渲染整套键盘：三区横向排布（数字区 | 函数区 | 动作区）
+    function renderKeyboard() {
+        const wrap = document.createElement('div');                // 三区外层
+        wrap.className = 'kb-zones';                                // 横向 flex 布局
+        wrap.appendChild(renderZone(KEYBOARD_KEYS.num, 'kb-num'));  // 数字区
+        wrap.appendChild(renderZone(KEYBOARD_KEYS.func, 'kb-func')); // 函数区
+        wrap.appendChild(renderZone(KEYBOARD_KEYS.act, 'kb-act'));  // 动作区
+        dom.mathKeyboard.innerHTML = '';                           // 清空旧内容
+        dom.mathKeyboard.appendChild(wrap);                        // 挂载键盘
+    }
+
+    // 处理一次按键：把动作派发给 MathQuill 数学区
+    function handleKeyPress(key) {
+        if (!mathField) return;                                    // 实例未就绪则忽略
+        if (key.action === 'confirm') {                            // ↵：确认（失焦、立即解析并收起浮层键盘）
+            mathField.blur();
+            reparse();
+            closeKbPopup();                                        // 确认后收起浮层，露出画布
+            return;
+        }
+        const [method, arg] = key.mq;                              // 解构 MathQuill 指令
+        if (method === 'type') mathField.typedText(arg);           // 按字符键入
+        else if (method === 'cmd') mathField.cmd(arg);             // 插入命令/模板
+        else if (method === 'write') mathField.write(arg);         // 写入 LaTeX 片段
+        else if (method === 'keystroke') mathField.keystroke(arg); // 模拟按键（退格/移光标）
+        mathField.focus();                                         // 保持数学区聚焦，便于连续输入
+    }
+
+    // =====================================================================
+    // 浮层键盘控制：开关与定位（锚定输入框、向右下展开、视口边界收敛）
+    // =====================================================================
+
+    // 根据输入行位置计算并设置浮层键盘的屏幕坐标
+    function positionKbPopup() {
+        const anchor = dom.kbToggle.parentElement;    // 输入行（y= / 数学区 / 图标 所在的 flex 容器）
+        const r = anchor.getBoundingClientRect();     // 输入行的视口矩形
+        const margin = 8;                             // 与视口边缘/输入行的间距
+        const pw = dom.kbPopup.offsetWidth;           // 浮层当前宽度
+        const ph = dom.kbPopup.offsetHeight;          // 浮层当前高度
+        let left = r.left;                            // 默认左边与输入行对齐，向右展开覆盖画布
+        let top = r.bottom + margin;                  // 默认紧贴输入行下方
+        // 右溢出收敛：超出视口右边则整体左移
+        if (left + pw + margin > window.innerWidth) left = window.innerWidth - pw - margin;
+        if (left < margin) left = margin;             // 左侧兜底，避免负值
+        // 下溢出收敛：放不下则改放到输入行上方
+        if (top + ph + margin > window.innerHeight) top = Math.max(margin, r.top - ph - margin);
+        dom.kbPopup.style.left = left + 'px';         // 应用横坐标
+        dom.kbPopup.style.top = top + 'px';           // 应用纵坐标
+    }
+
+    // 浮层是否处于打开状态
+    function isKbOpen() {
+        return !dom.kbPopup.classList.contains('hidden'); // 无 hidden 类即为打开
+    }
+
+    // 打开浮层键盘：显示 → 定位 → 高亮图标 → 聚焦数学区
+    function openKbPopup() {
+        dom.kbPopup.classList.remove('hidden');       // 先显示（此后 offsetWidth 才有值）
+        positionKbPopup();                            // 计算并设置位置
+        dom.kbToggle.classList.add('kb-active');      // 图标高亮，提示键盘已展开
+        if (mathField) mathField.focus();             // 聚焦数学区，便于直接输入
+    }
+
+    // 关闭浮层键盘
+    function closeKbPopup() {
+        dom.kbPopup.classList.add('hidden');          // 隐藏浮层
+        dom.kbToggle.classList.remove('kb-active');   // 取消图标高亮
+    }
+
+    // 切换浮层键盘显隐
+    function toggleKbPopup() {
+        if (isKbOpen()) closeKbPopup(); else openKbPopup(); // 已开则关、已关则开
+    }
+
+    // =====================================================================
+    // 事件绑定
+    // =====================================================================
+
+    // 键盘图标：切换浮层显隐（阻止冒泡，避免被下方"外部点击关闭"误判）
+    dom.kbToggle.addEventListener('click', (e) => {
+        e.stopPropagation();                          // 阻止冒泡到 document
+        toggleKbPopup();                              // 切换显隐
+    });
+    // 点击浮层与图标之外的区域：关闭浮层（用 mousedown 更跟手）
+    document.addEventListener('mousedown', (e) => {
+        if (!isKbOpen()) return;                       // 未打开无需处理
+        if (dom.kbPopup.contains(e.target) || dom.kbToggle.contains(e.target)) return; // 浮层/图标内点击不关闭
+        closeKbPopup();                                // 点击外部则收起
+    });
+    // Esc 键：关闭浮层
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isKbOpen()) closeKbPopup(); // 打开时按 Esc 收起
+    });
+    // 视口尺寸变化 / 滚动时若浮层打开则重新定位（捕获阶段以覆盖左栏内部滚动）
+    window.addEventListener('resize', () => { if (isKbOpen()) positionKbPopup(); });
+    window.addEventListener('scroll', () => { if (isKbOpen()) positionKbPopup(); }, true);
+
+    // 一键清空目标函数，保留当前选中的基本函数
+    dom.btnClearInput.addEventListener('click', clearTargetFunction);
+
+    // 基函数单选切换：显式选择优先，并清空旧目标函数等待重新输入
+    document.querySelectorAll('input[name="baseFunc"]').forEach((radio) => {
+        radio.addEventListener('change', (e) => {
+            state.baseKey = e.target.value;           // 更新基函数键
+            clearTargetFunction();                    // 清空旧内容并回到所选母函数的待输入状态
+        });
+    });
+
+    // 注：目标函数现由 MathQuill 数学区驱动，编辑回调 onMathEdit 已负责触发解析
+
+    // 上一步按钮
+    dom.btnPrev.addEventListener('click', () => {
+        state.anim.playingAll = false;                // 取消连续播放
+        if (state.currentStep > 0) animateTo(state.currentStep - 1); // 回退一步
+    });
+    // 下一步按钮
+    dom.btnNext.addEventListener('click', () => {
+        state.anim.playingAll = false;                // 取消连续播放
+        if (state.currentStep < state.steps.length - 1) animateTo(state.currentStep + 1); // 前进一步
+    });
+    // 播放/暂停按钮
+    dom.btnPlay.addEventListener('click', () => {
+        if (state.anim.playingAll) {                  // 当前正在连续播放 → 暂停
+            state.anim.playingAll = false;            // 停止连续播放
+            dom.btnPlay.textContent = '▶';            // 切换为播放图标
+        } else {                                      // 否则开始连续播放
+            state.anim.playingAll = true;             // 开启连续播放
+            dom.btnPlay.textContent = '⏸';            // 切换为暂停图标
+            // 若已在末步，则从头开始播放
+            const start = state.currentStep >= state.steps.length - 1 ? 0 : state.currentStep + 1;
+            animateTo(Math.max(start, 0));            // 推进动画
+        }
+    });
+    // 重播按钮：回到起点并从第一步重新演示
+    dom.btnReplay.addEventListener('click', () => {
+        state.anim.playingAll = true;                 // 开启连续播放
+        dom.btnPlay.textContent = '⏸';               // 暂停图标
+        state.currentStep = -1;                       // 重置进度
+        animateTo(0);                                 // 从第一步开始
+    });
+
+    // 速度滑块：调节动画速度倍率
+    dom.speedSlider.addEventListener('input', (e) => {
+        state.speed = parseFloat(e.target.value);     // 更新速度
+        dom.speedLabel.textContent = state.speed.toFixed(1) + 'x'; // 更新标签
+    });
+
+    // 鼠标移动：记录画布内坐标用于悬停准星
+    dom.canvas.addEventListener('mousemove', (e) => {
+        const rect = dom.canvas.getBoundingClientRect(); // 画布位置
+        state.mouse.x = e.clientX - rect.left;        // 相对画布 x
+        state.mouse.y = e.clientY - rect.top;         // 相对画布 y
+        state.mouse.inside = true;                    // 标记在画布内
+        if (state.dragging) {                         // 若正在拖拽视图
+            state.view.originX += e.clientX - state.dragLast.x; // 平移原点 x
+            state.view.originY += e.clientY - state.dragLast.y; // 平移原点 y
+            state.dragLast = { x: e.clientX, y: e.clientY };    // 更新拖拽基准
+        }
+    });
+    // 鼠标离开画布：隐藏悬停
+    dom.canvas.addEventListener('mouseleave', () => {
+        state.mouse.inside = false;                   // 标记离开
+        dom.dataMouse.textContent = '—';              // 复位坐标显示
+    });
+    // 鼠标按下：开始拖拽平移视图
+    dom.canvas.addEventListener('mousedown', (e) => {
+        state.dragging = true;                        // 标记拖拽中
+        state.dragLast = { x: e.clientX, y: e.clientY }; // 记录起点
+    });
+    // 鼠标抬起：结束拖拽
+    window.addEventListener('mouseup', () => { state.dragging = false; });
+
+    // 鼠标滚轮：以画布中心为基准平滑缩放视图（targetScale 由主循环指数逼近，呈淡入淡出般细腻过渡）
+    dom.canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();                           // 阻止页面滚动
+        const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12; // 向上放大、向下缩小
+        const newScale = Math.min(CONFIG.maxScale, Math.max(CONFIG.minScale, state.view.targetScale * factor)); // 限幅
+        state.view.targetScale = newScale;            // 设为目标缩放（由主循环平滑过渡）
+    }, { passive: false });
+
+    // 窗口尺寸变化：重设画布并重绘
+    window.addEventListener('resize', () => { resizeCanvas(); });
+
+    // =====================================================================
+    // 初始化：等待 KaTeX 脚本加载后启动
+    // =====================================================================
+    function init() {
+        resizeCanvas();                               // 初始化画布尺寸
+        initMathField();                              // 初始化 MathQuill 数学区
+        renderKeyboard();                             // 渲染虚拟数学键盘（三区）
+        requestAnimationFrame(loop);                  // 启动主循环
+        reparse();                                    // 解析默认示例并演示
+    }
+
+    // KaTeX 以 defer 加载，确保其就绪后再初始化
+    window.addEventListener('load', init);
+    </script>
+<script>
+    window.addEventListener('load', () => {
+        document.querySelector('#mathField textarea')?.setAttribute('aria-label', '输入目标函数');
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
+        const reveal = new IntersectionObserver((entries) => {
+            entries.forEach(({target, isIntersecting}) => {
+                if (isIntersecting) { target.classList.add('is-visible'); reveal.unobserve(target); }
+            });
+        }, {threshold: .05});
+        document.querySelectorAll('.app-header, .card-shell, .stage-shell').forEach((element) => {
+            element.classList.add('reveal-wait'); reveal.observe(element);
+            element.addEventListener('focusin', () => element.classList.add('is-visible'), {once: true});
+        });
+    });
+</script>
+</body>
+</html>

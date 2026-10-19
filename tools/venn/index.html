@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>双集合韦恩图「四区域」交互教学实验室</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --accent-a: #38bdf8;
+      --accent-b: #f59e0b;
+      --highlight: #ec4899;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 24px; display: flex; flex-direction: column; gap: 20px; max-width: 1200px; margin: 0 auto; }
+    header h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 6px; }
+    header p { color: var(--text-muted); font-size: 0.95rem; }
+
+    .main-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 24px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+
+    /* 控制栏 */
+    .controls { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; }
+    .slider-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; }
+    .slider-row input { width: 60%; cursor: pointer; }
+    .state-tag { font-size: 0.8rem; padding: 2px 8px; border-radius: 4px; background: #0284c7; color: white; }
+
+    /* SVG 韦恩图 */
+    .svg-container { position: relative; width: 100%; height: 380px; border: 1px dashed var(--border); border-radius: 8px; overflow: hidden; background: #0b1120; }
+    svg { width: 100%; height: 100%; user-select: none; }
+    .venn-slice { cursor: pointer; transition: all 0.25s ease; fill-opacity: 0.25; stroke-width: 2; stroke: transparent; }
+    .venn-slice:hover { fill-opacity: 0.45; }
+    .venn-slice.active { fill-opacity: 0.75; stroke: #fff; filter: drop-shadow(0 0 8px rgba(255,255,255,0.4)); }
+
+    /* 四区域配色 */
+    #slice-1 { fill: var(--accent-a); }
+    #slice-2 { fill: #a855f7; }
+    #slice-3 { fill: var(--accent-b); }
+    #slice-4 { fill: #475569; }
+
+    .circle-outline { fill: none; stroke-dasharray: 4 4; pointer-events: none; }
+    .label-text { fill: var(--text); font-size: 14px; font-weight: 600; pointer-events: none; text-anchor: middle; dominant-baseline: middle; }
+
+    /* 右侧运算面板 */
+    .tab-nav { display: flex; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-size: 0.95rem; cursor: pointer; padding: 6px 12px; border-radius: 6px; }
+    .tab-btn.active { color: #fff; background: #334155; font-weight: 600; }
+
+    .op-list { display: flex; flex-direction: column; gap: 8px; }
+    .op-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 8px; background: #131c2e; border: 1px solid transparent; cursor: pointer; transition: 0.2s; }
+    .op-item:hover { border-color: #38bdf8; transform: translateX(4px); }
+    .op-item.active { border-color: #38bdf8; background: #1e3a5f; }
+    .op-latex { font-family: "Courier New", Courier, monospace; font-size: 1.05rem; font-weight: bold; }
+    .op-slices { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* 测验模式容器 */
+    .quiz-box { display: flex; flex-direction: column; gap: 14px; }
+    .quiz-question { font-size: 1.1rem; color: #38bdf8; }
+    .btn { background: #0284c7; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; align-self: flex-start; }
+    .btn:hover { background: #0369a1; }
+    .quiz-feedback { min-height: 24px; font-size: 0.9rem; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>集合原理：双集合韦恩图「四区域」教学系统</h1>
+    <p>记住核心：双集合在全集矩形中永远被切分为 4 个互斥区域，所有运算本质都是点亮特定区域的组合。</p>
+  </header>
+
+  <div class="main-grid">
+    <!-- 左侧可视化画板 -->
+    <div class="card">
+      <div class="controls">
+        <div class="slider-row">
+          <span>拓扑关系模拟 (圆心距 d):</span>
+          <input type="range" id="distSlider" min="70" max="230" value="120" />
+          <span id="posState" class="state-tag">相交</span>
+        </div>
+      </div>
+
+      <div class="svg-container">
+        <svg id="vennSvg" viewBox="0 0 500 340">
+          <defs>
+            <!-- 剪裁定义全集区域 ④ -->
+            <mask id="uMask">
+              <rect width="500" height="340" fill="white" />
+              <circle id="maskCircleA" r="90" fill="black" />
+              <circle id="maskCircleB" r="90" fill="black" />
+            </mask>
+          </defs>
+
+          <!-- 区域 ④：全集补集 (U \ (A ∪ B)) -->
+          <rect id="slice-4" class="venn-slice" x="10" y="10" width="480" height="320" rx="8" mask="url(#uMask)" data-region="4"></rect>
+          
+          <!-- 全集边界线 -->
+          <rect x="10" y="10" width="480" height="320" rx="8" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="6 6" pointer-events="none"></rect>
+          <text x="35" y="35" fill="#64748b" font-size="14" font-weight="bold">全集 U</text>
+
+          <!-- 区域 ①、②、③ 动态切片 -->
+          <path id="slice-1" class="venn-slice" data-region="1" />
+          <path id="slice-2" class="venn-slice" data-region="2" />
+          <path id="slice-3" class="venn-slice" data-region="3" />
+
+          <!-- 几何轮廓虚线参考 -->
+          <circle id="outlineA" class="circle-outline" stroke="#38bdf8" stroke-width="1.5" />
+          <circle id="outlineB" class="circle-outline" stroke="#f59e0b" stroke-width="1.5" />
+
+          <!-- 区域编号文本 -->
+          <text id="label-1" class="label-text">①</text>
+          <text id="label-2" class="label-text">②</text>
+          <text id="label-3" class="label-text">③</text>
+          <text id="label-4" class="label-text" x="460" y="40">④</text>
+          
+          <text id="label-setA" fill="#38bdf8" font-weight="bold" font-size="16">A</text>
+          <text id="label-setB" fill="#f59e0b" font-weight="bold" font-size="16">B</text>
+        </svg>
+      </div>
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">
+        💡 交互提示：点击图形区域可自由组合点亮；或拖动上方滑块观察<b>相离</b>、<b>相交</b>与<b>内含</b>状态的区域塌缩。
+      </div>
+    </div>
+
+    <!-- 右侧运算列表与自测面板 -->
+    <div class="card">
+      <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('learn')">运算联动教学</button>
+        <button class="tab-btn" onclick="switchTab('quiz')">知识闯关自测</button>
+      </div>
+
+      <!-- 运算列表教学 -->
+      <div id="tab-learn" class="op-list">
+        <div class="op-item" data-slices="1,2">
+          <span class="op-latex">A</span>
+          <span class="op-slices">= ① + ②</span>
+        </div>
+        <div class="op-item" data-slices="2,3">
+          <span class="op-latex">B</span>
+          <span class="op-slices">= ② + ③</span>
+        </div>
+        <div class="op-item" data-slices="2">
+          <span class="op-latex">A ∩ B (交集)</span>
+          <span class="op-slices">= ②</span>
+        </div>
+        <div class="op-item" data-slices="1,2,3">
+          <span class="op-latex">A ∪ B (并集)</span>
+          <span class="op-slices">= ① + ② + ③</span>
+        </div>
+        <div class="op-item" data-slices="3,4">
+          <span class="op-latex">∁_U A (A 的补集)</span>
+          <span class="op-slices">= ③ + ④</span>
+        </div>
+        <div class="op-item" data-slices="1,4">
+          <span class="op-latex">∁_U B (B 的补集)</span>
+          <span class="op-slices">= ① + ④</span>
+        </div>
+        <div class="op-item" data-slices="1">
+          <span class="op-latex">A \ B (差集 / 仅属于 A)</span>
+          <span class="op-slices">= ①</span>
+        </div>
+        <div class="op-item" data-slices="4">
+          <span class="op-latex">∁_U(A ∪ B) (德·摩根律)</span>
+          <span class="op-slices">= ④</span>
+        </div>
+      </div>
+
+      <!-- 交互测验 -->
+      <div id="tab-quiz" class="quiz-box" style="display: none;">
+        <div style="font-size: 0.9rem; color: var(--text-muted);">根据题目表达式，在左侧图中点选对应的区域（支持多选）：</div>
+        <div class="quiz-question" id="quizTargetFormula">A ∩ ∁_U B</div>
+        <div>
+          <button class="btn" onclick="submitQuiz()">提交判定</button>
+          <button class="btn" style="background:#475569; margin-left:8px;" onclick="nextQuestion()">换一题</button>
+        </div>
+        <div id="quizFeedback" class="quiz-feedback"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const centerY = 170;
+    const r = 85;
+    let selectedSlices = new Set();
+
+    // 几何拓扑状态
+    const distSlider = document.getElementById('distSlider');
+    const posState = document.getElementById('posState');
+
+    function updateGeometry() {
+      const d = parseFloat(distSlider.value);
+      const cxA = 250 - d / 2;
+      const cxB = 250 + d / 2;
+
+      // 更新状态文字
+      if (d >= 2 * r) posState.textContent = '相离 (A ∩ B = ∅)';
+      else if (d <= 20) posState.textContent = '重合 (A = B)';
+      else if (d < 45) posState.textContent = '近包含关系';
+      else posState.textContent = '一般相交';
+
+      // 遮罩位置
+      document.getElementById('maskCircleA').setAttribute('cx', cxA);
+      document.getElementById('maskCircleA').setAttribute('cy', centerY);
+      document.getElementById('maskCircleB').setAttribute('cx', cxB);
+      document.getElementById('maskCircleB').setAttribute('cy', centerY);
+
+      // 参考线
+      document.getElementById('outlineA').setAttribute('cx', cxA);
+      document.getElementById('outlineA').setAttribute('cy', centerY);
+      document.getElementById('outlineA').setAttribute('r', r);
+      document.getElementById('outlineB').setAttribute('cx', cxB);
+      document.getElementById('outlineB').setAttribute('cy', centerY);
+      document.getElementById('outlineB').setAttribute('r', r);
+
+      // 字母标签位置
+      document.getElementById('label-setA').setAttribute('x', cxA - 40);
+      document.getElementById('label-setA').setAttribute('y', centerY - 95);
+      document.getElementById('label-setB').setAttribute('x', cxB + 30);
+      document.getElementById('label-setB').setAttribute('y', centerY - 95);
+
+      const path1 = document.getElementById('slice-1');
+      const path2 = document.getElementById('slice-2');
+      const path3 = document.getElementById('slice-3');
+
+      if (d >= 2 * r) {
+        // 完全相离状态
+        path1.setAttribute('d', `M ${cxA-r},${centerY} a ${r},${r} 0 1,0 ${2*r},0 a ${r},${r} 0 1,0 -${2*r},0`);
+        path3.setAttribute('d', `M ${cxB-r},${centerY} a ${r},${r} 0 1,0 ${2*r},0 a ${r},${r} 0 1,0 -${2*r},0`);
+        path2.setAttribute('d', ''); // 区域 ② 塌缩为 0
+        setLabelPos('label-1', cxA, centerY);
+        setLabelPos('label-2', -999, -999);
+        setLabelPos('label-3', cxB, centerY);
+        return;
+      }
+
+      // 相交点坐标计算
+      const xIntersection = (d * d) / (2 * d); // 对称中心距 A 的距离 = d/2
+      const xCross = cxA + d / 2;
+      const h = Math.sqrt(Math.max(0, r * r - (d / 2) * (d / 2)));
+      const y1 = centerY - h;
+      const y2 = centerY + h;
+
+      // 区域 ②（交集橄榄核）
+      path2.setAttribute('d', `M ${xCross},${y1} A ${r} ${r} 0 0 1 ${xCross},${y2} A ${r} ${r} 0 0 1 ${xCross},${y1} Z`);
+
+      // 区域 ①（月牙 A \ B）
+      path1.setAttribute('d', `M ${xCross},${y1} A ${r} ${r} 0 0 0 ${xCross},${y2} A ${r} ${r} 0 1 1 ${xCross},${y1} Z`);
+
+      // 区域 ③（月牙 B \ A）
+      path3.setAttribute('d', `M ${xCross},${y1} A ${r} ${r} 0 0 1 ${xCross},${y2} A ${r} ${r} 0 1 0 ${xCross},${y1} Z`);
+
+      // 数字编号动态居中
+      setLabelPos('label-1', cxA - d/4, centerY);
+      setLabelPos('label-2', 250, centerY);
+      setLabelPos('label-3', cxB + d/4, centerY);
+    }
+
+    function setLabelPos(id, x, y) {
+      const el = document.getElementById(id);
+      el.setAttribute('x', x);
+      el.setAttribute('y', y);
+    }
+
+    distSlider.addEventListener('input', updateGeometry);
+    updateGeometry();
+
+    // 区域点亮与交互逻辑
+    function renderSlices() {
+      document.querySelectorAll('.venn-slice').forEach(el => {
+        const id = el.getAttribute('data-region');
+        if (selectedSlices.has(id)) el.classList.add('active');
+        else el.classList.remove('active');
+      });
+    }
+
+    // 点击画布切片
+    document.querySelectorAll('.venn-slice').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = el.getAttribute('data-region');
+        if (selectedSlices.has(id)) selectedSlices.delete(id);
+        else selectedSlices.add(id);
+        renderSlices();
+        matchOpList();
+      });
+    });
+
+    // 右侧运算列表点击联动
+    const opItems = document.querySelectorAll('.op-item');
+    opItems.forEach(item => {
+      item.addEventListener('click', () => {
+        opItems.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        const target = item.getAttribute('data-slices').split(',');
+        selectedSlices = new Set(target);
+        renderSlices();
+      });
+    });
+
+    function matchOpList() {
+      const curr = Array.from(selectedSlices).sort().join(',');
+      opItems.forEach(item => {
+        const target = item.getAttribute('data-slices').split(',').sort().join(',');
+        if (curr === target) item.classList.add('active');
+        else item.classList.remove('active');
+      });
+    }
+
+    // 测验系统
+    const quizBank = [
+      { formula: "A ∩ (∁_U B) （仅属于 A 的部分）", answer: ["1"] },
+      { formula: "∁_U(A ∪ B) （两圆之外的全集区域）", answer: ["4"] },
+      { formula: "B ∪ (∁_U A)", answer: ["2", "3", "4"] },
+      { formula: "A ∩ B (两集合共同拥有的部分)", answer: ["2"] },
+      { formula: "(A ∪ B) \\ (A ∩ B) （对称差）", answer: ["1", "3"] }
+    ];
+    let currQuizIdx = 0;
+
+    function switchTab(mode) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      if (mode === 'learn') {
+        document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+        document.getElementById('tab-learn').style.display = 'flex';
+        document.getElementById('tab-quiz').style.display = 'none';
+      } else {
+        document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+        document.getElementById('tab-learn').style.display = 'none';
+        document.getElementById('tab-quiz').style.display = 'flex';
+        nextQuestion();
+      }
+    }
+
+    function nextQuestion() {
+      currQuizIdx = Math.floor(Math.random() * quizBank.length);
+      document.getElementById('quizTargetFormula').textContent = quizBank[currQuizIdx].formula;
+      document.getElementById('quizFeedback').textContent = '';
+      selectedSlices.clear();
+      renderSlices();
+    }
+
+    function submitQuiz() {
+      const fb = document.getElementById('quizFeedback');
+      const correct = quizBank[currQuizIdx].answer.sort().join(',');
+      const curr = Array.from(selectedSlices).sort().join(',');
+
+      if (curr === correct) {
+        fb.style.color = '#4ade80';
+        fb.textContent = '🎉 选区完全正确！你已经掌握了这个集合运算本质。';
+      } else {
+        fb.style.color = '#f87171';
+        fb.textContent = `❌ 判定不对哦。正确区域应该是：${quizBank[currQuizIdx].answer.map(x=>'①②③④'[x-1]).join(' + ')}`;
+      }
+    }
+  </script>
+</body>
+</html>

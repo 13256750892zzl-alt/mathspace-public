@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VecGround · 向量投影操场</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #080b0d;
+  --panel: #12191d;
+  --line: rgba(203, 226, 225, .10);
+  --text: #edf2ef;
+  --muted: #a5b2b5;
+  --a: #60adff;
+  --b: #ffb15c;
+  --r: #ff6c7a;
+  --p: #c09aff;
+  --mint: #b5ebce;
+  --radius: 22px;
+  --spring: cubic-bezier(.22, 1, .36, 1);
+  --ui: "Bahnschrift", "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  --mono: "Cascadia Code", "Consolas", "Microsoft YaHei UI", monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 var(--ui); }
+body::before { content: ""; position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 76% 0, rgba(94, 144, 126, .12), transparent 52%); }
+button, input, select { font: inherit; }
+button, select { cursor: pointer; }
+button { min-height: 44px; border: 1px solid rgba(222, 240, 237, .12); border-radius: 999px; background: #192125; color: var(--text); padding: 10px 18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.05); transition: transform 450ms var(--spring), background-color 450ms var(--spring), border-color 450ms var(--spring), box-shadow 450ms var(--spring); }
+button:hover { background: #26332f; border-color: rgba(181,235,206,.35); transform: translateY(-1px); }
+button:active { transform: scale(.98); }
+button.active, button[aria-pressed="true"] { background: #b5ebce; color: #14231c; border-color: transparent; box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 4px 18px rgba(159,226,190,.07); }
+button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+button:focus-visible, input:focus-visible, select:focus-visible, canvas:focus-visible, summary:focus-visible { outline: 2px solid var(--mint); outline-offset: 4px; }
+input, select { min-height: 44px; max-width: 100%; border: 1px solid rgba(210,233,229,.13); border-radius: 12px; color: var(--text); background: #0d1417; padding: 10px 12px; box-shadow: inset 0 1px 4px rgba(0,0,0,.15), 0 1px 0 rgba(255,255,255,.03); transition: border-color 450ms var(--spring), box-shadow 450ms var(--spring); }
+input:hover, select:hover { border-color: rgba(181,235,206,.32); }
+input[aria-invalid="true"] { border-color: var(--r); }
+input:disabled, select:disabled { opacity: .5; }
+input[type="range"] { padding: 0; accent-color: var(--mint); width: 100%; border: 0; background: none; box-shadow: none; }
+input[type="checkbox"] { min-height: 20px; width: 20px; accent-color: var(--mint); box-shadow: none; flex-shrink: 0; }
+[hidden] { display: none !important; }
+h1,h2,h3,p { margin: 0; }
+.app { position: relative; max-width: 1584px; margin: auto; padding: 28px 40px 20px; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 24px; }
+.brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.brand-icon { flex: 0 0 46px; width: 46px; height: 46px; border: 1px solid rgba(211,238,224,.18); border-radius: 15px; display: grid; place-items: center; color: var(--mint); background: linear-gradient(145deg, #263730, #111b18); box-shadow: inset 0 1px 0 rgba(255,255,255,.13); }
+.brand-icon svg { width: 30px; height: 30px; }
+.brand-name { font-size: 21px; font-weight: 600; letter-spacing: -.6px; }
+.brand-name span { font-size: 13px; letter-spacing: 1px; margin-left: 8px; }
+.eyebrow { font: 9px/1.6 var(--mono); letter-spacing: 2.4px; color: var(--muted); margin-top: 4px; }
+.header-actions { display: flex; align-items: center; gap: 10px; }
+.header-actions button { white-space: nowrap; background: rgba(24,33,35,.75); font-size: 12px; }
+.header-actions button[aria-pressed="true"] { background: var(--mint); color: #14231c; }
+.status { color: #b7cdc3; font-size: 11px; margin-right: 14px; white-space: nowrap; }
+.status::before { content: ""; display: inline-block; width: 5px; height: 5px; margin-right: 8px; background: var(--mint); border-radius: 50%; box-shadow: 0 0 10px rgba(181,235,206,.25); }
+#fullscreen { display: flex; align-items: center; gap: 12px; padding: 5px 5px 5px 16px; }
+#fullscreen::after { content: "↗"; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: rgba(203,237,219,.09); color: var(--mint); font: 18px var(--ui); transition: transform 500ms var(--spring), background-color 500ms var(--spring); }
+#fullscreen:hover::after { transform: translate(1px, -1px) scale(1.05); background: rgba(203,237,219,.16); }
+.intro { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 12px 2px 18px; }
+.intro-tag { display: none; align-items: center; gap: 10px; padding: 6px 12px; border: 1px solid rgba(181,235,206,.17); border-radius: 999px; font-size: 10px; letter-spacing: 2px; color: #b3c7bb; background: rgba(181,235,206,.035); margin-bottom: 16px; }
+.intro-tag::before { content: ""; width: 4px; height: 4px; border-radius: 50%; background: var(--mint); }
+h1 { font-size: clamp(24px, 2.2vw, 30px); font-weight: 500; line-height: 1.35; letter-spacing: -.7px; }
+h1 em { font-style: normal; color: var(--mint); }
+.intro p { color: var(--muted); font-size: 12px; line-height: 1.8; margin-top: 8px; letter-spacing: .2px; }
+.intro-index { position: relative; flex: 0 0 160px; padding: 4px 12px; text-align: center; color: var(--muted); font: 10px/1.8 var(--mono); letter-spacing: 2px; }
+.intro-index::before { content: ""; position: absolute; top: 0; left: 20px; width: 120px; height: 68px; border: 1px solid rgba(181,235,206,.12); border-radius: 50%; transform: rotate(-28deg); }
+.intro-equation { position: relative; display: block; font: 42px/1.15 "Cambria Math", "Georgia", serif; letter-spacing: 6px; color: #d7e8de; }
+.intro-equation span { color: #8eaf9c; }
+.intro-index small { display: block; margin-top: 6px; font-size: 8px; letter-spacing: 1.5px; }
+.nav-shell { padding: 5px; width: max-content; max-width: 100%; margin: 0 auto 28px; border: 1px solid rgba(221,244,232,.10); border-radius: 999px; background: rgba(215,242,224,.025); box-shadow: 0 8px 30px rgba(0,0,0,.08); }
+nav { display: flex; gap: 4px; padding: 4px; background: #101719; border: 1px solid rgba(216,238,228,.045); border-radius: inherit; overflow-x: auto; scrollbar-width: thin; scrollbar-color: #476353 transparent; }
+nav button { display: flex; align-items: center; justify-content: center; flex: 0 0 auto; gap: 8px; min-height: 44px; padding: 10px 18px; border-color: transparent; background: transparent; box-shadow: none; color: #adbbba; font-size: 12px; }
+nav button span { font: 10px var(--mono); opacity: .7; }
+nav button.active { background: var(--mint); color: #15241c; }
+.workspace { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 22px; align-items: start; }
+.bezel-shell { min-width: 0; border: 1px solid rgba(218,238,229,.11); background: linear-gradient(155deg, rgba(205,230,218,.06), rgba(205,230,218,.018)); padding: 5px; border-radius: 27px; box-shadow: inset 0 1px 0 rgba(255,255,255,.035); }
+.panel { background: #121a1e; border: 1px solid rgba(218,238,229,.055); border-radius: 21px; box-shadow: inset 0 1px 0 rgba(255,255,255,.035); overflow: hidden; }
+.control-shell { align-self: start; }
+.controls { padding: 22px 20px; }
+.section-label { display: flex; align-items: center; justify-content: space-between; color: #c4cecb; font-size: 12px; margin-bottom: 22px; }
+.section-label span { font: 8px var(--mono); color: #8da6a0; letter-spacing: 1px; }
+.vector-input { border: 1px solid rgba(179,208,227,.10); border-radius: 15px; background: rgba(96,173,255,.025); padding: 15px 13px; margin-bottom: 14px; box-shadow: inset 0 1px 0 rgba(255,255,255,.025); }
+.vector-input + .vector-input { border-color: rgba(235,194,142,.11); background: rgba(255,177,92,.025); }
+.vector-title { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; font-size: 13px; font-weight: 500; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--a); box-shadow: 0 0 9px rgba(96,173,255,.15); }
+.dot.b { background: var(--b); }
+.coords { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.coords label { min-width: 0; color: #b5c5ce; font: 10px var(--mono); text-transform: uppercase; }
+.coords input { width: 100%; margin-top: 7px; font: 18px var(--mono); padding: 8px 10px; min-height: 46px; }
+.control-group { padding-top: 8px; margin-top: 15px; }
+.control-group h3 { font-size: 12px; font-weight: 500; margin-bottom: 12px; }
+.segmented { display: flex; gap: 6px; flex-wrap: wrap; }
+.segmented button { flex: 1; min-width: 0; padding: 9px 10px; font: 12px var(--mono); }
+.hint { color: var(--muted); font-size: 12px; line-height: 1.9; margin-top: 12px; }
+.range-title { display: flex; align-items: center; justify-content: space-between; }
+.range-title output { color: var(--mint); font: 24px var(--mono); }
+.ticks { display: flex; justify-content: space-between; color: var(--muted); font: 10px var(--mono); }
+.toggle { display: flex; align-items: center; gap: 9px; min-height: 44px; font-size: 12px; color: #b9c8c6; }
+.controls .primary { width: 100%; }
+button.primary { color: #14251b; background: var(--mint); border-color: transparent; padding: 12px 16px; font-size: 12px; font-weight: 600; box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 5px 20px rgba(146,217,176,.07); }
+button.primary:hover { background: #c8f4dc; box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 5px 24px rgba(146,217,176,.12); }
+.control-group select { width: 100%; }
+#reset { color: #c0ceca; background: #1b2526; font-size: 11px; }
+.keyboard { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(205,226,221,.09); color: var(--muted); font-size: 10px; line-height: 1.9; }
+.keyboard select { padding: 8px; min-height: 44px; width: 100%; margin-bottom: 10px; font-size: 11px; }
+.stage-column { min-width: 0; }
+.stage-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 19px 24px; border-bottom: 1px solid rgba(205,226,221,.08); }
+.stage-header h2 { font-size: 15px; font-weight: 500; }
+.stage-header small { color: #8ea59d; font: 9px var(--mono); letter-spacing: 1.5px; }
+.type-badge { padding: 6px 11px; border-radius: 999px; border: 1px solid rgba(189,177,229,.16); color: #d0c9e6; background: rgba(192,154,255,.04); font-size: 10px; white-space: nowrap; }
+.canvas-wrap { position: relative; height: 400px; background: radial-gradient(ellipse at 52% 48%, #15232a 0%, #10191e 67%, #0d1519 100%); }
+canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.stage-legend { position: absolute; left: 24px; top: 19px; display: flex; gap: 18px; align-items: center; color: #b2c3ca; font-size: 11px; pointer-events: none; }
+.stage-legend i { display: inline-block; width: 15px; height: 2px; margin-right: 6px; background: var(--a); vertical-align: middle; }
+.stage-legend .b { background: var(--b); }
+.stage-legend .p { background: var(--p); }
+.drag-hint { position: absolute; bottom: 16px; right: 24px; color: #9bb2b8; font-size: 10px; pointer-events: none; }
+.formula-strip { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 64px; padding: 16px 24px; background: #141f22; border-top: 1px solid rgba(205,226,221,.08); }
+.formula { min-width: 0; font: 16px/1.7 var(--mono); color: #e1eae5; overflow-wrap: anywhere; }
+.formula-sub { color: #a5c0b4; font-size: 11px; text-align: right; }
+.curve-block { padding: 20px 24px 16px; background: #10191c; border-top: 1px solid rgba(205,226,221,.08); }
+.curve-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.curve-head h3 { font-size: 12px; font-weight: 500; }
+.curve-head label { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 10px; }
+.curve-head select { min-height: 44px; padding: 7px; font-size: 11px; }
+.curve-block canvas { height: 170px; margin-top: 12px; }
+.metrics-shell { margin-top: 16px; border-radius: 22px; padding: 4px; }
+.readouts { display: grid; grid-template-columns: 1.15fr 1fr 1fr 1fr 1.1fr; gap: 0; border: 1px solid rgba(215,235,226,.05); border-radius: 17px; overflow: hidden; background: #121c20; }
+.readout { min-width: 0; padding: 17px 18px; background: #121c20; border-right: 1px solid rgba(205,226,221,.08); }
+.readout:last-child { border: 0; }
+.readout:first-child { background: #172824; }
+.readout label { display: block; color: #afc1bf; font-size: 11px; margin-bottom: 10px; }
+.readout strong { font: 25px/1.3 var(--mono); font-weight: 400; letter-spacing: -.8px; overflow-wrap: anywhere; }
+.readout small { color: #aebebb; font-size: 10px; margin-left: 5px; }
+.readout:first-child strong { color: var(--mint); }
+.projection-pair { display: grid; grid-template-columns: .9fr 1.1fr; gap: 14px; margin-top: 16px; }
+.projection-shell { border-radius: 22px; padding: 4px; border-color: rgba(192,154,255,.13); }
+.projection-item { height: 100%; padding: 18px 22px; border-radius: 17px; border: 1px solid rgba(205,194,232,.06); background: linear-gradient(110deg,#1c202d,#151c25); box-shadow: inset 0 1px 0 rgba(255,255,255,.025); transition: background-color 500ms var(--spring), border-color 500ms var(--spring); }
+.projection-item h3 { font-size: 12px; font-weight: 400; color: #c0b8d4; margin-bottom: 12px; letter-spacing: .5px; }
+.projection-item strong { font: 29px/1.2 var(--mono); color: #cfb3ff; letter-spacing: -.5px; overflow-wrap: anywhere; }
+.projection-item p { color: #b0afc2; font: 11px/1.8 var(--mono); margin-top: 12px; }
+.projection-item.negative { background: #2a1c25; border-color: rgba(255,108,122,.26); }
+.projection-item.negative strong { color: #ff93a0; }
+.teaching-shell { margin-top: 24px; border-radius: 26px; border-color: rgba(181,235,206,.13); }
+.teaching { display: grid; grid-template-columns: 110px 1fr; gap: 28px; padding: 26px 28px; border: 1px solid rgba(181,235,206,.06); border-radius: 20px; background: linear-gradient(120deg,#14221e,#111c1a); box-shadow: inset 0 1px 0 rgba(255,255,255,.03); }
+.teaching-label { padding-top: 3px; color: #b5ddc4; font: 9px/2.3 var(--mono); letter-spacing: 2px; }
+.teaching h3 { color: #e1eee6; font-size: 16px; font-weight: 500; margin-bottom: 10px; }
+.teaching p { color: #bacfc4; line-height: 1.95; font-size: 14px; }
+.question { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(205,226,221,.09); }
+.question p { font-size: 13px; }
+.question button { flex-shrink: 0; min-width: 92px; padding: 9px 16px; font-size: 11px; background: #24392e; color: #cfead9; border-color: rgba(181,235,206,.15); }
+.answer { margin-top: 16px; padding: 14px 16px; border-radius: 12px; background: rgba(181,235,206,.045); color: #cbebd7 !important; }
+.error { color: #ff939e; font-size: 11px; line-height: 1.8; margin-top: 10px; }
+.error:empty { margin-top: 0; }
+.footer { display: flex; justify-content: space-between; gap: 20px; padding: 26px 4px 6px; color: #9caaa8; font-size: 10px; line-height: 1.8; }
+.reveal-ready { transition: transform 850ms var(--spring), opacity 850ms var(--spring); }
+.reveal-pending { opacity: 0; transform: translateY(18px); }
+.classroom { font-size: 17px; }
+.classroom .app { max-width: none; }
+.classroom .intro { display: none; }
+.classroom .nav-shell { margin-bottom: 20px; }
+.classroom .canvas-wrap { height: 52vh; min-height: 400px; }
+.classroom .hint, .classroom .keyboard { display: none; }
+.classroom .formula { font-size: 22px; }
+.classroom .teaching p { font-size: 18px; }
+.classroom .readout label { font-size: 14px; }
+.classroom .readout strong { font-size: 29px; }
+@media (min-width: 1500px) { .canvas-wrap { height: 450px; } }
+@media (max-width: 1150px) {
+  .app { padding: 24px; }
+  .workspace { grid-template-columns: 252px minmax(0,1fr); gap: 16px; }
+  .nav-shell { width: 100%; }
+  nav button { flex: 1 0 auto; padding: 10px 13px; }
+  .readout { padding: 15px 12px; }
+  .readout strong { font-size: 21px; }
+  .intro-index { flex-basis: 150px; }
+  .intro-index::before { left: 15px; }
+  .formula-strip { align-items: start; flex-direction: column; gap: 5px; }
+  .formula-sub { text-align: left; }
+  .stage-header { padding: 18px; }
+  .stage-header small { display: none; }
+  .projection-item { padding: 18px 16px; }
+  .brand-name span { display: none; }
+}
+@media (max-width: 767px) {
+  .app { padding: 24px 16px 16px; }
+  header { gap: 12px; padding-bottom: 12px; align-items: center; }
+  .brand { gap: 10px; }
+  .brand-icon { width: 38px; height: 38px; flex-basis: 38px; border-radius: 12px; }
+  .brand-icon svg { width: 24px; height: 24px; }
+  .brand-name { font-size: 18px; }
+  .eyebrow { display: none; }
+  .status { display: none; }
+  .header-actions { gap: 6px; }
+  .header-actions button { font-size: 10px; min-height: 44px; padding: 9px 12px; }
+  #fullscreen { gap: 8px; padding: 5px 5px 5px 12px; }
+  #fullscreen::after { width: 27px; height: 27px; font-size: 15px; }
+  .intro { padding: 16px 0 18px; }
+  .intro-tag { font-size: 9px; padding: 5px 10px; margin-bottom: 16px; letter-spacing: 1.5px; }
+  h1 { font-size: clamp(23px, 5.5vw, 28px); letter-spacing: -.6px; line-height: 1.4; }
+  .intro p { font-size: 11px; max-width: 33em; margin-top: 8px; }
+  .intro-index { display: none; }
+  .nav-shell { width: 100%; margin-bottom: 20px; padding: 4px; border-radius: 20px; }
+  nav { padding: 3px; border-radius: 15px; gap: 5px; }
+  nav button { flex: 0 0 auto; padding: 10px 14px; border-radius: 12px; gap: 7px; font-size: 11px; }
+  .workspace { display: flex; flex-direction: column; gap: 20px; }
+  .stage-column { width: 100%; order: 1; }
+  .control-shell { width: 100%; order: 2; }
+  .controls { display: block; padding: 22px 20px; }
+  .vector-input { padding: 17px; margin-bottom: 16px; }
+  .vector-title { font-size: 13px; }
+  .coords input { font-size: 20px; }
+  .control-group { margin-top: 20px; }
+  .control-group h3 { font-size: 13px; }
+  .toggle { font-size: 12px; }
+  .keyboard { font-size: 11px; }
+  .stage-header { padding: 16px 13px; flex-wrap: wrap; gap: 8px; }
+  .stage-header h2 { font-size: 13px; }
+  .type-badge { font-size: 9px; padding: 5px 8px; }
+  .canvas-wrap { height: 330px; }
+  .stage-legend { top: 16px; left: 14px; gap: 14px; font-size: 10px; }
+  .drag-hint { bottom: 14px; right: 14px; font-size: 9px; }
+  .formula-strip { padding: 14px; gap: 7px; }
+  .formula { font-size: 12px; }
+  .formula-sub { font-size: 10px; }
+  .readouts { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .readout { padding: 15px 11px; border-bottom: 1px solid rgba(205,226,221,.08); }
+  .readout:nth-child(3) { border-right: 0; }
+  .readout:nth-child(n+4) { border-bottom: 0; }
+  .readout strong { font-size: 21px; }
+  .projection-pair { grid-template-columns: 1fr; gap: 12px; }
+  .projection-item { display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; align-items: center; padding: 18px; }
+  .projection-item h3 { margin: 0; font-size: 11px; }
+  .projection-item strong { font-size: 25px; }
+  .projection-item p { grid-column: 1 / -1; margin-top: 5px; font-size: 11px; }
+  .curve-block { padding: 18px 14px; }
+  .curve-head { flex-wrap: wrap; }
+  .curve-head label { flex-wrap: wrap; }
+  .curve-head select { max-width: 100%; }
+  .teaching-shell { margin-top: 22px; }
+  .teaching { grid-template-columns: 1fr; gap: 12px; padding: 22px 18px; }
+  .teaching-label { line-height: 1.5; }
+  .teaching-label br { display: none; }
+  .teaching h3 { font-size: 16px; }
+  .teaching p { font-size: 12px; }
+  .question { align-items: start; gap: 12px; }
+  .question button { min-width: 80px; padding: 9px 11px; font-size: 10px; }
+  .footer { flex-direction: column; gap: 8px; padding: 24px 4px 0; font-size: 9px; }
+  .classroom .canvas-wrap { min-height: 330px; }
+  .classroom .formula { font-size: 16px; }
+  .classroom .controls { font-size: 14px; }
+  .classroom .readout strong { font-size: 24px; }
+}
+@media (max-width: 360px) {
+  .app { padding-left: 12px; padding-right: 12px; }
+  .brand-icon { display: none; }
+  .brand-name { font-size: 17px; }
+  .header-actions button { padding-left: 10px; padding-right: 10px; }
+  #fullscreen { padding-left: 10px; padding-right: 5px; }
+  .type-badge { font-size: 8px; }
+  .stage-header h2 { font-size: 12px; }
+  .readout { padding: 14px 9px; }
+  .readout strong { font-size: 19px; }
+  .readout label { font-size: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .reveal-pending { opacity: 1; transform: none; }
+}
+
+#angleControls .segmented { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+#angleControls .segmented button { padding: 9px 4px; min-height: 44px; }
+
+.projection-emphasis .drag-hint { display: none; }
+
+header { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "brand navigation actions"; }
+header .brand { grid-area: brand; }
+header .header-actions { grid-area: actions; }
+header .nav-shell { grid-area: navigation; }
+header .nav-shell, .classroom header .nav-shell { margin: 0 auto; min-width: 0; max-width: 100%; }
+header nav button { padding-inline: 12px; }
+@media (max-width: 1150px) {
+  header { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "brand actions" "navigation navigation"; row-gap: 16px; }
+}
+</style>
+</head>
+<body><div class="app">
+<header><div class="brand"><div class="brand-icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M7 25V8M7 25H25M7 25L25 7M18 7H25V14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="25" r="2" fill="currentColor"/></svg></div><div><div class="brand-name">VecGround <span style="color:var(--muted);font-weight:400">/ 向量投影操场</span></div><div class="eyebrow">MATHEMATICS · INTERACTIVE FIELD</div></div></div><div class="nav-shell"><nav aria-label="实验模块" id="nav"></nav></div><div class="header-actions"><span class="status">离线实验舱</span><button id="classroom" aria-pressed="false">投屏模式</button><button id="fullscreen">全屏</button></div></header>
+<section class="intro"><div><div class="intro-tag">可交互 · 平面向量实验室</div><h1>让向量，<em>从公式走进操场。</em></h1><p>走一段位移，转一个角度，看见数量积背后的几何。</p></div><div class="intro-index" aria-hidden="true"><span class="intro-equation">a<span>·</span>b</span><small>PLANE VECTOR / LAB 08</small></div></section>
+
+<main><div class="workspace">
+<div class="bezel-shell control-shell"><aside class="panel controls"><div class="section-label">实验参数 <span>CONTROL PANEL</span></div>
+<div class="vector-input"><div class="vector-title"><i class="dot"></i><span id="aName">向量 a · 基准</span></div><div class="coords"><label>x<input id="ax" type="number" step="0.1" min="-100" max="100" value="4" aria-label="a 的横坐标"></label><label>y<input id="ay" type="number" step="0.1" min="-100" max="100" value="0" aria-label="a 的纵坐标"></label></div></div>
+<div class="vector-input"><div class="vector-title"><i class="dot b"></i><span id="bName">向量 b · 探索</span></div><div class="coords"><label>x<input id="bx" type="number" step="0.1" min="-100" max="100" value="3" aria-label="b 的横坐标"></label><label>y<input id="by" type="number" step="0.1" min="-100" max="100" value="3" aria-label="b 的纵坐标"></label></div></div>
+<div id="sumControls" class="control-group" hidden><h3>位移运算</h3><div class="segmented" id="operations"><button data-op="add" aria-pressed="true">a+b</button><button data-op="sub">a−b</button><button data-op="revsub">b−a</button><button data-op="neg">−b</button></div><button id="walk" class="primary" style="margin-top:12px">▶ 走一遍位移</button><label class="toggle"><input type="checkbox" id="reverseWalk">先走 b，再走 a</label><label class="toggle"><input type="checkbox" id="parallelogram" checked>平行四边形辅助线</label></div>
+<div id="scaleControls" class="control-group" hidden><div class="range-title"><h3>数乘系数 λ</h3><output id="lambdaValue">1.5</output></div><input type="range" min="-3" max="3" step="0.1" value="1.5" id="lambda" aria-label="数乘系数"><div class="ticks"><span>−3 反向</span><span>0</span><span>3 同向</span></div><label class="toggle"><input type="checkbox" id="unit">显示单位向量 a/|a|</label></div>
+<div id="angleControls" class="control-group"><h3>夹角定位</h3><div class="segmented"><button data-angle="0">0°</button><button data-angle="30">30°</button><button data-angle="60">60°</button><button data-angle="90">90°</button><button data-angle="120">120°</button><button data-angle="135">135°</button><button data-angle="150">150°</button><button data-angle="180">180°</button></div><label class="toggle" id="lockLabel"><input type="checkbox" id="lock" checked>拖动 b 时保持长度</label><div class="hint" id="angleHint">拖动橙色端点，观察投影的方向与符号。</div></div>
+<div id="curveControls" class="control-group" hidden><button id="rotate" class="primary">▶ 自动旋转一周</button><div class="hint">一周转角 φ=0°→360°；向量夹角 θ=0°→180°→0°。</div></div>
+<div class="control-group"><button id="reset" style="width:100%">↺ 重置当前实验</button><p id="inputError" class="error" role="status"></p></div>
+<div class="keyboard"><select id="selected" aria-label="键盘控制向量"><option value="a">键盘控制：向量 a</option><option value="b" selected>键盘控制：向量 b</option></select>点击画布后用方向键微调。<br>步长 0.1；按住 Shift 步长 1。</div>
+</aside></div>
+<div class="stage-column"><div class="bezel-shell stage-shell"><section class="panel"><div class="stage-header"><h2 id="stageTitle">03 / 投影与夹角</h2><small>LIVE GEOMETRY</small><div class="type-badge" id="typeBadge">a·b 的结果是实数</div></div><div class="canvas-wrap"><canvas id="field" tabindex="0" aria-label="向量实验画布，可拖动端点，也可通过左侧坐标输入或方向键操作"></canvas><div class="stage-legend"><span><i></i><span id="legendA">a</span></span><span><i class="b"></i><span id="legendB">b</span></span><span id="legendProjection"><i class="p"></i>投影向量 O→H</span></div><div class="drag-hint" id="dragHint">拖动光圈端点 · 坐标实时联动</div></div><div class="formula-strip"><div class="formula" id="formula"></div><div class="formula-sub" id="formulaSub"></div></div><div class="curve-block" id="curveBlock" hidden><div class="curve-head"><h3>数量积变化曲线</h3><label>横轴<select id="curveAxis" aria-label="曲线横轴"><option value="theta">向量夹角 θ · 0°–180°</option><option value="phi">一周转角 φ · 0°–360°</option></select></label></div><canvas id="curve" aria-label="数量积余弦曲线"></canvas><p class="hint" id="curveNote"></p></div></section></div>
+<div class="bezel-shell metrics-shell"><div class="readouts" id="readouts"></div></div><div class="projection-pair" id="projectionPair"><div class="bezel-shell projection-shell"><div class="projection-item" id="scalarCard"><h3>投影数量 · 一个实数</h3><strong id="projectionNumber"></strong><p>|b|cosθ = (a·b)/|a|</p></div></div><div class="bezel-shell projection-shell"><div class="projection-item"><h3>投影向量 · 一个向量</h3><strong id="projectionVector"></strong><p>projₐ b = ((a·b)/|a|²)a</p></div></div></div>
+</div></div>
+<div class="bezel-shell teaching-shell"><section class="teaching" aria-live="polite"><div class="teaching-label">FIELD NOTE<br>观察 → 理解</div><div><h3 id="noteTitle"></h3><p id="note"></p><div class="question"><p id="question"></p><button id="reveal" aria-expanded="false">查看解释</button></div><p class="answer" id="answer" hidden></p></div></section></div>
+</main><footer class="footer"><span>平面向量 · 线性运算 / 数量积　｜　所有角度均基于非零向量</span><span>VecGround 1.1　/　为课堂探索而设计</span></footer>
+</div>
+<script>
+'use strict';
+const V={add:(a,b)=>[a[0]+b[0],a[1]+b[1]],sub:(a,b)=>[a[0]-b[0],a[1]-b[1]],mul:(a,k)=>[a[0]*k,a[1]*k],dot:(a,b)=>a[0]*b[0]+a[1]*b[1],norm:a=>Math.hypot(...a),cross:(a,b)=>a[0]*b[1]-a[1]*b[0],derive(a,b){const aa=this.dot(a,a),la=this.norm(a),lb=this.norm(b),d=this.dot(a,b),valid=la>0&&lb>0;return{la,lb,d,cos:valid?Math.max(-1,Math.min(1,d/la/lb)):null,theta:valid?Math.acos(Math.max(-1,Math.min(1,d/la/lb)))*180/Math.PI:null,p:la>0?d/la:null,pv:aa>0?this.mul(a,d/aa):null,perpendicular:valid&&Math.abs(d)<=Number.EPSILON*32*la*lb,collinear:Math.abs(this.cross(a,b))<=Number.EPSILON*32*la*lb,zero:!valid}}};
+const $=id=>document.getElementById(id),COL={a:'#60adff',b:'#ffb15c',r:'#ff6c7a',p:'#c09aff',mint:'#8ce8cd',grid:'#243449',muted:'#9eb0c7'},O=[0,0];
+const modules=[['sum','位移合成'],['scale','数乘与共线'],['projection','投影与夹角'],['coordinate','坐标验证']];
+const defaults={sum:[[3,1],[1,3]],scale:[[3,1],[6,2]],projection:[[4,0],[3,3]],coordinate:[[3,2],[-2,3]]};
+const S={mode:'projection',a:[4,0],b:[3,3],lambda:1.5,op:'add',phi:45,trace:[],job:null,walkPoint:null,selected:'b'};let transform=null,drawCount=0,lastNote='';const drags=new Map();
+const fmt=(n,d=2)=>n===null||n===undefined?'未定义':Math.abs(n)<1e-10?'0':Number(n.toFixed(d)).toString(),vec=a=>a?'('+a.map(x=>fmt(x)).join(', ')+')':'未定义';
+function stop(){if(S.job)cancelAnimationFrame(S.job.frame);S.job=null;S.walkPoint=null;$('walk').textContent='▶ 走一遍位移';$('rotate').textContent='▶ 自动旋转一周';}
+function result(){return S.op==='add'?V.add(S.a,S.b):S.op==='sub'?V.sub(S.a,S.b):S.op==='revsub'?V.sub(S.b,S.a):V.mul(S.b,-1)}
+function relativePhi(){if(!V.norm(S.a)||!V.norm(S.b))return 0;let v=(Math.atan2(S.b[1],S.b[0])-Math.atan2(S.a[1],S.a[0]))*180/Math.PI;return(v+360)%360}
+function angleSet(deg){if(!V.norm(S.a)||!V.norm(S.b))return;const base=Math.atan2(S.a[1],S.a[0]),len=V.norm(S.b),rad=deg*Math.PI/180;if(deg===0)S.b=V.mul(S.a,len/V.norm(S.a));else if(deg===180)S.b=V.mul(S.a,-len/V.norm(S.a));else if(deg===90)S.b=V.mul([-S.a[1],S.a[0]],len/V.norm(S.a));else S.b=[len*Math.cos(base+rad),len*Math.sin(base+rad)];S.phi=deg;sync();}
+function switchMode(mode){if(!defaults[mode])return;stop();drags.clear();S.mode=mode;S.a=[...defaults[mode][0]];S.b=[...defaults[mode][1]];S.lambda=1.5;S.op='add';S.trace=[];S.phi=relativePhi();$('lambda').value=1.5;$('parallelogram').checked=true;$('reverseWalk').checked=false;$('lock').checked=true;$('inputError').textContent='';$('curveAxis').value='theta';lastNote='';document.querySelectorAll('#nav button').forEach(b=>{b.classList.toggle('active',b.dataset.mode===mode);b.setAttribute('aria-pressed',b.dataset.mode===mode)});['sum','scale','angle','curve'].forEach(k=>$(k+'Controls').hidden=k==='angle'?!['projection','coordinate'].includes(mode):k==='curve'?mode!=='projection':k!==mode);$('projectionPair').hidden=!['projection','coordinate'].includes(mode);$('curveBlock').hidden=mode!=='projection';$('legendProjection').hidden=!['projection','coordinate'].includes(mode);$('legendA').textContent='a';$('legendB').textContent='b';$('aName').textContent='向量 a · 基准';$('bName').textContent='向量 b · 探索';$('ay').disabled=false;$('ax').min='-100';$('lockLabel').hidden=!['projection'].includes(mode);$('angleHint').textContent=mode==='coordinate'?'改动坐标，核对坐标法与几何法的一致性。':'拖动橙色端点，观察投影的方向与符号。';$('dragHint').textContent='拖动光圈端点 · 坐标实时联动';$('stageTitle').textContent=['01 / 位移操场','02 / 数乘与共线台','03 / 投影与夹角','04 / 坐标运算与垂直判定'][modules.findIndex(m=>m[0]===mode)];sync();}
+function sync(inputs=true){$('field').parentElement.classList.toggle('projection-emphasis',['projection','coordinate'].includes(S.mode));const d=V.derive(S.a,S.b);if(inputs){['ax','ay','bx','by'].forEach((id,i)=>$(id).value=fmt((i<2?S.a:S.b)[i%2],4));}$('lambdaValue').textContent=fmt(S.lambda,1);$('lambdaValue').style.color=S.lambda<0?COL.r:COL.mint;document.querySelectorAll('[data-op]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.op===S.op));document.querySelectorAll('[data-angle]').forEach(b=>{b.disabled=d.zero;b.setAttribute('aria-pressed',d.theta!==null&&Math.abs(d.theta-Number(b.dataset.angle))<1e-7)});$('rotate').disabled=d.zero;$('typeBadge').textContent=['sum','scale'].includes(S.mode)?'线性运算的结果是向量':'a·b 的结果是实数';updateNumbers(d);updateNote(d);draw();if(S.mode==='projection')drawCurve(d);}
+function updateNumbers(d){let f='',sub='',items=[['数量积 a·b',fmt(d.d),'实数'],['|a|',fmt(d.la),''],['|b|',fmt(d.lb),''],['cosθ',fmt(d.cos,3),''],['向量夹角 θ',d.theta===null?'未定义':fmt(d.theta,1)+'°','']];if(S.mode==='sum'){const r=result(),expr={add:'a+b',sub:'a−b',revsub:'b−a',neg:'−b'}[S.op];f=expr+' = '+vec(r);sub='蓝色 a · 橙色 b · 红色结果向量';items=[['向量 a',vec(S.a),''],['向量 b',vec(S.b),''],['结果 '+expr,vec(r),''],['结果的模',fmt(V.norm(r)),''],['运算类型','向量','']];}else if(S.mode==='scale'){f='λa = '+fmt(S.lambda)+' × '+vec(S.a)+' = '+vec(V.mul(S.a,S.lambda));sub=S.lambda===0?'零向量：没有确定方向':S.lambda<0?'λ<0，方向相反':'λ>0，方向相同';const ratio=d.la?V.dot(S.a,S.b)/V.dot(S.a,S.a):null;items=[['系数 λ',fmt(S.lambda),'实数'],['|λa|',fmt(Math.abs(S.lambda)*d.la),''],['向量 λa',vec(V.mul(S.a,S.lambda)),''],['a 与 b',d.collinear?'共线':'不共线',''],['共线系数',d.collinear&&d.la?fmt(ratio):'不适用','']];}else if(S.mode==='coordinate'){f='a·b = '+fmt(S.a[0])+'×('+fmt(S.b[0])+') + '+fmt(S.a[1])+'×('+fmt(S.b[1])+') = '+fmt(d.d);sub=d.zero?'零向量参与：夹角未定义':d.perpendicular?'两非零向量垂直':'两非零向量不垂直';}else{f='a·b = |a||b|cosθ = |a| × 投影数量 = '+fmt(d.d);sub=d.zero?'零向量参与：夹角未定义':d.perpendicular?'θ=90° · 投影退化为一个点':d.d<0?'钝角 · 负投影 · 负数量积':'锐角或同向 · 非负投影';}$('formula').textContent=f;$('formulaSub').textContent=sub;$('readouts').innerHTML=items.map(([label,value,unit])=>'<div class="readout"><label>'+label+'</label><strong>'+value+'</strong><small>'+unit+'</small></div>').join('');$('projectionNumber').textContent=fmt(d.p);$('projectionVector').textContent=vec(d.pv);$('scalarCard').classList.toggle('negative',d.p<0);}
+const notes={sum:['位移的终点，比走法更重要。','先走 a，再走 b，两段位移首尾相接。合位移从最初起点指向最终终点；平行四边形的对角线也是同一个结果。','交换两段位移的先后顺序，终点会改变吗？','不会。a+b=b+a；走过的路径可能不同，但合位移相同。'],scale:['一个系数，控制伸缩与反向。','λa 的长度为 |λ||a|。λ>0 时与 a 同向，λ<0 时反向；λ=0 时是零向量，没有确定方向。','λ=−2 时，长度与方向分别怎样变化？','长度变成原来的 2 倍，方向相反。数乘系数是实数，运算结果仍是向量。'],projection:['把“影子”分成数量和向量。','投影数量是带符号的实数 |b|cosθ；投影向量是沿 a 所在直线的向量。两者有关联，但类型不同。保持两向量的模不变，拖动 b 或自动旋转，可同时观察下方数量积随夹角变化的余弦曲线。','投影数量为负时，投影向量指向哪里？','指向 a 的反方向。注意：投影向量的模非负，等于投影数量的绝对值。'],coordinate:['两套算法，描述同一个数量积。','坐标法 a·b=x₁x₂+y₁y₂，与几何法 |a||b|cosθ 一致。两非零向量的数量积为 0，当且仅当它们垂直。','a=(3,2)，b=(−2,3)，不求角度能判断垂直吗？','能。3×(−2)+2×3=0，且两个向量均非零，因此垂直。']};
+function updateNote(d){let n=[...notes[S.mode]],key=S.mode+S.op;if(S.mode==='sum'&&S.op!=='add'){n=S.op==='neg'?['相反向量：长度相同，方向相反。','−b 与 b 的模相等；b+(−b)=0。零向量是加法的零元。','b−a 与 a−b 有什么关系？','b−a=−(a−b)，两者互为相反向量。']:['减法：先认清箭头从哪里出发。','a−b=a+(−b)。把 a、b 画在共同起点时，a−b 的箭头从 b 的终点指向 a 的终点；b−a 则反过来。','切换 a−b 和 b−a，结果的模会改变吗？','不会。两者长度相同、方向相反。'];}if(['projection','coordinate'].includes(S.mode)){if(d.zero){n[0]='先检查：有没有零向量？';n[1]=!d.la?'a=0 没有确定方向，不能作为投影基准；数量积仍为 0，但夹角、投影数量和投影向量未定义。':'b=0 时投影数量为 0，投影向量为零向量；夹角仍未定义。不能用“夹角为90°”解释此时的数量积为0。';key+='zero';}else if(d.perpendicular){n[0]='90°：影子缩成一个点。';n[1]='投影数量为 0，投影向量为零向量；a·b=0。这里 a、b 都是非零向量，因此可以判断它们垂直。';key+='right';}else if(d.d<0){n[0]='影子跑到反方向，投影可以为负。';n[1]='夹角 θ>90°，cosθ<0，因此投影数量与数量积均为负。这不是画错了；投影向量指向 a 的反方向。';key+='negative';}}if(S.mode==='coordinate'&&!d.zero)n[1]+=' 当前坐标法='+fmt(d.d,4)+'，几何法='+fmt(d.la*d.lb*d.cos,4)+'。';if(S.mode==='scale'){if(!d.la)n[1]='a=0 时所有 λa 都是零向量，单位向量 a/|a| 未定义，不能用它确定方向。';else if(d.collinear)n[1]+=' 当前 b='+fmt(V.dot(S.a,S.b)/V.dot(S.a,S.a))+'a。';key+=S.lambda<0?'negative':S.lambda===0?'zero':'positive';}$('noteTitle').textContent=n[0];$('note').textContent=n[1];$('question').textContent=n[2];$('answer').textContent=n[3];if(key!==lastNote){$('answer').hidden=true;$('reveal').textContent='查看解释';$('reveal').setAttribute('aria-expanded','false');lastNote=key;}}
+function prepare(canvas){const r=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1,w=r.width,h=r.height;if(!w||!h)return null;if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr)}const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);return{ctx,w,h};}
+function pointsForScene(){let p=[O,S.a,S.b];if(S.mode==='sum')p.push(result(),V.add(S.a,S.b),V.sub(S.a,S.b),V.sub(S.b,S.a));if(S.mode==='scale')p.push(V.mul(S.a,S.lambda));if(['projection','coordinate'].includes(S.mode)){const d=V.derive(S.a,S.b);if(d.pv)p.push(d.pv);if(['projection'].includes(S.mode)&&$('lock').checked){const r=V.norm(S.b);p.push([r,r],[-r,-r]);}}return p;}
+// Screen-space emphasis only. The true projection endpoint and vector length stay unchanged.
+function paintProjection(c, P, d, w, h) {
+  if (!d.pv) return;
+  const o = P([0, 0]), foot = P(d.pv), bp = P(S.b);
+  const dx = foot[0] - o[0], dy = foot[1] - o[1], pixels = Math.hypot(dx, dy);
+  const zero = d.p === 0 || d.perpendicular;
+  const color = d.p < 0 && !zero ? '#ff92a4' : '#d4b6ff';
+  c.save();
+  c.lineCap = 'round'; c.lineJoin = 'round'; c.setLineDash([]);
+  // A dark separating edge keeps the blue baseline from visually mixing with the projection.
+  if (!zero) {
+    c.beginPath(); c.moveTo(...o); c.lineTo(...foot);
+    c.strokeStyle = '#0b1018'; c.lineWidth = 13; c.stroke();
+    c.strokeStyle = color; c.lineWidth = 8; c.stroke();
+    if (pixels >= 4) {
+      const ux = dx / pixels, uy = dy / pixels;
+      // Short projections retain their actual size; arrowheads never extend beyond O or H.
+      const length = Math.min(19, pixels * .55), half = Math.min(10, pixels * .32);
+      c.beginPath(); c.moveTo(...foot);
+      c.lineTo(foot[0] - ux * length - uy * half, foot[1] - uy * length + ux * half);
+      c.lineTo(foot[0] - ux * length + uy * half, foot[1] - uy * length - ux * half);
+      c.closePath(); c.strokeStyle = '#0b1018'; c.lineWidth = 4; c.stroke();
+      c.fillStyle = color; c.fill();
+    }
+  }
+  // Hollow foot marker: distinguish H from the draggable endpoints of a and b.
+  c.beginPath(); c.arc(...foot, zero ? 12 : 9, 0, Math.PI * 2);
+  c.fillStyle = '#151525'; c.fill(); c.strokeStyle = color; c.lineWidth = 2.5; c.stroke();
+  c.beginPath(); c.arc(...foot, 3, 0, Math.PI * 2); c.fillStyle = color; c.fill();
+  const base = P(S.a), bl = Math.hypot(base[0] - o[0], base[1] - o[1]);
+  const tx = (base[0] - o[0]) / bl, ty = (base[1] - o[1]) / bl;
+  let nx = -ty, ny = tx;
+  // Put the label on the side away from b and the angle arc.
+  if ((bp[0] - o[0]) * nx + (bp[1] - o[1]) * ny > 0) { nx *= -1; ny *= -1; }
+  c.font = '600 12px "Microsoft YaHei UI", sans-serif';
+  c.strokeStyle = '#0b1018'; c.lineWidth = 4;
+  const hx = foot[0] - nx * 16 + 5, hy = foot[1] - ny * 16;
+  if (!zero) { c.strokeText('H', hx, hy); c.fillStyle = color; c.fillText('H', hx, hy); }
+  const title = zero ? '投影为零 · O = H' : '投影向量 O → H';
+  const detail = zero ? '退化为一个点，不能画出非零箭头' : (d.p < 0 ? '与 a 反向' : '与 a 同向') + '  ·  ' + vec(d.pv);
+  c.font = '11px "Microsoft YaHei UI", sans-serif';
+  const boxWidth = Math.min(w - 24, Math.max(166, c.measureText(detail).width + 40)), boxHeight = 57;
+  const mid = [(o[0] + foot[0]) / 2, (o[1] + foot[1]) / 2];
+  const separation = Math.max(65, Math.abs(nx) * boxWidth / 2 + Math.abs(ny) * boxHeight / 2 + 20);
+  const along = Math.abs(tx) * boxWidth / 2 + Math.abs(ty) * boxHeight / 2 + 22;
+  const candidates = [
+    [mid[0] + nx * separation, mid[1] + ny * separation],
+    [mid[0] - nx * separation, mid[1] - ny * separation],
+    [o[0] - tx * along, o[1] - ty * along],
+    [foot[0] + tx * along, foot[1] + ty * along],
+    [boxWidth / 2 + 12, h - boxHeight / 2 - 8],
+    [w - boxWidth / 2 - 12, h - boxHeight / 2 - 8],
+    [boxWidth / 2 + 12, boxHeight / 2 + 50],
+    [w - boxWidth / 2 - 12, boxHeight / 2 + 50]
+  ];
+  const crosses = (a, b, rect, pad = 12) => {
+    let lo = 0, hi = 1;
+    for (let axis = 0; axis < 2; axis++) {
+      const min = rect[axis] - pad, max = min + (axis ? boxHeight : boxWidth) + 2 * pad;
+      const delta = b[axis] - a[axis];
+      if (Math.abs(delta) < 1e-9) { if (a[axis] < min || a[axis] > max) return false; }
+      else {
+        const t1 = (min - a[axis]) / delta, t2 = (max - a[axis]) / delta;
+        lo = Math.max(lo, Math.min(t1, t2)); hi = Math.min(hi, Math.max(t1, t2));
+        if (lo > hi) return false;
+      }
+    }
+    return true;
+  };
+  const placements = candidates.map((center, index) => {
+    const rect = [Math.max(12, Math.min(w - boxWidth - 12, center[0] - boxWidth / 2)), Math.max(50, Math.min(h - boxHeight - 8, center[1] - boxHeight / 2))];
+    const cost = (crosses(o, foot, rect) ? 100000 : 0) + (crosses(o, base, rect) ? 1000 : 0) + (crosses(o, bp, rect) ? 1000 : 0) + index;
+    return { rect, cost };
+  }).sort((a, b) => a.cost - b.cost);
+  const [x, y] = placements[0].rect;
+  const near = [Math.max(x + 12, Math.min(x + boxWidth - 12, mid[0])), Math.max(y, Math.min(y + boxHeight, mid[1]))];
+  c.beginPath(); c.moveTo(...mid); c.lineTo(...near); c.strokeStyle = color + '99'; c.lineWidth = 1.2; c.stroke();
+  c.beginPath(); c.roundRect(x, y, boxWidth, boxHeight, 11);
+  c.fillStyle = '#191929'; c.fill(); c.strokeStyle = color + 'aa'; c.lineWidth = 1; c.stroke();
+  c.beginPath(); c.roundRect(x + 11, y + 13, 3, 30, 1.5); c.fillStyle = color; c.fill();
+  c.font = '600 13px "Microsoft YaHei UI", sans-serif'; c.fillStyle = color;
+  c.fillText(title, x + 23, y + 23);
+  c.font = '11px "Microsoft YaHei UI", sans-serif'; c.fillStyle = '#ded9eb';
+  c.fillText(detail, x + 23, y + 43, boxWidth - 34);
+  c.restore();
+}
+
+function draw(){const prepared=prepare($('field'));if(!prepared)return;drawCount++;const {ctx:c,w,h}=prepared,points=pointsForScene();const minX=Math.min(-2,...points.map(p=>p[0]))-.6,maxX=Math.max(3,...points.map(p=>p[0]))+.6,minY=Math.min(-2,...points.map(p=>p[1]))-.6,maxY=Math.max(2,...points.map(p=>p[1]))+.6;let scale=Math.min((w-80)/(maxX-minX),(h-70)/(maxY-minY));let ox=w/2-(minX+maxX)*scale/2,oy=h/2+(minY+maxY)*scale/2+10;if(drags.size&&transform){scale=transform.scale;ox=transform.ox;oy=transform.oy;}transform={scale,ox,oy,w,h};const P=p=>[ox+p[0]*scale,oy-p[1]*scale];
+const text=(str,p,color=COL.muted,offset=[8,-10])=>{const [x,y]=P(p);c.font='13px Consolas, Microsoft YaHei';c.lineWidth=4;c.strokeStyle='#0d1723';c.strokeText(str,x+offset[0],y+offset[1]);c.fillStyle=color;c.fillText(str,x+offset[0],y+offset[1]);};
+const line=(a,b,color,width=1,dashed=false)=>{const p=P(a),q=P(b);c.beginPath();c.strokeStyle=color;c.lineWidth=width;c.setLineDash(dashed?[6,6]:[]);c.moveTo(...p);c.lineTo(...q);c.stroke();c.setLineDash([]);};
+const circle=(p,color,r=5)=>{c.beginPath();c.arc(...P(p),r,0,Math.PI*2);c.fillStyle=color;c.fill();};
+const arrow=(a,b,color,label='',dashed=false,width=3,offset=[8,-12])=>{line(a,b,color,width,dashed);const p=P(a),q=P(b),dx=q[0]-p[0],dy=q[1]-p[1],len=Math.hypot(dx,dy);if(len<1){circle(b,color,4);if(label)text(label,b,color,[10,18]);return}const ang=Math.atan2(dy,dx);c.beginPath();c.moveTo(...q);c.lineTo(q[0]-12*Math.cos(ang-.4),q[1]-12*Math.sin(ang-.4));c.lineTo(q[0]-12*Math.cos(ang+.4),q[1]-12*Math.sin(ang+.4));c.closePath();c.fillStyle=color;c.fill();if(label)text(label,V.add(a,V.mul(V.sub(b,a),.68)),color,offset);};
+const handle=(p,color,key)=>{c.beginPath();c.arc(...P(p),17,0,2*Math.PI);c.fillStyle=color+'20';c.fill();c.strokeStyle=color+'70';c.lineWidth=1;c.stroke();circle(p,color,5);if(S.selected===key){c.beginPath();c.arc(...P(p),21,0,2*Math.PI);c.strokeStyle=color+'b0';c.setLineDash([2,5]);c.stroke();c.setLineDash([])}};
+let step=Math.pow(10,Math.floor(Math.log10(65/scale)));if(step*scale<45)step*=2;if(step*scale<45)step*=2.5;const gx0=Math.floor(-ox/scale/step),gx1=Math.ceil((w-ox)/scale/step),gy0=Math.floor((oy-h)/scale/step),gy1=Math.ceil(oy/scale/step);c.font='10px Consolas';for(let i=gx0;i<=gx1;i++){const x=ox+i*step*scale;c.strokeStyle=i===0?'#5f738c':COL.grid;c.lineWidth=i===0?1.3:.6;c.beginPath();c.moveTo(x,0);c.lineTo(x,h);c.stroke();if(i!==0&&oy>40&&oy<h-20){c.fillStyle='#91a4be';c.fillText(fmt(i*step),x+4,oy+17)}}for(let i=gy0;i<=gy1;i++){const y=oy-i*step*scale;c.strokeStyle=i===0?'#5f738c':COL.grid;c.lineWidth=i===0?1.3:.6;c.beginPath();c.moveTo(0,y);c.lineTo(w,y);c.stroke();if(i!==0&&ox>20&&ox<w-35){c.fillStyle='#91a4be';c.fillText(fmt(i*step),ox+6,y-4)}}text('O',O,COL.muted,[-18,18]);c.fillStyle=COL.muted;c.fillText('x',w-16,Math.min(h-8,Math.max(55,oy-8)));c.fillText('y',Math.min(w-15,Math.max(15,ox+8)),38);
+const d=V.derive(S.a,S.b);
+if(['projection'].includes(S.mode)&&$('lock').checked&&d.lb){c.beginPath();c.arc(ox,oy,d.lb*scale,0,Math.PI*2);c.strokeStyle='#ffb15c25';c.setLineDash([3,8]);c.lineWidth=1;c.stroke();c.setLineDash([]);}
+if(['projection','coordinate'].includes(S.mode)&&d.la){const unit=V.mul(S.a,1/d.la),extent=Math.max(V.norm(S.a),V.norm(S.b))+2;line(V.mul(unit,-extent),V.mul(unit,extent),'#596784',1,true);if(d.pv){line(S.b,d.pv,d.p<0?'#ff92a499':'#d4b6ff99',2,true);if(!d.perpendicular&&V.norm(V.sub(S.b,d.pv))>0){const u=V.mul(unit,12/scale),perp=V.mul(V.sub(S.b,d.pv),12/scale/V.norm(V.sub(S.b,d.pv)));line(V.add(d.pv,u),V.add(V.add(d.pv,u),perp),COL.muted);line(V.add(V.add(d.pv,u),perp),V.add(d.pv,perp),COL.muted);}}if(!d.zero){let aa=Math.atan2(-S.a[1],S.a[0]),bb=Math.atan2(-S.b[1],S.b[0]),delta=((bb-aa+Math.PI*3)%(2*Math.PI))-Math.PI,r=Math.min(40,scale*.8);c.beginPath();c.arc(ox,oy,r,aa,aa+delta,delta<0);c.strokeStyle=COL.mint;c.lineWidth=1.5;c.stroke();const middle=aa+delta/2;c.fillStyle=COL.mint;c.font='12px Consolas';c.fillText(fmt(d.theta,1)+'°',ox+(r+13)*Math.cos(middle),oy+(r+13)*Math.sin(middle));if(d.perpendicular){const u=V.mul(S.a,13/scale/d.la),v=V.mul(S.b,13/scale/d.lb);line(u,V.add(u,v),COL.mint);line(v,V.add(u,v),COL.mint)}}}
+if(S.mode==='sum'){const r=result();if(S.op==='add'){if($('parallelogram').checked){arrow(S.a,r,COL.b,'平移后的 b',true,2);arrow(S.b,r,COL.a,'平移后的 a',true,2)}arrow(O,r,COL.r,'a+b',false,4);}else if(S.op==='sub'){arrow(S.b,S.a,COL.p,'从 b 终点到 a 终点',true,2);arrow(S.a,r,COL.b,'−b',true,2);arrow(O,r,COL.r,'a−b',false,4);}else if(S.op==='revsub'){arrow(S.a,S.b,COL.p,'从 a 终点到 b 终点',true,2);arrow(S.b,r,COL.a,'−a',true,2);arrow(O,r,COL.r,'b−a',false,4);}else arrow(O,r,COL.r,'−b',false,4);if(S.walkPoint){c.shadowBlur=18;c.shadowColor=COL.mint;circle(S.walkPoint,COL.mint,7);c.shadowBlur=0;}}
+if(S.mode==='scale'){arrow(O,V.mul(S.a,S.lambda),S.lambda<0?COL.r:COL.p,'λa',false,5);if($('unit').checked&&d.la)arrow(O,V.mul(S.a,1/d.la),COL.mint,'a/|a|',true,2);}
+arrow(O,S.a,COL.a,['projection','coordinate'].includes(S.mode)?'':'a',false,3,[8,24]);if(['projection','coordinate'].includes(S.mode))text('a',S.a,COL.a,[12,26]);arrow(O,S.b,COL.b,'b');handle(S.a,COL.a,'a');handle(S.b,COL.b,'b');if(['projection','coordinate'].includes(S.mode))paintProjection(c,P,d,w,h);circle(O,'#e8f1ff',3);
+}
+function drawCurve(d){const p=prepare($('curve'));if(!p)return;if(d.zero){p.ctx.font='13px Microsoft YaHei';p.ctx.fillStyle=COL.muted;p.ctx.fillText('含零向量：夹角未定义。',16,60);p.ctx.fillText('请先设置两个非零向量。',16,84);$('curveNote').textContent='请先把 a 和 b 都设为非零向量，再观察投影与夹角的联动。';return;}const {ctx:c,w,h}=p,max=$('curveAxis').value==='theta'?180:360,amp=d.la*d.lb,yamp=amp||1,left=48,right=w-20,top=20,bottom=h-30,mid=(top+bottom)/2,ys=(bottom-top)/2/yamp,X=x=>left+x/max*(right-left),Y=y=>mid-y*ys;c.font='11px Consolas';c.lineWidth=1;for(const x of max===180?[0,90,180]:[0,90,180,270,360]){c.strokeStyle=COL.grid;c.beginPath();c.moveTo(X(x),top);c.lineTo(X(x),bottom);c.stroke();c.fillStyle=COL.muted;c.fillText(x+'°',X(x)-10,h-10)}for(const y of [-amp,0,amp]){c.strokeStyle=y===0?'#66788f':COL.grid;c.beginPath();c.moveTo(left,Y(y));c.lineTo(right,Y(y));c.stroke();c.fillStyle=COL.muted;c.fillText(fmt(y),2,Y(y)+4)}c.strokeStyle='#60758b';c.lineWidth=1.5;c.setLineDash([3,4]);c.beginPath();for(let x=0;x<=max;x++){const q=[X(x),Y(amp*Math.cos(x*Math.PI/180))];x===0?c.moveTo(...q):c.lineTo(...q)}c.stroke();c.setLineDash([]);const current=max===180?(d.theta??0):S.phi;c.beginPath();c.strokeStyle=COL.mint;c.lineWidth=2.5;for(let x=0;x<=current;x++){const q=[X(x),Y(amp*Math.cos(x*Math.PI/180))];x===0?c.moveTo(...q):c.lineTo(...q)}c.stroke();c.fillStyle=COL.mint;c.beginPath();c.arc(X(current),Y(d.d),5,0,2*Math.PI);c.fill();$('curveNote').textContent=max===180?'横轴 θ 为向量夹角；旋转一周时，曲线沿 0°→180°→0° 往返。虚线为完整参考曲线。':'横轴 φ 为一周转角；cosφ=cosθ，但 φ 与 θ 不是同一个角。当前 φ='+fmt(S.phi,1)+'°。';}
+function animateWalk(){if(S.job){stop();draw();return}const a=[...S.a],b=[...S.b];let segments;if(S.op==='add')segments=$('reverseWalk').checked?[b,a]:[a,b];else if(S.op==='sub')segments=[a,V.mul(b,-1)];else if(S.op==='revsub')segments=[b,V.mul(a,-1)];else segments=[V.mul(b,-1),O];const job={kind:'walk',frame:0,start:null},duration=2400;S.job=job;$('walk').textContent='■ 停止走路';const tick=t=>{if(S.job!==job)return;if(job.start===null)job.start=t;let q=Math.min(1,(t-job.start)/duration);S.walkPoint=q<.5?V.mul(segments[0],q*2):V.add(segments[0],V.mul(segments[1],(q-.5)*2));draw();if(q<1)job.frame=requestAnimationFrame(tick);else{S.job=null;$('walk').textContent='▶ 再走一遍';$('parallelogram').checked=true;draw();$('noteTitle').textContent='终点相同，合位移相同。';$('note').textContent=S.op==='add'?'先走 a 再走 b，和先走 b 再走 a，终点一样——所以 a+b=b+a。虚线两边与红色对角线验证同一个合位移。':'位移首尾相接，最终合位移始终从最初起点指向最终终点。';}};job.frame=requestAnimationFrame(tick);}
+function rotate(){if(S.job){stop();return}if(!V.norm(S.a)||!V.norm(S.b))return;const a=[...S.a],len=V.norm(S.b),base=Math.atan2(a[1],a[0]),job={kind:'rotate',frame:0,start:null};S.job=job;$('rotate').textContent='■ 停止旋转';const tick=t=>{if(S.job!==job)return;if(job.start===null)job.start=t;const phi=Math.min(360,(t-job.start)/7000*360);S.phi=phi;const rad=phi*Math.PI/180;S.b=[len*Math.cos(base+rad),len*Math.sin(base+rad)];if(phi===0||phi===360)S.b=V.mul(a,len/V.norm(a));sync();if(phi<360)job.frame=requestAnimationFrame(tick);else{S.job=null;$('rotate').textContent='▶ 再旋转一周';}};job.frame=requestAnimationFrame(tick);}
+function pointerDown(e){const r=$('field').getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;const candidates=['a','b'].filter(k=>!Array.from(drags.values()).some(t=>t.key===k)).map(key=>({key,dist:Math.hypot(transform.ox+S[key][0]*transform.scale-x,transform.oy-S[key][1]*transform.scale-y)})).sort((a,b)=>a.dist-b.dist);if(!candidates.length||candidates[0].dist>30)return;stop();const key=candidates[0].key;S.selected=key;$('selected').value=key;drags.set(e.pointerId,{key,len:V.norm(S[key])});$('field').setPointerCapture(e.pointerId);$('field').focus({preventScroll:true});draw();}
+function movePointer(e){const drag=drags.get(e.pointerId);if(!drag)return;const r=$('field').getBoundingClientRect(),p=[(e.clientX-r.left-transform.ox)/transform.scale,(transform.oy-e.clientY+r.top)/transform.scale];if(drag.key==='b'&&['projection'].includes(S.mode)&&$('lock').checked&&drag.len>0){const n=V.norm(p);if(n>0){p[0]*=drag.len/n;p[1]*=drag.len/n}}else{p[0]=Math.round(p[0]*10)/10;p[1]=Math.round(p[1]*10)/10}S[drag.key]=p.map(x=>Math.max(-100,Math.min(100,x)));S.phi=relativePhi();sync();}
+function releasePointer(e){drags.delete(e.pointerId);if($('field').hasPointerCapture(e.pointerId))$('field').releasePointerCapture(e.pointerId);draw();}
+function inputsChange(e){stop();const values=['ax','ay','bx','by'].map(id=>$(id).value.trim()===''?NaN:Number($(id).value));if(values.some(v=>!Number.isFinite(v)||Math.abs(v)>100)){$('inputError').textContent='请输入 −100 至 100 的有限数。';e.target.setAttribute('aria-invalid','true');return;}['ax','ay','bx','by'].forEach(id=>$(id).removeAttribute('aria-invalid'));$('inputError').textContent='';S.a=values.slice(0,2);S.b=values.slice(2);S.phi=relativePhi();sync(false);}
+modules.forEach(([key,name],i)=>{const b=document.createElement('button');b.dataset.mode=key;b.innerHTML='<span>0'+(i+1)+'</span>'+name;b.addEventListener('click',()=>switchMode(key));$('nav').append(b)});
+['ax','ay','bx','by'].forEach(id=>$(id).addEventListener('input',inputsChange));document.querySelectorAll('[data-angle]').forEach(b=>b.addEventListener('click',()=>{stop();angleSet(Number(b.dataset.angle))}));document.querySelectorAll('[data-op]').forEach(b=>b.addEventListener('click',()=>{stop();S.op=b.dataset.op;sync()}));$('lambda').addEventListener('input',()=>{stop();S.lambda=Number($('lambda').value);sync()});['parallelogram','unit','lock'].forEach(id=>$(id).addEventListener('change',()=>sync()));$('curveAxis').addEventListener('change',()=>sync());$('walk').addEventListener('click',animateWalk);$('rotate').addEventListener('click',rotate);$('reset').addEventListener('click',()=>switchMode(S.mode));$('selected').addEventListener('change',()=>{S.selected=$('selected').value;draw()});
+$('field').addEventListener('pointerdown',pointerDown);$('field').addEventListener('pointermove',movePointer);$('field').addEventListener('pointerup',releasePointer);$('field').addEventListener('pointercancel',releasePointer);$('field').addEventListener('lostpointercapture',e=>{drags.delete(e.pointerId);draw()});$('field').addEventListener('keydown',e=>{if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();stop();const v=S[S.selected],step=e.shiftKey?1:.1;if(e.key==='ArrowUp')v[1]+=step;if(e.key==='ArrowDown')v[1]-=step;if(e.key==='ArrowLeft')v[0]-=step;if(e.key==='ArrowRight')v[0]+=step;v[0]=Math.max(-100,Math.min(100,Number(v[0].toFixed(10))));v[1]=Math.max(-100,Math.min(100,Number(v[1].toFixed(10))));S.phi=relativePhi();sync()});
+$('reveal').addEventListener('click',()=>{const hidden=$('answer').hidden;$('answer').hidden=!hidden;$('reveal').textContent=hidden?'收起解释':'查看解释';$('reveal').setAttribute('aria-expanded',String(hidden))});$('classroom').addEventListener('click',()=>{const value=document.body.classList.toggle('classroom');$('classroom').setAttribute('aria-pressed',String(value));$('classroom').textContent=value?'退出投屏':'投屏模式';sync()});$('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen()}catch(e){$('inputError').textContent='当前浏览器不支持全屏，可使用投屏模式。'}});document.addEventListener('fullscreenchange',()=>{$('fullscreen').textContent=document.fullscreenElement?'退出全屏':'全屏';sync()});new ResizeObserver(()=>{draw();if(S.mode==='projection')drawCurve(V.derive(S.a,S.b))}).observe($('field'));window.addEventListener('resize',()=>sync());document.addEventListener('visibilitychange',()=>{if(document.hidden)stop()});window.VecGround={V,S,switchMode,derive:()=>V.derive(S.a,S.b),sync,stop,metrics:()=>({drawCount,transform,drags:drags.size})};switchMode('projection');
+</script>
+<script>
+(() => {
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  if (reduceMotion.matches || !('IntersectionObserver' in window)) return;
+  const elements = document.querySelectorAll('.intro, .nav-shell, .control-shell, .stage-shell, .metrics-shell, .projection-shell, .teaching-shell');
+  const observer = new IntersectionObserver(entries => {
+    for (const entry of entries) if (entry.isIntersecting) {
+      entry.target.classList.remove('reveal-pending');
+      observer.unobserve(entry.target);
+    }
+  }, { threshold: 0.03 });
+  const revealAll = () => {
+    elements.forEach(el => el.classList.remove('reveal-pending'));
+    observer.disconnect();
+  };
+  for (const el of elements) {
+    el.classList.add('reveal-ready', 'reveal-pending');
+    observer.observe(el);
+  }
+  // Keyboard focus must never land inside a visually hidden control.
+  document.addEventListener('focusin', revealAll, { once: true });
+  reduceMotion.addEventListener('change', e => { if (e.matches) revealAll(); });
+})();
+</script>
+</body></html>
