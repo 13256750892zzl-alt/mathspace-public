@@ -10,7 +10,7 @@ const pages = {
 };
 const projectGroups = [
   {name:'数学动态交互实验工具', icon:'transform', description:'围绕一个章节，通过图形与操作理解数学关系。', projects:[
-    {name:'二次函数三兄弟实验室',url:"https://quadratic-three-brothers-lab.vercel.app/",icon:'quadratic',description:'观察抛物线、方程根与不等式的联系。'},
+    {name:'二次函数三兄弟实验室',url:"tools/quadratic/index.html",icon:'quadratic',description:'观察抛物线、方程根与不等式的联系。'},
     {name:'数轴与集合工具',url:"tools/axis/index.html",icon:'axis',description:'在数轴上理解区间与集合运算。'},
     {name:'单位圆三角函数演示器',url:"tools/unit-circle/index.html",icon:'circle',description:'用单位圆观察角度与三角函数值。'},
     {name:'交并补显示器（韦恩图）',url:"tools/venn/index.html",icon:'venn',description:'通过韦恩图比较集合的交、并与补。'},

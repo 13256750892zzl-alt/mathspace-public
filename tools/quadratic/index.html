@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>二次函数三兄弟实验室</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="css/styles.css?v=20261015">
+  <script>
+    (() => {
+      let theme;
+      try { theme = localStorage.getItem("quadratic-theme"); } catch (_) {}
+      document.documentElement.dataset.theme = ["dark", "light"].includes(theme)
+        ? theme : (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+    })();
+  </script>
+</head>
+<body>
+  <main class="app-shell" aria-labelledby="app-title">
+    <header class="topbar">
+      <div class="brand-block">
+        <span class="brand-mark" aria-hidden="true">f</span>
+        <div><h1 id="app-title">二次函数三兄弟实验室</h1>
+        <p class="eyebrow">把图象、方程与不等式连在一起</p></div>
+      </div>
+      <div class="header-actions">
+      <div class="mode-switch" role="group" aria-label="学习模式">
+        <button class="mode-button is-active" type="button" data-mode="lab">自由实验</button>
+        <button class="mode-button" type="button" data-mode="challenge">闯关挑战</button>
+      </div>
+      <button class="tool-button theme-button" type="button" id="theme-button">浅色模式</button>
+      </div>
+    </header>
+
+    <section class="control-toolbar" aria-label="课堂控制">
+      <div class="operator-switch" role="group" aria-label="不等式类型">
+        <span class="toolbar-label">研究</span>
+        <button class="operator-button is-active" type="button" data-operator=">">f(x) ＞ 0</button>
+        <button class="operator-button" type="button" data-operator="<">f(x) ＜ 0</button>
+        <button class="operator-button" type="button" data-operator=">=">f(x) ≥ 0</button>
+        <button class="operator-button" type="button" data-operator="<=">f(x) ≤ 0</button>
+      </div>
+      <div class="display-controls" role="group" aria-label="显示控制">
+        <button class="tool-button is-active" type="button" data-toggle="roots">显示交点</button>
+        <button class="tool-button is-active" type="button" data-toggle="vertex">显示顶点</button>
+        <button class="tool-button is-active" type="button" data-toggle="results">显示结论</button>
+        <button class="tool-button" type="button" id="fit-view-button">自动适配</button>
+        <button class="tool-button" type="button" id="reset-button">恢复默认</button>
+        <button class="tool-button" type="button" id="fullscreen-button">全屏 <kbd>F</kbd></button>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <div class="visual-column">
+        <section class="parameter-panel" aria-label="参数控制">
+          <div class="parameter-control" data-parameter="a">
+            <div class="parameter-heading">
+              <label for="a-range">二次项系数 <strong>a</strong></label>
+              <button class="lock-button" type="button" data-lock="a" aria-pressed="false">锁定</button>
+            </div>
+            <div class="parameter-inputs">
+              <input id="a-range" type="range" min="-5" max="5" step="0.1" value="1" aria-describedby="a-error">
+              <input id="a-number" class="number-input" type="number" min="-5" max="5" step="0.1" value="1" aria-label="a 的精确数值" aria-describedby="a-error">
+            </div>
+            <p class="input-error" id="a-error" aria-live="polite"></p>
+          </div>
+          <div class="parameter-control" data-parameter="b">
+            <div class="parameter-heading">
+              <label for="b-range">一次项系数 <strong>b</strong></label>
+              <button class="lock-button" type="button" data-lock="b" aria-pressed="false">锁定</button>
+            </div>
+            <div class="parameter-inputs">
+              <input id="b-range" type="range" min="-10" max="10" step="0.1" value="0" aria-describedby="b-error">
+              <input id="b-number" class="number-input" type="number" min="-10" max="10" step="0.1" value="0" aria-label="b 的精确数值" aria-describedby="b-error">
+            </div>
+            <p class="input-error" id="b-error" aria-live="polite"></p>
+          </div>
+          <div class="parameter-control" data-parameter="c">
+            <div class="parameter-heading">
+              <label for="c-range">常数项 <strong>c</strong></label>
+              <button class="lock-button" type="button" data-lock="c" aria-pressed="false">锁定</button>
+            </div>
+            <div class="parameter-inputs">
+              <input id="c-range" type="range" min="-10" max="10" step="0.1" value="-4" aria-describedby="c-error">
+              <input id="c-number" class="number-input" type="number" min="-10" max="10" step="0.1" value="-4" aria-label="c 的精确数值" aria-describedby="c-error">
+            </div>
+            <p class="input-error" id="c-error" aria-live="polite"></p>
+          </div>
+        </section>
+
+        <section class="challenge-strip" id="challenge-strip" hidden aria-live="polite">
+          <span class="challenge-index" id="challenge-index">挑战 1 / 9</span>
+          <div class="challenge-copy">
+            <span class="challenge-group" id="challenge-group">第 1 组 · 控制图象</span>
+            <strong class="challenge-prompt" id="challenge-prompt">让抛物线开口向上</strong>
+            <p class="challenge-hint" id="challenge-hint" hidden></p>
+            <p class="challenge-reason" id="challenge-reason" hidden></p>
+          </div>
+          <span class="challenge-status" id="challenge-status">尚未达成</span>
+          <div class="challenge-actions">
+            <button type="button" id="hint-button">提示一步</button>
+            <button type="button" id="next-challenge-button">下一关</button>
+          </div>
+        </section>
+
+        <section class="graph-card" aria-label="二次函数图象">
+          <div class="graph-heading">
+            <p class="formula-line" id="formula-line">y = x² − 4　↔　x² − 4 = 0　↔　x² − 4 ＞ 0</p>
+            <div class="graph-legend" aria-label="图象图例"><span class="legend-curve">函数曲线</span><span class="legend-root">实根</span><span class="legend-vertex">顶点</span></div>
+          </div>
+          <svg id="quadratic-graph" role="img" aria-label="二次函数坐标图" viewBox="0 0 900 560"></svg>
+          <p class="graph-placeholder" id="graph-placeholder">图象区域准备就绪</p>
+        </section>
+      </div>
+
+      <aside class="result-column" aria-label="数学关系">
+        <article class="result-card delta-card">
+          <p class="result-label">判别式与交点</p>
+          <p class="result-primary" id="delta-output">Δ = 16 ＞ 0</p>
+          <p class="result-secondary" id="intersection-output">与 x 轴有两个交点</p>
+        </article>
+        <article class="result-card roots-card">
+          <p class="result-label">一元二次方程</p>
+          <p class="result-primary" id="roots-output">x₁ = −2，x₂ = 2</p>
+          <p class="result-secondary" id="root-count-output">有两个不相等实根</p>
+        </article>
+        <article class="result-card solution-card">
+          <p class="result-label">一元二次不等式</p>
+          <p class="result-expression" id="inequality-output">f(x) ＞ 0</p>
+          <p class="result-primary" id="solution-output">x ＜ −2 或 x ＞ 2</p>
+          <p class="result-note" id="solution-note" hidden></p>
+        </article>
+      </aside>
+    </section>
+  </main>
+
+  <noscript>此课堂工具需要启用 JavaScript。</noscript>
+  <script defer src="js/quadratic-engine.js?v=20261015"></script>
+  <script defer src="data/challenges.js?v=20261015-q9"></script>
+  <script defer src="js/challenge-engine.js?v=20261015-q9"></script>
+  <script defer src="js/challenge-view.js?v=20261015"></script>
+  <script defer src="js/app-state.js?v=20261015"></script>
+  <script defer src="js/graph-view.js?v=20261015-q9"></script>
+  <script defer src="js/result-view.js?v=20261015"></script>
+  <script defer src="js/app.js?v=20261015"></script>
+</body>
+</html>
