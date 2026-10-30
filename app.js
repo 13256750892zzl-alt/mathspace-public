@@ -5,7 +5,7 @@ let reviewLimit = 24;
 const pages = {
   knowledge: {title:'知识复习', label:'01 / KNOWLEDGE', description:'选主题、找章节，直接复习一个具体知识点。', empty:'没有找到匹配的知识点', detail:'试试知识点或方法名称，或重置左侧主题。', note:'选择左侧主题查看各章目录，展开后可点击具体知识点；搜索会直接展示匹配条目，阅读时定位到讲义对应位置。', filters:{}},
   practice: {title:'专题练习', label:'02 / PRACTICE', description:'精选专题与2027复习资料。按系列、主题或关键词选择，打开题套练习。', empty:'没有找到匹配的专题', detail:'试试其他关键词，或重置筛选。部分题型与难度仍待复核。', note:'原有专题按记录筛选；新增2027资料按整份文档展示，题型、难度待逐题复核。学生讲义、作业与教师用书分别标明。', filters:{'知识主题':[...learningTopics,'综合试卷'],'难度':['全部难度','基础','进阶','挑战','待复核'],'题型':['全部题型','单选题','多选题','填空题','解答题','待复核'],'细分专题':['全部专题',...practiceTopics.map(topic => topic.name)],'资料系列':reviewSeries}},
-  lab: {title:'数学实验', label:'03 / DISCOVER', description:'按项目类型或教材章节，找到适合当前学习内容的数学工具。', empty:'没有找到匹配的项目', detail:'试试其他关键词，或重置分类筛选。', note:'17个项目已有在线入口；课序与错题系统暂未公开。支持项目类型与人教 B 版章节分类。', filters:{}},
+  lab: {title:'数学实验', label:'03 / DISCOVER', description:'按项目类型或教材章节，找到适合当前学习内容的数学工具。', empty:'没有找到匹配的项目', detail:'试试其他关键词，或重置分类筛选。', note:'25个项目已有在线入口；课序与错题系统暂未公开。支持项目类型与人教 B 版章节分类。', filters:{}},
   resources: {title:'学习资料', label:'04 / READ', description:'下载讲义、原卷、解析与2027五个系列资料，保留原文件名。', empty:'没有找到匹配的资料', detail:'试试其他关键词，或重置筛选。', note:'2027五个系列共500份原文件，可逐份下载或按系列下载完整ZIP；学习资料只负责下载。', filters:{'资料类型':['全部类型','知识点讲义','完整资料包','专题题套','2027复习资料','2027系列整包'],'知识主题':[...learningTopics,'综合试卷'],'资料系列':reviewSeries}}
 };
 const projectGroups = [
@@ -24,7 +24,15 @@ const projectGroups = [
     {name:'向量投影操场',url:"tools/vector/index.html",icon:'vector',description:'用图形理解向量与投影。'},
     {name:'计数原理排队实验器',url:"tools/count/index.html",icon:'count',description:'通过排列情境理解计数方法。'},
     {name:'数列递推可视化',url:"tools/sequence/index.html",icon:'sequence',description:'从逐项变化理解数列递推关系。'},
-    {name:'概率统计模拟实验台',url:"tools/probability/index.html",icon:'statistics',description:'观察随机试验与统计结果的变化。'}
+    {name:'概率统计模拟实验台',url:"tools/probability/index.html",icon:'statistics',description:'观察随机试验与统计结果的变化。'},
+    {name:'幂函数家族',url:"tools/power-family/index.html",icon:'powerFamily',description:"调节指数，钉住多条幂函数曲线并对比性质。"},
+    {name:'奇偶性镜像检验器',url:"tools/parity/index.html",icon:'parity',description:"比较函数值、相反数与定义域，检验奇偶性。"},
+    {name:'二分法求零点分步实验台',url:"tools/bisection/index.html",icon:'bisection',description:"逐步取中点、选择区间，观察零点逼近与误差。"},
+    {name:'正弦函数的诞生',url:"tools/sine-birth/index.html",icon:'sineBirth',description:"联动三维空间曲线、单位圆与正弦图像。"},
+    {name:'余弦函数的诞生',url:"tools/cosine-birth/index.html",icon:'cosineBirth',description:"从三维空间投影观察余弦图像与相位变化。"},
+    {name:'圆锥曲线的诞生',url:"tools/conic-birth/index.html",icon:'conicBirth',description:"观察双圆锥截面、焦点和丹德林球的联动。"},
+    {name:'正态分布的μ与σ',url:"tools/normal/index.html",icon:'normal',description:"调整均值和标准差，观察正态曲线与区间面积。"},
+    {name:'最小二乘回归直线',url:"tools/least-squares/index.html",icon:'regression',description:"拖动或增删散点，观察回归直线与残差平方和。"}
   ]},
   {name:'学情证据与复测',icon:'diagnosis',description:'围绕错题记录、诊断与复测组织学习证据。',projects:[
     {name:'数学错题诊断系统',icon:'diagnosis',description:'整理错题线索，连接诊断与复测。'}
@@ -51,6 +59,7 @@ const projectChapters = {
   section:['3-2','4-0'], solid:['3-2','4-0'], conics:['4-1'],
   tangent:['6-1'], vector:['1-2','2-1'], count:['5-0'], sequence:['6-0'], statistics:['1-1','5-1']
 };
+Object.assign(projectChapters,{"powerFamily": ["1-0"], "parity": ["0-2"], "bisection": ["0-2"], "sineBirth": ["2-0"], "cosineBirth": ["2-0"], "conicBirth": ["4-1"], "normal": ["5-1"], "regression": ["5-1"]});
 const allProjects = projectGroups.flatMap(group => group.projects);
 const chapterGroups = textbookBooks.flatMap(([book,chapters],bookIndex) => chapters.map((name,chapterIndex) => ({
   name:`${book} · ${name}`, book, chapter:name, icon:'geometry',
@@ -79,6 +88,7 @@ const projectIcons = {
   canvas:'<rect x="5" y="7" width="35" height="34" rx="6" class="icon-secondary"/><path class="icon-secondary" d="M12 15h15M12 23h10M12 31h6"/><path d="m22 35 3-9L38 13l6 6-13 13Zm13-19 6 6m-16 4 6 6"/>',
   slides:'<rect x="7" y="6" width="34" height="25" rx="4"/><path class="icon-secondary" d="M14 14h20M14 21h12M24 31v10m-9 0h18"/><path d="m32 20 5 4-5 4"/>'
 };
+Object.assign(projectIcons,{powerFamily:projectIcons.powers,parity:projectIcons.transform,bisection:projectIcons.axis,sineBirth:projectIcons.trig,cosineBirth:projectIcons.circle,conicBirth:projectIcons.conics,normal:projectIcons.statistics,regression:projectIcons.statistics});
 function createProjectIcon(key) {
   const icon = document.createElementNS('http://www.w3.org/2000/svg','svg');
   icon.setAttribute('viewBox','0 0 48 48'); icon.setAttribute('aria-hidden','true'); icon.setAttribute('focusable','false');

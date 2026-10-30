@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>正态分布的 μ 与 σ · 交互演示</title>
+<style>
+:root{color-scheme:light;--bg:#f6f7fb;--paper:#fff;--border:#e6e8f0;--ink:#192438;--muted:#53627a;--blue:#3754cc;--curve:#2439a8;--grid:#eaf0f7;--axis:#b8c6d9;--guide:#7c8fad;--center:#334155;--band1:rgba(71,106,222,.20);--band2:rgba(71,106,222,.12);--band3:rgba(71,106,222,.06);--swatch-border:rgba(71,106,222,.18);--green:#167660;--blue-tint:#edf1fc;--green-tint:#eaf5f0;--tray:#e9edf5;--highlight:rgba(255,255,255,.9);--ambient:rgba(38,57,105,.065);--halo:rgba(110,139,227,.08)}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#101219;--paper:#171e27;--border:#303743;--ink:#f5eee7;--muted:#b9bdca;--blue:#c7b5f5;--curve:#efc987;--grid:#29333d;--axis:#758693;--guide:#d3d7df;--center:#e5d8bf;--band1:rgba(73,193,169,.25);--band2:rgba(153,118,219,.18);--band3:rgba(218,128,161,.13);--swatch-border:rgba(213,203,230,.28);--green:#89dec8;--blue-tint:#302b44;--green-tint:#203a35;--tray:#252934;--highlight:rgba(255,232,202,.09);--ambient:rgba(0,0,0,.13);--halo:rgba(172,127,205,.07);--accent-1:#89dec8;--accent-2:#c7b5f5;--accent-3:#efb3cc}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);background-image:radial-gradient(ellipse at 85% 0,var(--halo),transparent 50%);color:var(--ink);font:15px/1.65 "Microsoft YaHei","Bahnschrift","PingFang SC",sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+main{max-width:1512px;margin:0 auto;padding:24px 40px 40px}
+header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:16px;margin:0 0 16px}
+.header-top{display:contents}
+.eyebrow{grid-column:1;grid-row:1;display:inline-flex;align-items:center;gap:8px;margin:0;padding:5px 10px 5px 6px;border-radius:99px;background:var(--paper);box-shadow:0 2px 12px var(--ambient),inset 0 1px 0 var(--highlight);color:var(--muted);font-size:11px;font-weight:500;letter-spacing:.02em;white-space:nowrap}
+.brand-mark{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--blue-tint);color:var(--blue)}
+.brand-mark svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round}
+#theme-toggle{grid-column:3;grid-row:1;display:inline-flex;align-items:center;justify-content:space-between;gap:14px;flex:none;min-height:44px;padding:5px 6px 5px 16px;border:0;border-radius:99px;background:var(--paper);color:var(--ink);box-shadow:0 3px 16px var(--ambient),inset 0 1px 0 var(--highlight);font:inherit;font-size:13px;cursor:pointer;transition:transform .45s cubic-bezier(.32,.72,0,1)}
+#theme-toggle::after{content:'◐';display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--blue-tint);color:var(--blue);font-size:19px;transition:transform .5s cubic-bezier(.32,.72,0,1)}
+#theme-toggle:hover{transform:translateY(-2px)}#theme-toggle:hover::after{transform:rotate(-25deg)}#theme-toggle:active{transform:scale(.98)}
+.heading-row{grid-column:2;grid-row:1;min-width:0;display:flex;align-items:center;gap:20px}
+h1{margin:0;font-size:clamp(26px,2.2vw,32px);line-height:1.25;font-weight:700;letter-spacing:-.045em;white-space:nowrap}
+.title-params{display:inline-block;margin-left:10px;font-weight:450;color:var(--blue);letter-spacing:-.045em}
+.subtitle{max-width:365px;margin:0;color:var(--muted);font-size:12px;line-height:1.65;text-wrap:pretty}
+.workbench{display:grid;grid-template-columns:minmax(0,1fr) 338px;gap:22px;align-items:start}
+.shell{min-width:0;padding:6px;border-radius:30px;background:var(--tray);box-shadow:inset 0 1px 0 var(--highlight),0 12px 44px var(--ambient)}
+.card{min-width:0;background:var(--paper);border:0;border-radius:24px;box-shadow:inset 0 1px 0 var(--highlight),0 0 0 1px var(--highlight)}
+figure{margin:0;padding:22px 18px 18px}
+.chart-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 6px 10px;flex-wrap:wrap}
+.chart-title{display:flex;align-items:center;gap:10px}
+.section-number{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:29px;height:26px;padding:0 6px;border-radius:8px;background:var(--blue-tint);color:var(--blue);font-size:11px;letter-spacing:.03em;font-weight:550}
+h2{display:flex;align-items:center;gap:10px;margin:0;font-size:15px;font-weight:650;letter-spacing:.01em}
+.domain{color:var(--muted);font-size:11px;background:var(--bg);padding:6px 10px;border-radius:99px;white-space:nowrap}
+#chart{display:block;width:100%;height:auto;overflow:hidden;font-family:inherit}
+#chart text{fill:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+#chart .axis-title{fill:var(--center);font-size:15px}
+#chart .percent text{fill:var(--blue);font-size:15px;font-weight:600}
+#chart .endpoint{font-size:13px}
+#chart .mu-label{fill:var(--center);font-size:16px;font-weight:600}
+#curve{stroke:var(--curve);stroke-width:3}
+figcaption{margin-top:12px;padding:12px 6px 0;color:var(--muted);font-size:12px;line-height:1.8;box-shadow:inset 0 1px 0 var(--border)}
+aside{display:grid;gap:14px;min-width:0}
+.section{padding:18px}
+.section h2{margin-bottom:14px}
+.parameter{padding:4px;border-radius:19px;background:var(--blue-tint);box-shadow:inset 0 1px 0 var(--highlight)}
+.parameter+.parameter{margin-top:10px;background:var(--green-tint)}
+.parameter-core{padding:11px 12px 8px;border-radius:15px;background:var(--paper);box-shadow:inset 0 1px 0 var(--highlight)}
+.parameter-line{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.parameter label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:550}
+.parameter-symbol{display:grid;place-items:center;width:27px;height:27px;border-radius:9px;background:var(--blue-tint);color:var(--blue);font-size:18px}
+.parameter:nth-of-type(2) .parameter-symbol{background:var(--green-tint);color:var(--green)}
+output{color:var(--blue);font-family:"Bahnschrift","Microsoft YaHei",sans-serif;font-size:26px;font-weight:500;line-height:1.2;letter-spacing:-.04em}
+.parameter:nth-of-type(2) output{color:var(--green)}
+input[type=range]{display:block;-webkit-appearance:none;appearance:none;width:100%;height:30px;margin:7px 0 0;background:transparent;cursor:pointer;touch-action:pan-y}
+input[type=range]::-webkit-slider-runnable-track{height:5px;border-radius:9px;background:var(--blue-tint);box-shadow:inset 0 1px 2px var(--ambient)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:19px;height:19px;margin-top:-7px;border:4px solid var(--paper);border-radius:50%;background:var(--blue);box-shadow:0 0 0 1px var(--blue),0 3px 9px var(--ambient);transition:transform .4s cubic-bezier(.32,.72,0,1)}
+input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.12)}
+#sigma::-webkit-slider-runnable-track{background:var(--green-tint)}#sigma::-webkit-slider-thumb{background:var(--green);box-shadow:0 0 0 1px var(--green),0 3px 9px var(--ambient)}
+input[type=range]::-moz-range-track{height:5px;border-radius:9px;background:var(--blue-tint)}input[type=range]::-moz-range-thumb{width:12px;height:12px;border:3px solid var(--paper);border-radius:50%;background:var(--blue)}
+#sigma::-moz-range-track{background:var(--green-tint)}#sigma::-moz-range-thumb{background:var(--green)}
+.range-limits{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;line-height:1.4}
+.check-row{display:flex;align-items:center;gap:10px;min-height:44px;margin:4px 0;padding:7px 10px;border-radius:13px;background:var(--bg);cursor:pointer;font-size:13px;transition:transform .4s cubic-bezier(.32,.72,0,1)}
+.check-row:hover{transform:translateX(2px)}
+.check-row span{flex:1}.check-row b{color:var(--blue);font-size:14px;font-weight:500}
+input[type=checkbox]{width:17px;height:17px;margin:0;accent-color:var(--blue);flex:none;cursor:pointer}
+input:focus-visible,button:focus-visible{outline:3px solid var(--blue);outline-offset:4px;border-radius:8px}
+dl{margin:0;font-size:12px}
+dl>div{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:5px 0}
+dt{color:var(--muted)}dd{margin:0;font-size:13px;font-weight:500;white-space:nowrap}
+.peak{display:flex;align-items:center;margin:8px 0 10px;padding:12px;border-radius:14px;background:var(--blue-tint)}
+.peak dd{color:var(--blue);font-size:26px;font-weight:500;line-height:1.3;letter-spacing:-.04em}
+.legend{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px 22px;margin:14px 0 0;color:var(--muted);font-size:11px}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.swatch{display:inline-block;width:17px;height:10px;border-radius:3px;box-shadow:inset 0 0 0 1px var(--swatch-border)}
+.swatch.one{background:var(--band1)}.swatch.two{background:var(--band2)}.swatch.three{background:var(--band3)}
+.curve-key{display:inline-block;width:20px;border-top:2.5px solid var(--curve)}
+.details{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px}
+.details .card{height:100%;padding:22px 24px}
+.teaching{margin:0;font-size:14px;line-height:1.9}
+.teaching strong{display:flex;align-items:center;gap:9px;margin-bottom:10px;color:var(--green);font-size:13px;font-weight:600}
+.teaching strong::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px var(--green-tint)}
+.formula-section h2{margin-bottom:12px}
+.formula{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-family:"Bahnschrift","Microsoft YaHei",sans-serif;font-size:13px;line-height:1.8}
+.formula p{margin:0;overflow-wrap:anywhere}.formula .substitution{color:var(--blue)}.formula sup{font-size:.8em}
+#peak-formula{grid-column:1/-1;padding-top:9px;box-shadow:inset 0 1px 0 var(--border);color:var(--muted)}
+.reveal{animation:arrive .82s cubic-bezier(.16,1,.3,1) both}.workbench>.shell{animation-delay:.06s}aside>.shell:nth-child(2){animation-delay:.12s}aside>.shell:nth-child(3){animation-delay:.2s}.details>.shell{animation-delay:.14s}
+@keyframes arrive{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+noscript p{padding:20px;background:#fff3cd;color:#634900}
+@media screen{
+ :root[data-theme="dark"] body{background-image:radial-gradient(ellipse at 12% 5%,rgba(175,114,76,.075),transparent 42%),radial-gradient(ellipse at 94% 22%,rgba(143,104,189,.09),transparent 48%),radial-gradient(ellipse at 30% 100%,rgba(53,139,123,.055),transparent 45%)}
+ :root[data-theme="dark"] .workbench>.shell{background:linear-gradient(135deg,rgba(239,201,135,.2),var(--tray) 38%,rgba(137,222,200,.13))}
+ :root[data-theme="dark"] .chart-title .section-number{color:var(--curve);background:rgba(239,201,135,.1)}
+ :root[data-theme="dark"] .title-params{color:#e4b5cd}
+ :root[data-theme="dark"] aside>.shell:nth-child(1){background:linear-gradient(140deg,rgba(199,181,245,.19),var(--tray) 65%,rgba(137,222,200,.13))}
+ :root[data-theme="dark"] aside>.shell:nth-child(1)>.card{--paper:#201e2c}
+ :root[data-theme="dark"] aside>.shell:nth-child(2){background:linear-gradient(140deg,rgba(137,222,200,.14),var(--tray) 55%,rgba(199,181,245,.14))}
+ :root[data-theme="dark"] aside>.shell:nth-child(3){background:linear-gradient(140deg,rgba(239,179,204,.2),var(--tray) 70%)}
+ :root[data-theme="dark"] aside>.shell:nth-child(3)>.card{--paper:#251e29}
+ :root[data-theme="dark"] aside>.shell:nth-child(3) .section-number{color:var(--accent-3);background:rgba(239,179,204,.1)}
+ :root[data-theme="dark"] .peak{background:rgba(239,201,135,.1)}
+ :root[data-theme="dark"] #peak-value{color:var(--curve)}
+ :root[data-theme="dark"] .check-row:nth-of-type(1){background:rgba(73,193,169,.08)}
+ :root[data-theme="dark"] .check-row:nth-of-type(2){background:rgba(153,118,219,.1)}
+ :root[data-theme="dark"] .check-row:nth-of-type(3){background:rgba(218,128,161,.09)}
+ :root[data-theme="dark"] .check-row:nth-of-type(1) b,:root[data-theme="dark"] #interval-1,:root[data-theme="dark"] .legend span:nth-child(2){color:var(--accent-1)}
+ :root[data-theme="dark"] .check-row:nth-of-type(2) b,:root[data-theme="dark"] #interval-2,:root[data-theme="dark"] .legend span:nth-child(3){color:var(--accent-2)}
+ :root[data-theme="dark"] .check-row:nth-of-type(3) b,:root[data-theme="dark"] #interval-3,:root[data-theme="dark"] .legend span:nth-child(4){color:var(--accent-3)}
+ :root[data-theme="dark"] #show-1{accent-color:var(--accent-1)}:root[data-theme="dark"] #show-2{accent-color:var(--accent-2)}:root[data-theme="dark"] #show-3{accent-color:var(--accent-3)}
+ :root[data-theme="dark"] #band-1 line{stroke:var(--accent-1)}:root[data-theme="dark"] #band-2 line{stroke:var(--accent-2)}:root[data-theme="dark"] #band-3 line{stroke:var(--accent-3)}
+ :root[data-theme="dark"] #annotation-1 text{fill:var(--accent-1)}:root[data-theme="dark"] #annotation-2 text{fill:var(--accent-2)}:root[data-theme="dark"] #annotation-3 text{fill:var(--accent-3)}
+ :root[data-theme="dark"] .swatch.one{box-shadow:inset 0 0 0 1px var(--accent-1)}:root[data-theme="dark"] .swatch.two{box-shadow:inset 0 0 0 1px var(--accent-2)}:root[data-theme="dark"] .swatch.three{box-shadow:inset 0 0 0 1px var(--accent-3)}
+ :root[data-theme="dark"] .details>.shell:first-child{background:linear-gradient(135deg,rgba(137,222,200,.16),var(--tray) 60%)}
+ :root[data-theme="dark"] .details>.shell:last-child{background:linear-gradient(135deg,rgba(199,181,245,.19),var(--tray) 60%)}
+}
+@media(max-width:1180px){main{padding:20px 28px 28px}.workbench{grid-template-columns:minmax(0,1fr) 310px;gap:18px}.heading-row{align-items:flex-start;flex-direction:column;gap:4px}.subtitle{max-width:none}.details{gap:18px}.section{padding:16px}figure{padding:20px 12px 16px}.chart-heading{gap:10px}.formula{grid-template-columns:1fr}#peak-formula{grid-column:1}}
+@media(max-width:800px){main{padding:16px 20px 28px}header{grid-template-columns:minmax(0,1fr) auto;gap:8px 12px}.eyebrow{justify-self:start}#theme-toggle{grid-column:2}.heading-row{grid-column:1/-1;grid-row:2;gap:4px}h1{font-size:28px}.workbench{grid-template-columns:minmax(0,1fr);gap:24px}aside{grid-template-columns:1fr;gap:18px}.details{grid-template-columns:1fr;gap:18px;margin-top:24px}.section{padding:22px}.parameter-core{padding:14px 16px 10px}.parameter+.parameter{margin-top:14px}output{font-size:28px}.check-row{min-height:48px}.formula{grid-template-columns:1fr 1fr}#peak-formula{grid-column:1/-1}}
+@media(max-width:540px){main{padding:12px 16px 32px}.eyebrow{gap:7px;padding:5px 9px 5px 6px;font-size:10px;letter-spacing:0}.brand-mark{width:25px;height:25px}.brand-mark svg{width:18px;height:18px}#theme-toggle{gap:7px;padding-left:12px;font-size:12px}#theme-toggle::after{width:28px;height:28px}h1{font-size:26px}.title-params{margin-left:6px}.subtitle{font-size:12px}.shell{padding:5px;border-radius:25px}.card{border-radius:20px}figure{padding:18px 8px 16px}.chart-heading{padding:0 7px 12px}.chart-heading h2{font-size:13px}.chart-heading .section-number{display:none}.domain{font-size:10px;padding:5px 8px;white-space:normal}.legend{justify-content:flex-start;gap:8px 14px;padding:0 6px;font-size:10px}figcaption{font-size:11px;padding-top:10px}.section{padding:18px}.details .card{padding:20px}.formula{grid-template-columns:1fr}#peak-formula{grid-column:1}.teaching{font-size:13px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media print{:root,:root[data-theme="dark"]{color-scheme:light;--bg:#fff;--paper:#fff;--ink:#192438;--muted:#53627a;--blue:#3754cc;--curve:#2439a8;--grid:#eaf0f7;--axis:#b8c6d9;--guide:#7c8fad;--center:#334155;--band1:rgba(71,106,222,.20);--band2:rgba(71,106,222,.12);--band3:rgba(71,106,222,.06);--blue-tint:#edf1fc;--green:#167660;--green-tint:#eaf5f0;--tray:#fff;--highlight:transparent;--ambient:transparent}body{background:#fff}main{padding:0}.header-top{margin-bottom:12px}#theme-toggle{display:none}.heading-row{display:block}h1{font-size:30px}.subtitle{max-width:none}.workbench{grid-template-columns:minmax(0,1fr) 300px;gap:12px}.details{grid-template-columns:1fr 1fr;gap:12px}.shell,.card{box-shadow:none}.shell{padding:0}.section{padding:14px}.reveal{animation:none}.formula{grid-template-columns:1fr}.shell{break-inside:avoid}}
+@media print{header{display:block}.header-top{display:none}}
+</style>
+</head>
+<body>
+<main>
+<header class="reveal">
+  <div class="header-top">
+    <p class="eyebrow"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 18h18M4 16c4 0 3-10 8-10s4 10 8 10M12 4v14"/></svg></span>概率与统计 · 交互演示</p>
+    <button id="theme-toggle" type="button" aria-pressed="false">深色模式</button>
+  </div>
+  <div class="heading-row">
+  <h1>正态分布<span class="title-params">的 μ 与 σ</span></h1>
+  <p class="subtitle">调节均值与标准差，观察钟形曲线的位置、宽窄与经验法则区间。</p>
+  </div>
+</header>
+<noscript><p>请启用浏览器的 JavaScript，以使用滑杆和区间显示开关。</p></noscript>
+<div class="workbench">
+  <div class="shell reveal">
+  <figure class="card" aria-labelledby="graph-heading">
+    <div class="chart-heading">
+      <div class="chart-title"><span class="section-number" aria-hidden="true">02</span><h2 id="graph-heading">概率密度曲线</h2></div>
+      <span class="domain">固定坐标：横轴 −4～4，纵轴 0～1</span>
+    </div>
+    <svg id="chart" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="chart-title chart-desc">
+      <title id="chart-title">正态分布的概率密度曲线与三个经验法则区间</title>
+      <desc id="chart-desc">均值为 0，标准差为 1。可使用右侧滑杆调节参数。</desc>
+      <defs><clipPath id="plot-clip"><rect x="68" y="34" width="802" height="516"/></clipPath></defs>
+      <g id="grid"></g>
+      <g id="bands">
+        <g id="band-3"></g>
+        <g id="band-2"></g>
+        <g id="band-1"></g>
+      </g>
+      <g clip-path="url(#plot-clip)">
+        <line id="center-line" stroke="var(--center)" stroke-width="1.8"/>
+        <path id="curve" fill="none" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/>
+      </g>
+      <g id="axes"></g>
+      <g id="annotations">
+        <g id="annotation-3"></g>
+        <g id="annotation-2"></g>
+        <g id="annotation-1"></g>
+      </g>
+      <text id="mu-label" class="mu-label" y="595" text-anchor="middle">μ</text>
+    </svg>
+    <div class="legend" aria-label="图例">
+      <span><i class="curve-key" aria-hidden="true"></i>概率密度曲线</span>
+      <span><i class="swatch one" aria-hidden="true"></i>μ ± 1σ</span>
+      <span><i class="swatch two" aria-hidden="true"></i>μ ± 2σ</span>
+      <span><i class="swatch three" aria-hidden="true"></i>μ ± 3σ</span>
+    </div>
+    <figcaption>百分比约为<strong>完整区间</strong>的面积占比；超出横轴范围的部分不显示。曲线高度表示概率密度。</figcaption>
+  </figure>
+  </div>
+  <aside aria-label="正态分布控制面板">
+    <div class="shell reveal">
+    <section class="section card" aria-labelledby="parameters-heading">
+      <h2 id="parameters-heading"><span class="section-number" aria-hidden="true">01</span>调节参数</h2>
+      <div class="parameter">
+        <div class="parameter-core">
+        <div class="parameter-line"><label for="mu"><span class="parameter-symbol" aria-hidden="true">μ</span>均值 μ</label><output id="mu-value" for="mu">0.00</output></div>
+        <input id="mu" type="range" min="-2" max="2" step="0.05" value="0">
+        <div class="range-limits" aria-hidden="true"><span>−2.00</span><span>2.00</span></div>
+        </div>
+      </div>
+      <div class="parameter">
+        <div class="parameter-core">
+        <div class="parameter-line"><label for="sigma"><span class="parameter-symbol" aria-hidden="true">σ</span>标准差 σ</label><output id="sigma-value" for="sigma">1.00</output></div>
+        <input id="sigma" type="range" min="0.4" max="1.4" step="0.01" value="1">
+        <div class="range-limits" aria-hidden="true"><span>0.40</span><span>1.40</span></div>
+        </div>
+      </div>
+    </section>
+    </div>
+    <div class="shell reveal">
+    <section class="section card" aria-labelledby="interval-heading">
+      <h2 id="interval-heading">经验法则区间</h2>
+      <label class="check-row"><input id="show-1" type="checkbox" checked><span>显示 1σ 区间</span><b>68.3%</b></label>
+      <label class="check-row"><input id="show-2" type="checkbox" checked><span>显示 2σ 区间</span><b>95.4%</b></label>
+      <label class="check-row"><input id="show-3" type="checkbox" checked><span>显示 3σ 区间</span><b>99.7%</b></label>
+    </section>
+    </div>
+    <div class="shell reveal">
+    <section class="section card" aria-labelledby="values-heading">
+      <h2 id="values-heading"><span class="section-number" aria-hidden="true">03</span>实时数值</h2>
+      <dl id="readings" aria-live="off">
+        <div><dt>均值 μ</dt><dd id="read-mu">0.00</dd></div>
+        <div><dt>标准差 σ</dt><dd id="read-sigma">1.00</dd></div>
+        <div class="peak"><dt>峰值 f(μ)</dt><dd id="peak-value">0.399</dd></div>
+        <div><dt>≈68.3% 区间</dt><dd id="interval-1">[−1.00, 1.00]</dd></div>
+        <div><dt>≈95.4% 区间</dt><dd id="interval-2">[−2.00, 2.00]</dd></div>
+        <div><dt>≈99.7% 区间</dt><dd id="interval-3">[−3.00, 3.00]</dd></div>
+      </dl>
+    </section>
+    </div>
+  </aside>
+</div>
+<div class="details">
+  <div class="shell reveal"><p class="teaching card"><strong>教学提示 · 从图像看规律</strong>μ 只平移曲线、不改变形状；σ 决定宽窄——σ 越小曲线越高越瘦（数据越集中），σ 越大曲线越矮越胖（数据越分散）。</p></div>
+  <div class="shell reveal">
+    <section class="section card formula-section" aria-labelledby="formula-heading">
+      <h2 id="formula-heading">公式代入</h2>
+      <div class="formula">
+        <p>f(x) = 1/(σ·√(2π))<br>　　· e<sup>−(x−μ)²/(2σ²)</sup></p>
+        <p id="substitution" class="substitution"></p>
+        <p id="peak-formula"></p>
+      </div>
+    </section>
+  </div>
+</div>
+</main>
+<script>
+'use strict';
+const MATH = {
+  density(x, mu, sigma) {
+    return Math.exp(-((x - mu) ** 2) / (2 * sigma ** 2)) / (sigma * Math.sqrt(2 * Math.PI));
+  },
+  interval(mu, sigma, k) { return [mu - k * sigma, mu + k * sigma]; },
+  format(value, digits = 2) {
+    const rounded = Number(value.toFixed(digits));
+    return (Object.is(rounded, -0) ? 0 : rounded).toFixed(digits).replace('-', '−');
+  },
+  sx(x) { return 68 + (x + 4) / 8 * 802; },
+  sy(y) { return 34 + (1 - y) * 516; },
+  points(a, b, mu, sigma, count = 300) {
+    return Array.from({length:count}, (_, i) => {
+      const x = a + (b - a) * i / (count - 1);
+      return `${MATH.sx(x).toFixed(3)},${MATH.sy(MATH.density(x, mu, sigma)).toFixed(3)}`;
+    }).join(' L ');
+  },
+  curve(mu, sigma) { return 'M ' + MATH.points(-4, 4, mu, sigma); },
+  area(mu, sigma, k) {
+    const [a, b] = MATH.interval(mu, sigma, k);
+    return `M ${MATH.sx(a)},550 L ${MATH.points(a, b, mu, sigma)} L ${MATH.sx(b)},550 Z`;
+  }
+};
+// MATH_END
+const $ = id => document.getElementById(id);
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  const dark = theme === 'dark';
+  $('theme-toggle').textContent = dark ? '浅色模式' : '深色模式';
+  $('theme-toggle').setAttribute('aria-pressed', String(dark));
+  $('theme-toggle').title = dark ? '当前为深色，切换为浅色模式' : '当前为浅色，切换为深色模式';
+}
+try { applyTheme(localStorage.getItem('normal-distribution-theme') === 'dark' ? 'dark' : 'light'); }
+catch { applyTheme('light'); }
+$('theme-toggle').addEventListener('click', () => {
+  const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(theme);
+  try { localStorage.setItem('normal-distribution-theme', theme); } catch {}
+});
+const percentages = {1:'68.3%', 2:'95.4%', 3:'99.7%'};
+const text = (x, y, value, cls = '', anchor = 'middle') => `<text x="${x}" y="${y}" text-anchor="${anchor}" class="${cls}">${value}</text>`;
+const line = (x1, y1, x2, y2, attrs = '') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${attrs}/>`;
+
+function drawAxes() {
+  let grid = '', axes = '';
+  for (let x = -4; x <= 4; x++) {
+    const px = MATH.sx(x);
+    grid += line(px, 34, px, 550, 'stroke="var(--grid)"');
+    axes += line(px, 550, px, 555, 'stroke="var(--axis)"') + text(px, 574, String(x).replace('-', '−'));
+  }
+  for (let i = 0; i <= 5; i++) {
+    const py = MATH.sy(i / 5);
+    grid += line(68, py, 870, py, 'stroke="var(--grid)"');
+    axes += text(54, py + 5, i === 0 ? '0' : (i / 5).toFixed(1), '', 'end');
+  }
+  axes += line(68, 34, 68, 550, 'stroke="var(--axis)"') + line(68, 550, 870, 550, 'stroke="var(--axis)"');
+  axes += text(68, 20, 'f(x)', 'axis-title') + text(891, 555, 'x', 'axis-title');
+  $('grid').innerHTML = grid;
+  $('axes').innerHTML = axes;
+}
+
+function render() {
+  const mu = Number($('mu').value), sigma = Number($('sigma').value);
+  const fmt = MATH.format, peak = MATH.density(mu, mu, sigma);
+  $('mu-value').textContent = $('read-mu').textContent = fmt(mu);
+  $('sigma-value').textContent = $('read-sigma').textContent = fmt(sigma);
+  $('mu').setAttribute('aria-valuetext', fmt(mu));
+  $('sigma').setAttribute('aria-valuetext', fmt(sigma));
+  $('peak-value').textContent = fmt(peak, 3);
+  $('curve').setAttribute('d', MATH.curve(mu, sigma));
+  const center = $('center-line');
+  center.setAttribute('x1', MATH.sx(mu)); center.setAttribute('x2', MATH.sx(mu));
+  center.setAttribute('y1', MATH.sy(0)); center.setAttribute('y2', MATH.sy(peak));
+  $('mu-label').setAttribute('x', MATH.sx(mu));
+  for (const k of [3, 2, 1]) {
+    const [a, b] = MATH.interval(mu, sigma, k);
+    const band = $('band-' + k), annotation = $('annotation-' + k);
+    const enabled = $('show-' + k).checked;
+    band.style.display = annotation.style.display = enabled ? '' : 'none';
+    band.innerHTML = `<g clip-path="url(#plot-clip)"><path d="${MATH.area(mu, sigma, k)}" fill="var(--band${k})"/>` +
+      [a, b].map(x => line(MATH.sx(x), 550, MATH.sx(x), MATH.sy(MATH.density(x, mu, sigma)), 'stroke="var(--guide)" stroke-dasharray="5 4"')).join('') + '</g>';
+    let labels = '';
+    for (const x of [a, b]) {
+      if (x >= -4 - 1e-10 && x <= 4 + 1e-10) {
+        const px = MATH.sx(x);
+        const anchor = px < 92 ? 'start' : px > 846 ? 'end' : 'middle';
+        labels += text(px, 595, fmt(x), 'endpoint', anchor);
+      }
+    }
+    // Keep outer-band labels on the side with more visible room as μ moves.
+    const labelX = mu + (mu > 0 ? -1 : 1) * (k === 1 ? 0 : k - .5) * sigma;
+    const px = MATH.sx(labelX), py = Math.max(18, MATH.sy(MATH.density(labelX, mu, sigma)) - 24);
+    labels += `<g class="percent" data-k="${k}"><rect x="${px - 36}" y="${py - 16}" width="72" height="25" rx="6" fill="var(--paper)" fill-opacity=".94"/>${text(px, py + 1, '≈' + percentages[k])}</g>`;
+    annotation.innerHTML = labels;
+    $('interval-' + k).textContent = `[${fmt(a)}, ${fmt(b)}]`;
+  }
+  const difference = mu < 0 ? `(x+${fmt(-mu)})` : `(x−${fmt(mu)})`;
+  $('substitution').innerHTML = `= 1/(${fmt(sigma)}·√(2π))<br>　· e<sup>−${difference}²/(2·${fmt(sigma)}²)</sup>`;
+  $('peak-formula').textContent = `峰值 f(μ) = 1/(${fmt(sigma)}·√(2π)) = ${fmt(peak, 3)}`;
+  $('chart-desc').textContent = `均值 μ=${fmt(mu)}，标准差 σ=${fmt(sigma)}，峰值 ${fmt(peak, 3)}。` +
+    [1, 2, 3].map(k => `${k}σ 完整区间 ${$('interval-' + k).textContent}，面积约 ${percentages[k]}，${$('show-' + k).checked ? '已显示' : '已隐藏'}。`).join('') +
+    '横轴范围为负4到4，超出部分不显示。';
+}
+drawAxes();
+$('mu').addEventListener('input', render);
+$('sigma').addEventListener('input', render);
+for (const k of [1, 2, 3]) $('show-' + k).addEventListener('change', render);
+render();
+</script>
+</body>
+</html>

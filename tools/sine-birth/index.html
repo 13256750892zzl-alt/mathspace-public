@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101919">
+  <title>正弦函数的诞生 · 三维交互课件</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css?v=20261029-cosine-ui">
+  <script defer src="vendor/three.min.js"></script>
+  <script defer src="vendor/OrbitControls.js"></script>
+  <script defer src="math.js?v=20261029-render-fix"></script>
+  <script defer src="app.js?v=20261029-render-fix"></script>
+</head>
+<body>
+<main class="workbench" id="workbench">
+  <header class="appbar reveal">
+    <div class="brand"><span class="brand-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12c4-14 7 14 11 0S20 0 22 12M3 19h18"/></svg></span><div><strong>图形实验室</strong><span>高中数学 · 正弦函数</span></div></div>
+    <span class="appbar-caption">把抽象，变成眼前的发现。</span>
+    <button class="panel-toggle" id="panel-toggle" aria-controls="knowledge-panel" aria-expanded="true"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16M8 3v6M16 9v6M9 15v6"/></svg><span>调节面板</span></button>
+  </header>
+  <section class="stage reveal" aria-labelledby="title">
+    <div class="stage-surface">
+    <header class="title-card">
+      <div class="eyebrow"><span></span><b>01 / 圆周运动与函数图像</b></div>
+      <h1 id="title">正弦函数的诞生</h1>
+      <p>转动一个点，看见一条曲线。</p>
+    </header>
+    <div class="stage-equation math" aria-hidden="true">y = sin(α + φ)</div>
+    <div class="viewport" id="viewport">
+      <canvas id="scene" tabindex="0" aria-label="三维螺旋线及正弦投影。拖动旋转，滚轮缩放；方向键旋转，Home 恢复视角。"></canvas>
+      <canvas id="scene-labels" aria-hidden="true"></canvas>
+      <div class="render-error" id="render-error" hidden role="status">当前浏览器无法启用三维图形。右侧的单位圆与正弦图仍可联动；请使用支持 WebGL 的浏览器查看完整三维演示。</div>
+    </div>
+    <nav class="views" aria-label="观察视角">
+      <button data-view="free" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="m12 2 9 5v10l-9 5-9-5V7zM3 7l9 5 9-5M12 12v10M7 4.8l9 5"/></svg>自由旋转</button>
+      <button data-view="front" aria-pressed="false"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M8 4V2h8v2"/></svg>正视</button>
+      <button data-view="side" aria-pressed="false"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="4" ry="10"/><path d="M2 12h20M12 2v20"/></svg>侧视</button>
+      <button data-view="top" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>俯视</button>
+    </nav>
+    <div class="stage-hint" id="stage-hint">拖动旋转 · 滚轮缩放</div>
+    <div class="stage-legend" aria-hidden="true"><span>空间轨迹</span><span>平面投影</span></div>
+    </div>
+  </section>
+  <div class="panel-shell">
+  <aside class="knowledge-panel" id="knowledge-panel" aria-label="知识面板">
+    <header class="panel-heading"><h2>观察与探索 <small>实时联动</small></h2><button id="panel-close" aria-label="收起知识面板"><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></button></header>
+    <div class="metrics reveal">
+      <div><span class="math">α</span><strong id="alpha-value">2.20<small>rad</small></strong></div>
+      <div><span class="math">sin θ</span><strong id="sin-value">0.81</strong></div>
+      <div><span class="math">cos θ</span><strong id="cos-value">−0.59</strong></div>
+    </div>
+    <div class="module-shell observation-shell reveal">
+    <section class="observation" aria-labelledby="observation-title">
+      <div class="section-heading"><h3 id="observation-title">平面观察</h3><span class="math" id="equation">y = sin α</span></div>
+      <canvas id="circle" role="img" aria-label="单位圆与当前角的投影"></canvas>
+      <p class="theta-note math" id="theta-note">θ = α + φ · 圆内角 θ₀ = 2.20 rad</p>
+      <canvas id="graph" role="img" aria-label="当前正弦函数图像及动点"></canvas>
+      <p class="graph-note">横坐标 α 为累计角度</p>
+    </section>
+    </div>
+    <div class="module-shell controls-shell reveal">
+    <section class="controls" aria-labelledby="controls-title">
+      <h3 id="controls-title">调节与演示</h3>
+      <div class="slider-heading"><label for="alpha">点的位置 <i>α</i></label><output for="alpha" id="alpha-label" class="math">α = 2.20 rad</output></div>
+      <input id="alpha" type="range" min="0" max="720" step="1" value="126" aria-valuetext="126 度，2.20 弧度">
+      <div class="range-labels math"><span>0</span><span>2π</span><span>4π</span></div>
+      <div class="slider-heading phase-heading"><label for="phase">曲线转角 <i>φ</i></label><output for="phase" id="phase-label" class="math">φ = 0</output></div>
+      <input id="phase" type="range" min="-180" max="180" step="1" value="0" aria-valuetext="0 度">
+      <div class="range-labels math"><span>−π</span><span>0</span><span>π</span></div>
+      <p class="link-note">联动参数角：<span class="math">θ = α + φ</span></p>
+      <div class="speed-row"><span>播放速度</span><div role="group" aria-label="播放速度"><button data-speed="0.5" aria-pressed="false">0.5x</button><button data-speed="1" aria-pressed="true">1x</button><button data-speed="2" aria-pressed="false">2x</button><button data-speed="3" aria-pressed="false">3x</button></div></div>
+      <button id="play" class="primary"><span id="play-label">暂停演示</span><span aria-hidden="true" id="play-icon">Ⅱ</span></button>
+      <div class="utility-row"><button id="reset"><svg viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/></svg>重置</button><button id="fullscreen"><svg viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/></svg><span id="fullscreen-label">全屏</span></button></div>
+    </section>
+    </div>
+  </aside>
+  </div>
+</main>
+<div id="status" class="status" role="status" aria-live="polite"></div>
+</body>
+</html>

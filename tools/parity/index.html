@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f4f6fa">
+<link rel="icon" href="data:,">
+<title>奇偶性镜像检验器 · 数学实验</title>
+<style>
+
+:root{
+ color-scheme:light;
+ --paper:#eff2f4;--surface:#fbfcfd;--ink:#1b2c35;--muted:#526575;--line:#d6e1e6;
+ --blue:#174f99;--orange:#aa4e0d;--red:#b82c39;--green:#176448;--soft:#e7edf3;
+ --chart:#f3f7fa;--grid:#dde7ef;--axis:#7c8da5;--ghost:#8c9cab;--overlay:#c26a28;
+ --action:#193f34;--action-hover:#285f4b;--on-action:#fff;
+ --shell:#dde5e9;--edge:#ffffffd9;--nav:#ffffffd9;--violet:#eee9fa;--ice:#e8f0fc;--peach:#faeddf;
+ --inset:#f0f4f6;--correct:#e6f4eb;--wrong:#fcece5;--note:#f7efdf;--note-ink:#70441a;
+ --curve:cubic-bezier(.22,.75,.22,1);
+ font:16px/1.55 'Geist','Microsoft YaHei UI','Microsoft YaHei',sans-serif;
+}
+:root[data-theme="dark"]{
+ color-scheme:dark;
+ --paper:#090d12;--surface:#171e27;--ink:#edf3f9;--muted:#a9bacb;--line:#334453;
+ --blue:#91bdff;--orange:#ffb477;--red:#ff9aa9;--green:#91ddb6;--soft:#253445;
+ --chart:#101824;--grid:#243140;--axis:#7a91a9;--ghost:#72839b;--overlay:#ffb477;
+ --action:#b7edcf;--action-hover:#cff7e0;--on-action:#10281f;
+ --shell:#202a35;--edge:#ffffff18;--nav:#1a232de8;--violet:#302b45;--ice:#22354e;--peach:#3d3026;
+ --inset:#121b25;--correct:#193b2f;--wrong:#412c26;--note:#322a20;--note-ink:#f5cea0;
+}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:var(--paper);color:var(--ink)}
+body:before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-1;background:radial-gradient(ellipse at 4% 12%,#b8decb25,transparent 43%),radial-gradient(ellipse at 96% 40%,#bdb2df22,transparent 43%)}
+button,input,select{font:inherit;color:inherit}button,input,select{border:0;background:var(--surface);box-shadow:inset 0 0 0 1px var(--edge),0 0 0 1px var(--line)}
+button{min-height:44px;border-radius:999px;padding:10px 17px;cursor:pointer;font-weight:650;display:inline-flex;align-items:center;justify-content:center;gap:9px;transition:transform 220ms var(--curve),opacity 220ms var(--curve)}
+button:hover:not(:disabled){transform:translateY(-2px)}button:active:not(:disabled){transform:scale(.975)}button:disabled{opacity:.46;cursor:not-allowed}
+button.primary,button[aria-pressed=true]{background:var(--action);color:var(--on-action);box-shadow:inset 0 1px 0 #ffffff29,0 0 0 1px var(--action)}
+button.primary:hover:not(:disabled),button[aria-pressed=true]:hover:not(:disabled){background:var(--action-hover);color:var(--on-action)}
+:focus-visible{outline:3px solid var(--orange);outline-offset:4px}[hidden]{display:none!important}
+h1,h2,p{margin:0}h1{font-size:21px;letter-spacing:.02em;font-weight:750}h2{font-size:18px;font-weight:700}small,.small{font-size:13px;color:var(--muted)}.math{font-family:'Cambria Math',Cambria,serif}
+.wrap{max-width:1600px;margin:auto;padding:24px 32px 32px}
+header{display:flex;gap:20px;justify-content:space-between;align-items:center;padding:12px 14px 12px 18px;background:var(--nav);border-radius:999px;box-shadow:inset 0 1px 0 var(--edge),0 0 0 1px var(--edge),0 12px 42px #102a3710;margin:0 auto 28px;max-width:1456px;position:relative}
+.brand{display:flex;gap:12px;align-items:center;min-width:0}.mark{width:42px;height:42px;flex-shrink:0;display:grid;place-items:center;border-radius:50%;background:var(--action);color:var(--on-action)}.mark svg{width:27px;height:27px}
+.eyebrow{font-size:10px;font-weight:650;letter-spacing:.17em;color:var(--muted)}.brand .eyebrow{font-size:9px;margin-bottom:1px}.head-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}.head-actions button{font-size:13px;min-height:42px;padding:9px 14px;box-shadow:inset 0 0 0 1px var(--edge)}
+.head-actions button:before{content:'';width:16px;height:16px;display:block;flex-shrink:0;background:currentColor;mask-position:center;mask-repeat:no-repeat;mask-size:contain}
+#theme:before{mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M20 15A8 8 0 0 1 9 4a8.5 8.5 0 1 0 11 11Z' fill='none' stroke='black' stroke-width='1.4'/%3E%3C/svg%3E")}
+#projection:before{mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 4h18v12H3zM12 16v5m-4 0h8M7 8h10M9 11h6' fill='none' stroke='black' stroke-width='1.4'/%3E%3C/svg%3E")}
+#fullscreen:before{mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5' fill='none' stroke='black' stroke-width='1.4'/%3E%3C/svg%3E")}
+.intro{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:0 4px 24px}.intro h2{font-size:clamp(24px,2.4vw,36px);letter-spacing:-.04em;line-height:1.3;font-weight:730}.intro h2 em{font-style:normal;color:var(--green)}.intro p{color:var(--muted);font-size:14px;margin-top:8px}
+.intro-tag{display:inline-flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.17em;font-weight:700;color:var(--green);margin-bottom:9px}.intro-tag:before{content:'';width:5px;height:5px;background:var(--green);border-radius:50%}
+.steps{display:flex;gap:7px;flex-wrap:wrap;font-size:12px;color:var(--muted)}.steps span{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:999px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--edge)}.steps span b{font:12px Cambria,serif;color:var(--muted)}.steps .current{background:var(--action);color:var(--on-action)}.steps .current b{color:inherit}
+.toolbar{display:flex;justify-content:space-between;gap:16px;align-items:center;margin:0 4px 16px}.toolbar label{display:flex;gap:12px;align-items:center;flex:1;font-size:13px;color:var(--muted)}select{padding:11px 35px 11px 14px;border-radius:14px;max-width:430px;min-width:0;width:100%;color:var(--ink)}.score{font-size:12px;color:var(--muted);white-space:nowrap;background:var(--surface);padding:8px 13px;border-radius:999px}
+.workspace{display:grid;grid-template-columns:minmax(0,1.42fr) minmax(370px,1fr);gap:20px;align-items:start}
+.shell{padding:7px;background:var(--shell);border-radius:31px;box-shadow:inset 0 1px 0 var(--edge),0 0 0 1px var(--edge),0 16px 60px #102a370a;min-width:0}
+.panel{background:var(--surface);border-radius:24px;overflow:hidden;box-shadow:inset 0 1px 0 var(--edge),0 0 0 1px var(--edge)}
+.panel-head{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:18px 22px}.panel-head .eyebrow{font-size:11px;margin-bottom:4px;letter-spacing:.1em}.formula{font-size:30px;font-weight:600;letter-spacing:-.03em}.tag{font-size:11px;border-radius:999px;padding:6px 10px;background:var(--ice);color:var(--blue);white-space:nowrap;box-shadow:inset 0 1px 0 var(--edge)}
+.graph-wrap{position:relative;height:400px;background:var(--chart);margin:0 10px;border-radius:17px;box-shadow:inset 0 0 0 1px var(--edge);overflow:hidden}canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.legend{display:flex;gap:16px;flex-wrap:wrap;padding:13px 22px;font-size:12px;color:var(--muted)}.legend span{display:flex;gap:7px;align-items:center}.legend span:before{content:'';width:7px;height:7px;background:var(--blue);border-radius:50%}.legend span:nth-child(2):before{background:var(--orange)}.legend span:nth-child(3):before{background:var(--ghost)}
+.controls{padding:4px 16px 14px}.field-shell{padding:4px;background:var(--shell);border-radius:19px;box-shadow:inset 0 1px 0 var(--edge)}.point-control{display:flex;align-items:center;gap:12px;background:var(--inset);padding:10px;border-radius:15px}.point-control label{font-size:13px;color:var(--muted);white-space:nowrap}.point-control input[type=range]{width:100%;min-width:40px;accent-color:var(--blue);box-shadow:none;background:none}.point-control input[type=number]{width:89px;padding:8px 10px;border-radius:10px;background:var(--surface);font-variant-numeric:tabular-nums}.point-control button{flex-shrink:0;white-space:nowrap;font-size:13px;padding:8px 12px;background:var(--surface)}
+.hint{color:var(--muted);font-size:13px;margin-top:11px}.controls .hint{padding:0 5px}.domain{padding:16px 22px;background:var(--inset);box-shadow:inset 0 1px 0 var(--edge)}.domain summary{cursor:pointer;font-size:14px;font-weight:600;min-height:28px}.domain form{display:flex;gap:8px;margin-top:12px}.domain input{width:100%;min-width:0;padding:10px 12px;border-radius:12px}.domain button{white-space:nowrap;font-size:13px}.domain .hint{overflow-wrap:anywhere}.domain .small{font-size:12px;font-weight:400;margin-left:7px}.error{color:var(--red);font-size:13px;margin-top:8px}
+.data-body{padding:0 20px 20px}.live-values{margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.value-well{padding:4px;background:var(--shell);border-radius:19px;min-width:0;box-shadow:inset 0 1px 0 var(--edge)}.value{background:var(--violet);padding:12px;border-radius:15px;min-width:0;box-shadow:inset 0 1px 0 var(--edge)}.value-well:nth-child(2) .value{background:var(--ice)}.value-well:nth-child(3) .value{background:var(--peach)}.value dt{font-size:13px;color:var(--muted)}.value dd{margin:5px 0 0;font-size:28px;line-height:1.2;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+.relation{margin:16px 0 12px;font-size:14px;font-weight:600;color:var(--blue);min-height:24px}.table-wrap{overflow-x:auto;border-radius:14px;background:var(--inset);padding:4px 10px}table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}th,td{text-align:right;padding:10px 5px;white-space:nowrap;border:0}th{color:var(--muted);font-size:11px;font-weight:500}td{box-shadow:inset 0 1px 0 var(--line)}th:first-child,td:first-child{text-align:left}.empty{text-align:center!important;color:var(--muted);padding:23px 5px;box-shadow:none}
+.collect{display:flex;gap:10px;align-items:center;justify-content:space-between;margin:14px 0}.collect .small{font-size:12px}.collect button{padding:6px 12px;font-size:12px;min-height:36px;background:transparent;box-shadow:none;color:var(--muted)}.judge{width:100%;min-height:49px;margin-bottom:4px;font-size:15px}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.answers button{border-radius:13px;font-size:14px;min-height:47px;background:var(--inset)}
+.feedback{background:var(--correct);border-radius:16px;padding:15px;margin-top:14px;box-shadow:inset 0 0 0 1px var(--edge)}.feedback.wrong{background:var(--wrong)}.feedback h2{font-size:16px}.proof{font-size:13px;margin-top:8px;overflow-wrap:anywhere;line-height:1.7}
+.mirror-box{padding:18px 20px;background:var(--inset);box-shadow:inset 0 1px 0 var(--edge)}.mirror-box h2{font-size:16px}.mirror-buttons{display:flex;gap:8px;margin:12px 0}.mirror-buttons button{flex:1;touch-action:none;font-size:13px;padding:10px 12px}.mirror-caption{min-height:44px;font-size:13px;color:var(--muted)}.next-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px}.next-row .small{font-size:12px}.next-row button{padding:6px 6px 6px 17px}.button-orbit{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#ffffff26;transition:transform 300ms var(--curve)}.button-orbit svg{width:15px;height:15px}button:hover .button-orbit{transform:translate(2px,-1px) scale(1.05)}
+.note{padding:15px 22px;background:var(--note);font-size:12px;color:var(--note-ink);line-height:1.7}.footer{display:flex;justify-content:space-between;gap:16px;margin:17px 8px;color:var(--muted);font-size:11px}.extra{margin:24px 8px 0;padding:16px 0;box-shadow:inset 0 1px 0 var(--line);font-size:13px}.extra summary{cursor:pointer;font-weight:600}.extra p{margin-top:10px;max-width:1000px}.extra details{margin-top:12px}
+.projection{font-size:22px}.projection h1{font-size:27px}.projection .intro h2{font-size:34px}.projection :is(.small,small,.eyebrow,.score,.tag,.legend,.hint,.error,table,th,.value dt,.proof,.mirror-caption,.note,.footer,.domain summary,.domain button,.domain .small,.collect .small,.collect button,.mirror-buttons button,.next-row .small,.point-control label,.point-control button,.toolbar label,.answers button,.judge,.head-actions button,.intro p,.extra){font-size:22px}.projection :is(h2,.feedback h2,.mirror-box h2){font-size:24px}.projection .formula{font-size:36px}.projection .graph-wrap{height:490px}.projection .workspace{grid-template-columns:minmax(0,1.35fr) minmax(470px,1fr)}.projection .point-control{flex-wrap:wrap}.projection .point-control input[type=range]{flex:1}.projection .steps,.projection .intro-tag{display:none}.projection .live-values{grid-template-columns:1fr}.projection .value{display:flex;align-items:center;justify-content:space-between}.projection .value dd{margin:0}.projection .mirror-buttons{flex-wrap:wrap}.projection .mirror-buttons button{flex-basis:100%}
+@media(min-width:1051px){.shell:first-child{position:sticky;top:16px}}
+@media(min-width:1600px){.graph-wrap{height:460px}}
+@media(max-width:1150px){.intro h2{font-size:28px}.steps{gap:4px}.steps span{padding:8px;font-size:11px}.head-actions button{padding:9px 11px}}
+@media(max-width:1050px){.wrap{padding:20px}.workspace,.projection .workspace{grid-template-columns:1fr}.graph-wrap{height:390px}.steps{display:none}.projection .live-values{grid-template-columns:repeat(3,minmax(0,1fr))}.projection .value{display:block}.projection header{border-radius:26px;align-items:start}.projection .head-actions{flex-wrap:wrap;max-width:250px}}
+@media(max-width:600px){
+ .wrap{padding:16px}header{padding:13px;gap:10px;align-items:center;border-radius:24px;margin-bottom:22px}.mark{width:34px;height:34px}.mark svg{width:23px;height:23px}.brand{gap:9px;align-items:start}.brand .eyebrow{display:none}h1{font-size:16px;line-height:1.45;max-width:120px}.head-actions{gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:100px}.head-actions button{font-size:11px;min-height:36px;padding:7px 9px;gap:5px}.head-actions button:before{width:12px;height:12px}.intro{margin:0 4px 20px}.intro h2{font-size:27px;letter-spacing:-.05em}.intro p{font-size:12px;max-width:280px}.intro-tag{font-size:9px}.toolbar{display:block;margin:0 4px 15px}.toolbar label{font-size:12px;gap:8px}.toolbar select{font-size:13px;padding:10px;max-width:none}.score{font-size:11px;display:table;margin-top:11px;padding:0;background:transparent}.workspace{gap:20px}.shell{padding:5px;border-radius:25px}.panel{border-radius:20px}.panel-head{padding:16px;gap:8px}.panel-head h2{font-size:16px}.panel-head .eyebrow{font-size:10px}.formula{font-size:27px}.tag{font-size:10px;padding:5px 8px}.graph-wrap{height:300px;margin:0 7px;border-radius:14px}.legend{font-size:10px;gap:10px;padding:12px 15px}.legend span{gap:5px}.legend span:before{width:5px;height:5px}.controls{padding:2px 11px 13px}.point-control{flex-wrap:wrap;gap:8px;padding:9px}.point-control label{font-size:12px}.point-control input[type=range]{flex:1}.point-control input[type=number]{width:75px}.point-control button{width:100%;min-height:38px}.hint{font-size:12px}.domain{padding:15px}.domain summary{font-size:13px}.domain .small{display:block;margin:4px 0 0}.domain form{gap:7px}.domain button{font-size:12px;padding:9px 12px}.data-body{padding:0 14px 17px}.live-values{gap:7px}.value-well{padding:3px;border-radius:16px}.value{padding:10px;border-radius:13px}.value dd{font-size:25px}.value dt{font-size:12px}.relation{font-size:13px}.collect .small{font-size:11px}.table-wrap{padding:4px 6px}table{font-size:12px}th{font-size:10px}td,th{padding:10px 3px}.mirror-box{padding:17px 14px}.mirror-buttons button{font-size:12px;padding:9px}.next-row .small{font-size:11px}.note{font-size:11px;padding:14px 16px}.footer{display:block;font-size:10px;margin:16px 5px}.footer span{display:block;margin-top:4px}.extra{font-size:12px;margin-top:20px}
+ .projection header{align-items:start}.projection .brand{display:block}.projection .mark{display:none}.projection h1{font-size:23px}.projection .head-actions{max-width:132px}.projection .head-actions button{font-size:16px}.projection .live-values{grid-template-columns:1fr}.projection .value{display:flex}.projection .graph-wrap{height:350px}.projection .domain form{flex-wrap:wrap}.projection .domain button{width:100%}.projection .answers{grid-template-columns:1fr}.projection .tag{white-space:normal}.projection .panel-head{align-items:start;flex-direction:column}.projection .point-control input[type=number]{width:105px}.projection .score{white-space:normal}.projection .intro h2{font-size:28px}
+}
+@media(max-width:600px){header{flex-wrap:wrap;gap:12px}.brand{width:100%;align-items:center}h1{max-width:none;font-size:17px}.head-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));max-width:none;width:100%;gap:6px}.head-actions button{padding:7px 5px}.toolbar label{white-space:nowrap}.toolbar select{flex:1;width:0}.projection .head-actions{max-width:none;grid-template-columns:1fr}.projection .brand{width:100%}.projection h1{max-width:none}}
+@media(prefers-reduced-motion:no-preference){.reveal-pending{opacity:0;transform:translateY(24px)}.reveal-block{transition:transform 820ms var(--curve),opacity 820ms var(--curve)}.reveal-block.is-visible,.reveal-block:focus-within{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){button,.button-orbit,.reveal-block{transition:none!important}.reveal-block{opacity:1!important;transform:none!important}}
+@media print{.head-actions,.toolbar,.controls,.domain,.mirror-box{display:none}.wrap{padding:0}.workspace{display:block}.shell{position:static!important;break-inside:avoid}.graph-wrap{height:330px}.reveal-block{opacity:1!important;transform:none!important}}
+
+
+/* 彩色数学手记：纸面图象与高明度数值卡分区。 */
+:root{--paper:#f4efe6;--surface:#fffdf8;--ink:#26313c;--muted:#566471;--line:#d9dce1;--blue:#2559d1;--action:#2559d1;--action-hover:#1745b5;--on-action:#fff;--shell:#e4e6e5;--nav:#fffdf8f2;--violet:#d9ccf5;--ice:#c9e3ff;--peach:#ffdbb8;--inset:#f0f1ef;--correct:#dff2e4;--note:#fff0ce;--note-ink:#76501b}
+:root[data-theme="dark"]{--paper:#101a1b;--surface:#1c282c;--ink:#f0f4f1;--muted:#b3c3c3;--line:#425457;--blue:#a1c7ff;--action:#f3d97b;--action-hover:#ffe9a5;--on-action:#302715;--shell:#314344;--nav:#203032f2;--violet:#d9ccf5;--ice:#c9e3ff;--peach:#ffdbb8;--inset:#172326;--correct:#214536;--note:#483a22;--note-ink:#ffe0a3}
+body:before{z-index:0;background:radial-gradient(ellipse at 0% 4%,#768fc41a,transparent 42%),radial-gradient(ellipse at 100% 70%,#d9966617,transparent 42%)}
+.wrap{position:relative;z-index:1;padding-top:18px}header{border-radius:23px;margin-bottom:22px;padding:14px 18px;box-shadow:inset 0 1px 0 var(--edge),0 9px 35px #152e3810}.mark{border-radius:13px;background:#f3d97b;color:#342c19;transform:rotate(-6deg)}.mark svg{transform:rotate(6deg)}
+.intro{margin-bottom:21px}.intro h2{font-size:clamp(25px,2.4vw,35px)}.intro h2 em{color:var(--blue)}.intro-tag{color:var(--muted)}.intro-tag:before{background:#df8c57}.steps span{border-radius:11px}.steps .current{background:var(--violet);color:#342b4d}.steps .current b{color:#53446e}
+.toolbar select{box-shadow:inset 0 0 0 1px var(--line);border-radius:11px}.score{border-radius:9px}.shell{border-radius:23px;padding:6px;box-shadow:inset 0 1px 0 var(--edge),0 12px 44px #102a3710}.panel{border-radius:18px}.panel-head{padding:19px 22px 17px}.panel-head .eyebrow{color:var(--muted)}.formula{font-size:33px}.tag{border-radius:8px;background:var(--ice);color:#214e9b}.graph-wrap{border-radius:12px;height:390px}.section-kicker{display:block;font-size:10px;letter-spacing:.14em;color:var(--muted);margin-bottom:6px}.panel-head h2{font-size:23px;letter-spacing:.04em}
+.shell:first-child{--surface:#fffdf7;--chart:#fffdf7;--ink:#26313c;--muted:#53636d;--line:#d6deda;--blue:#2559d1;--orange:#aa4a14;--red:#b82c39;--green:#176448;--grid:#e3e7e4;--axis:#778794;--ghost:#97a6ac;--overlay:#bd5a1e;--ice:#dde9ff;--soft:#e7edf3;--shell:#e7e8df;--edge:#ffffffd9;--inset:#f1f3eb;--note:#fff0ce;--note-ink:#76501b;background:#dddccf}
+.shell:first-child .panel-head{background:#f4f1e4}.shell:first-child .panel-head .eyebrow{font-weight:700;color:#635a40}.shell:first-child .legend{padding-top:15px}.shell:first-child .controls{padding-top:1px}.shell:first-child .domain{background:#edf0e7}
+:root[data-theme="dark"] .shell:first-child{background:#969a85;--edge:#fffffff0}
+.live-values{gap:9px}.value-well{padding:4px;border-radius:16px;box-shadow:inset 0 1px 0 #ffffff24}.value{background:var(--violet);color:#2c2940;border-radius:12px;padding:14px 12px 15px}.value-well:nth-child(2) .value{background:var(--ice);color:#213d55}.value-well:nth-child(3) .value{background:var(--peach);color:#633b22}.value dt{color:#4d5063}.value dd{font-size:32px;font-weight:600}.relation{padding:0 2px}.table-wrap{border-radius:12px}.answers{display:block;padding:14px 0 0}.answer-hint{font-size:13px;color:var(--muted);margin-bottom:10px}.answer-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.answers .answer-options button{font-size:13px;gap:5px;min-height:48px;border-radius:10px;padding:9px 6px;box-shadow:inset 0 0 0 1px var(--line)}.answer-options button .check-mark{width:15px;flex-shrink:0;opacity:0;transform:scale(.5);transition:opacity 200ms var(--curve),transform 200ms var(--curve)}.answer-options button[aria-pressed=true] .check-mark{opacity:1;transform:none}.answers .answer-submit{width:100%;margin-top:12px;background:var(--action);color:var(--on-action);border-radius:11px;min-height:45px;box-shadow:none}.answers .answer-options button[aria-pressed=true]{background:var(--ice);color:#214e9b;box-shadow:inset 0 0 0 2px #4077d0}.answers .answer-options button[data-answer=odd][aria-pressed=true]{background:#fff0ba;color:#5b4315;box-shadow:inset 0 0 0 2px #a67b24}.answers .answer-options button[data-answer=neither][aria-pressed=true]{background:#ffd9dc;color:#773b46;box-shadow:inset 0 0 0 2px #ad586a}.judge{border-radius:12px}.mirror-buttons button{border-radius:11px}.button-orbit{background:#ffffff35}.note{line-height:1.8}
+.projection .section-kicker{font-size:22px}.projection .answer-hint,.projection .answers .answer-options button,.projection .answers .answer-submit{font-size:22px}.projection .answer-options{grid-template-columns:1fr}.projection .value dd{font-size:32px}
+@media(min-width:1600px){.graph-wrap{height:450px}}
+@media(max-width:1050px){.graph-wrap{height:370px}.projection header{border-radius:23px}}
+@media(max-width:600px){header{border-radius:19px;padding:13px}.intro{margin-bottom:19px}.intro h2{font-size:27px}.shell{border-radius:19px;padding:5px}.panel{border-radius:14px}.panel-head{padding:16px}.panel-head h2{font-size:20px}.section-kicker{font-size:9px}.formula{font-size:28px}.graph-wrap{height:300px;border-radius:10px}.value-well{padding:3px;border-radius:12px}.value{padding:12px 8px;border-radius:9px}.value dd{font-size:27px}.answer-options{grid-template-columns:1fr}.answers .answer-options button{justify-content:flex-start;padding:11px 16px;font-size:14px}.answer-hint{font-size:12px}.projection .answer-hint,.projection .answers .answer-options button,.projection .answers .answer-submit{font-size:22px}.projection .panel-head h2{font-size:24px}.projection .section-kicker{font-size:22px}}
+
+.shell:first-child{color:var(--ink)}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><div class="brand"><div class="mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M16 4v24" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 3"/><path d="m12 8-7 8 7 8M20 8l7 8-7 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><div class="eyebrow">FUNCTION LAB / 数学实验室</div><h1>奇偶性镜像检验器</h1></div></div><div class="head-actions"><button id="theme" aria-pressed="false">深色模式</button><button id="projection" aria-pressed="false">投影大字</button><button id="fullscreen">进入全屏</button></div></header>
+<div class="intro"><div><span class="intro-tag">EXPLORE THE SYMMETRY · 函数奇偶性</span><h2>把对称性，<em>看个明白。</em></h2><p>先取点，再猜想，最后用定义说明。</p></div><div class="steps" aria-label="学习步骤"><span id="step1" class="current"><b aria-hidden="true">01</b>取点观察</span><span id="step2"><b aria-hidden="true">02</b>自己判定</span><span id="step3"><b aria-hidden="true">03</b>镜像复核</span></div></div>
+<div class="toolbar"><label for="functionSelect">当前实验 <select id="functionSelect" aria-label="选择函数"></select></label><div class="score" id="score">主关卡首次判定：尚未作答</div></div>
+<main class="workspace">
+<div class="shell reveal-block"><section class="panel" aria-label="函数图象与取点">
+<div class="panel-head"><div><div class="eyebrow" id="level">01 / 08 · 热身</div><div class="formula math" id="formula">f(x) = x²</div></div><span class="tag" id="domainBadge">先检查定义域</span></div>
+<div class="graph-wrap"><canvas id="graph" tabindex="0" aria-label="函数图象；拖动蓝点或点击曲线取点，也可用左右方向键移动"></canvas></div>
+<div class="legend"><span>原图象与 P</span><span>实际对应点 Q</span><span>定义域外的参考曲线</span></div>
+<div class="controls"><div class="field-shell"><div class="point-control"><label for="xNumber">取点 x</label><input id="xSlider" type="range" min="-3" max="3" step="0.1" value="1.5" aria-label="移动点的横坐标"><input id="xNumber" type="number" min="-1000" max="1000" step="0.1" value="1.5" aria-label="输入横坐标"><button id="record">记录此点</button></div></div><p class="hint">拖动后松手记录一行；选 3 个不同的 x。也可用滑块、数值框或方向键。</p><p id="pointError" class="error" role="status"></p></div>
+<details class="domain" id="domainPanel"><summary>定义域检查器 <span class="small" id="domainText">D = ℝ</span></summary><form id="domainForm"><input id="domainInput" aria-label="输入定义域" value="R" autocomplete="off" spellcheck="false"><button type="submit">应用定义域</button></form><p class="hint">支持 R、[-1,2]、(-3,3]、(-∞,-1] ∪ [1,∞)。实际定义域为输入范围与函数自然定义域的交集。</p><p id="domainError" class="error" role="status"></p><p id="domainStatus" class="hint">先问：每个 x 的相反数也在定义域内吗？</p></details>
+<div class="note" id="domainWarning" hidden></div>
+</section></div>
+<div class="shell reveal-block"><section class="panel" aria-label="验证与判定面板">
+<div class="panel-head"><div><span class="section-kicker">02 / CHECK YOUR IDEA</span><h2>验证手记</h2></div><span class="tag" id="count">已记录 0 / 3</span></div>
+<div class="data-body"><dl class="live-values"><div class="value-well"><div class="value"><dt class="math">x</dt><dd id="liveX">1.5</dd></div></div><div class="value-well"><div class="value"><dt class="math">f(x)</dt><dd id="liveY">2.25</dd></div></div><div class="value-well"><div class="value"><dt class="math">f(−x)</dt><dd id="liveNeg">2.25</dd></div></div></dl><p class="relation" id="relation">当前点：f(−x) = f(x)</p>
+<div class="table-wrap"><table aria-label="已记录的数值检验"><thead><tr><th>x</th><th>f(x)</th><th>f(−x)</th><th>此处关系</th></tr></thead><tbody id="samples"><tr><td colspan="4" class="empty">还没有记录。先拖动蓝点 P 吧。</td></tr></tbody></table></div>
+<div class="collect"><span class="small" id="collectHint">再记录 3 个不同的 x</span><button id="clear">清空取点</button></div><button class="primary judge" id="judge" disabled>我来判定 · 还需 3 个点</button>
+<div class="answers" id="answers" hidden aria-label="选择满足的性质，可多选"><p class="answer-hint">选出所有满足的性质，可多选。</p><div class="answer-options"><button data-answer="odd" aria-pressed="false"><span class="check-mark" aria-hidden="true">✓</span>奇函数</button><button data-answer="even" aria-pressed="false"><span class="check-mark" aria-hidden="true">✓</span>偶函数</button><button data-answer="neither" aria-pressed="false"><span class="check-mark" aria-hidden="true">✓</span>非奇非偶</button></div><button id="submitAnswer" class="answer-submit" disabled>提交判断</button></div>
+<div id="feedback" class="feedback" role="status" hidden></div>
+<p class="hint">有限个点只能支持猜想；一个反例可以否定，成立的结论要对定义域内任意 x 论证。数值显示最多 4 位小数。</p></div>
+<div class="mirror-box" id="mirrorBox" hidden><h2>让图象说出同一件事</h2><div class="mirror-buttons"><button id="mirrorY" aria-pressed="false">照镜子 · 关于 y 轴</button><button id="mirrorO" aria-pressed="false">中心对称 · 绕原点</button></div><p class="mirror-caption" id="mirrorCaption">按住按钮查看叠加，松开还原；键盘聚焦后按住空格或回车。</p><div class="next-row"><span class="small" id="nextHint">完成一次镜像观察后继续</span><button id="next" class="primary" disabled>下一关<span class="button-orbit" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="M5 10h10m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button></div></div>
+<div class="note">Q = (−x, f(−x)) 是实际对应点；只有当两点纵坐标相同时，Q 才是 P 关于 y 轴的镜像。</div>
+</section></div>
+</main>
+<div class="footer"><span>离线数学实验 · 8 个主关卡 + 2 个定义域加练</span><span>蓝色观察 / 橙色对应 / 先定义域，后等式</span></div>
+<details class="extra"><summary>课堂用法与出门条</summary><p>15 分钟建议：用 x³−3x 取点 3 分钟 → 判定与中心对称 3 分钟 → 切换第 8 关定义域陷阱 5 分钟 → 纸笔出门条 4 分钟。右上角可切换投影大字和全屏。</p><p>出门条：① f(x)=x⁵−x，D=ℝ；② f(x)=x²，D=[−2,3]；③ f(x)=0，D=(−2,2)。先写定义域，再写判定理由。</p><details><summary>教师核对</summary><p>① 奇函数；② 定义域不关于原点对称，非奇非偶；③ 奇函数与偶函数的定义均满足。仅作本工具配套练习，不标称考试原题。</p></details></details>
+</div>
+<script id="math-core">
+'use strict';
+const MATH = (() => {
+ const interval=(a,b,l=true,r=true)=>({a,b,l:Number.isFinite(a)&&l,r:Number.isFinite(b)&&r});
+ const R=[interval(-Infinity,Infinity)];
+ const library=[
+  {id:'square',formula:'x²',label:'热身',fn:x=>x*x,base:R,domain:'R',kind:'even',zeros:[0],algebra:'f(−x)=(−x)²=x²=f(x)。'},
+  {id:'cube',formula:'x³',label:'热身',fn:x=>x*x*x,base:R,domain:'R',kind:'odd',zeros:[0],algebra:'f(−x)=(−x)³=−x³=−f(x)。'},
+  {id:'cubic',formula:'x³ − 3x',label:'标准考法',fn:x=>x*x*x-3*x,base:R,domain:'R',kind:'odd',zeros:[-Math.sqrt(3),0,Math.sqrt(3)],algebra:'f(−x)=−x³+3x=−(x³−3x)=−f(x)。'},
+  {id:'absEven',formula:'x² + |x|',label:'含绝对值',fn:x=>x*x+Math.abs(x),base:R,domain:'R',kind:'even',zeros:[0],algebra:'f(−x)=x²+|−x|=x²+|x|=f(x)。'},
+  {id:'absOdd',formula:'x·|x|',label:'含绝对值',fn:x=>x*Math.abs(x),base:R,domain:'R',kind:'odd',zeros:[0],algebra:'f(−x)=(−x)|−x|=−x|x|=−f(x)。'},
+  {id:'shift',formula:'x + 1',label:'打破直觉',fn:x=>x+1,base:R,domain:'R',kind:'neither',zeros:[-1],algebra:'对任意 a∈D，f(−a)+f(a)=2≠0，排除奇函数；本定义域含非零 a，此时 f(−a)=1−a≠1+a=f(a)，排除偶函数。'},
+  {id:'zero',formula:'0',label:'完整分类',fn:()=>0,base:R,domain:'[-3,3]',kind:'both',zeros:null,algebra:'对任意 x∈D，f(−x)=0=f(x)，且 f(−x)=0=−f(x)，两种定义同时成立。'},
+  {id:'trap',formula:'x²',label:'定义域陷阱',fn:x=>x*x,base:R,domain:'[-1,2]',kind:'even',zeros:[0],algebra:'f(−x)=x²=f(x)，但必须先检查定义域。'},
+  {id:'reciprocal',formula:'1/(x + 1)',label:'加练 · 分母限制',fn:x=>1/(x+1),base:[interval(-Infinity,-1,false,false),interval(-1,Infinity,false,false)],domain:'R',kind:'neither',zeros:[],algebra:'对任意 a∈D，f(−a)+f(a)=2/(1−a²)≠0，排除奇函数；若为偶函数，则 1/(1−x)=1/(1+x) 只能给出 x=0，不能对含非零点的定义域恒成立。'},
+  {id:'root',formula:'√(x² − 1)',label:'加练 · 根号限制',fn:x=>Math.sqrt(x*x-1),base:[interval(-Infinity,-1,false,true),interval(1,Infinity,true,false)],domain:'R',kind:'even',zeros:[-1,1],algebra:'自然定义域由 x²−1≥0 给出。对当前 D 内任意 x，f(−x)=√((−x)²−1)=√(x²−1)=f(x)。'}
+ ];
+ const valid=i=>i.a<i.b||(i.a===i.b&&i.l&&i.r);
+ function normalize(items){
+  const out=[];
+  for(const i of items.filter(valid).map(i=>interval(i.a,i.b,i.l,i.r)).sort((a,b)=>a.a-b.a||Number(b.l)-Number(a.l))){
+   const p=out[out.length-1];
+   if(!p||i.a>p.b||(i.a===p.b&&!p.r&&!i.l)){out.push({...i});continue;}
+   if(i.b>p.b){p.b=i.b;p.r=i.r;}else if(i.b===p.b)p.r=p.r||i.r;
+  }return out;
+ }
+ function parse(text){
+  const s=text.trim().replace(/\s/g,'').replace(/[−–]/g,'-').replace(/[，]/g,',').replace(/[（]/g,'(').replace(/[）]/g,')').replace(/[［【]/g,'[').replace(/[］】]/g,']');
+  if(/^(R|ℝ)$/i.test(s))return R.map(i=>({...i}));
+  if(!s||s.length>200)throw Error('请输入 R 或区间，例如 [-1,2]。');
+  const number=s=>{if(/^[-](∞|infinity|inf)$/i.test(s))return -Infinity;if(/^[+]?(∞|infinity|inf)$/i.test(s))return Infinity;if(!/^[+-]?(\d+(\.\d*)?|\.\d+)$/.test(s))throw Error('端点须为十进制数或 ±∞，不支持表达式。');const n=Number(s);if(!Number.isFinite(n)||Math.abs(n)>1000)throw Error('有限端点须在 −1000 到 1000 内。');return n;};
+  return normalize(s.split(/[∪Uu]/).map(part=>{
+   const m=part.match(/^([[(])([^,]+),([^,]+)([\])])$/);if(!m)throw Error('区间格式有误，请使用 [-1,2] 或 (-∞,-1] ∪ [1,∞)。');
+   const a=number(m[2]),b=number(m[3]),l=m[1]==='[',r=m[4]===']';
+   if(a===Infinity||b===-Infinity||a>b||(a===b&&!(l&&r)))throw Error('区间必须非空，左端点不能大于右端点。');
+   if((!Number.isFinite(a)&&l)||(!Number.isFinite(b)&&r))throw Error('无穷端点必须使用圆括号。');return interval(a,b,l,r);
+  }));
+ }
+ function intersect(a,b){const out=[];for(const p of a)for(const q of b){const lo=Math.max(p.a,q.a),hi=Math.min(p.b,q.b);const i=interval(lo,hi,(lo!==p.a||p.l)&&(lo!==q.a||q.l),(hi!==p.b||p.r)&&(hi!==q.b||q.r));if(valid(i))out.push(i);}return normalize(out);}
+ const contains=(d,x)=>Number.isFinite(x)&&d.some(i=>(x>i.a||(x===i.a&&i.l))&&(x<i.b||(x===i.b&&i.r)));
+ const reflect=d=>normalize(d.map(i=>interval(-i.b,-i.a,i.r,i.l)));
+ const equal=(a,b)=>a.length===b.length&&a.every((p,k)=>{const q=b[k];return p.a===q.a&&p.b===q.b&&p.l===q.l&&p.r===q.r;});
+ const symmetric=d=>d.length>0&&equal(normalize(d),reflect(d));
+ const onlyZeros=(f,d)=>f.zeros===null||d.every(i=>i.a===i.b&&f.zeros.includes(i.a));
+ function classify(f,d){if(!symmetric(d))return 'neither';if(onlyZeros(f,d))return 'both';if(f.kind==='neither'&&d.every(i=>i.a===0&&i.b===0))return 'even';return f.kind;}
+ const value=(f,d,x)=>contains(d,x)&&Number.isFinite(f.fn(x))?f.fn(x):null;
+ function relation(f,d,x){const y=value(f,d,x),z=value(f,d,-x);if(y===null||z===null)return 'undefined';return z===y?(z===-y?'both':'even'):(z===-y?'odd':'neither');}
+ const format=n=>n===Infinity?'∞':n===-Infinity?'−∞':(Object.is(n,-0)||Math.abs(n)<1e-10?'0':String(Number(n.toFixed(4))));
+ const domainString=d=>equal(d,R)?'ℝ':d.map(i=>(i.l?'[':'(')+format(i.a)+', '+format(i.b)+(i.r?']':')')).join(' ∪ ');
+ function firstPoint(d){for(const x of [1.5,2,1,0,-1,-2])if(contains(d,x))return x;const i=d[0];if(i.a===i.b)return i.a;if(!Number.isFinite(i.a))return i.b-1;if(!Number.isFinite(i.b))return i.a+1;return (i.a+i.b)/2;}
+ return {library,parse,normalize,intersect,contains,reflect,symmetric,classify,value,relation,format,domainString,firstPoint};
+})();
+</script>
+<script>
+'use strict';
+const $=id=>document.getElementById(id),canvas=$('graph'),ctx=canvas.getContext('2d');
+const names={odd:'奇函数',even:'偶函数',neither:'非奇非偶',both:'奇函数、偶函数'};
+const relations={even:'f(−x) = f(x)',odd:'f(−x) = −f(x)',both:'两种等式在此处都成立',neither:'两种等式在此处都不成立',undefined:'对应函数值不存在'};
+const S={index:0,domain:[],x:1.5,samples:[],solved:false,attempted:false,choices:[],mirrored:false,custom:false,overlay:null,first:new Map(),bounds:null,draws:0};
+let frame=0,dragging=false;
+const current=()=>MATH.library[S.index];
+function schedule(){if(!frame)frame=requestAnimationFrame(()=>{frame=0;draw();});}
+function resetWork(){S.samples=[];S.choices=[];S.solved=false;S.attempted=false;S.mirrored=false;S.overlay=null;$('answers').hidden=true;$('answers').querySelectorAll('[data-answer]').forEach(b=>{b.disabled=false;b.setAttribute('aria-pressed','false');});$('submitAnswer').disabled=true;$('feedback').hidden=true;$('mirrorBox').hidden=true;$('next').disabled=true;$('mirrorY').setAttribute('aria-pressed','false');$('mirrorO').setAttribute('aria-pressed','false');$('nextHint').textContent='完成一次镜像观察后继续';$('pointError').textContent='';}
+function selectFunction(index){
+ S.index=index;S.custom=false;S.domain=MATH.intersect(MATH.parse(current().domain),current().base);S.x=MATH.firstPoint(S.domain);resetWork();$('functionSelect').value=String(index);$('formula').textContent='f(x) = '+current().formula;$('level').textContent=(index<8?String(index+1).padStart(2,'0')+' / 08':'额外练习')+' · '+current().label;$('domainInput').value=current().domain;$('domainError').textContent='';$('domainPanel').open=index>=7;updateDomain();fit();render();
+}
+function updateDomain(){const d=MATH.domainString(S.domain);$('domainText').textContent='D = '+d;$('domainBadge').textContent='D = '+d;$('domainStatus').textContent='先问：每个 x 的相反数也在定义域内吗？';}
+function fit(){
+ const finite=S.domain.flatMap(i=>[i.a,i.b]).filter(Number.isFinite),seed=Math.max(3,Math.abs(S.x)*1.2,...finite.map(x=>Math.abs(x)*1.15));
+ const xr=seed;let ys=[];for(let i=0;i<=120;i++){const x=-xr+2*xr*i/120;if(MATH.contains(S.domain,x)){const y=current().fn(x);if(Number.isFinite(y))ys.push(Math.abs(y));}}
+ ys.sort((a,b)=>a-b);const yr=Math.max(3,Math.min(1e9,(ys[Math.floor(ys.length*.85)]||3)*1.2),Math.abs(current().fn(S.x))*1.15,Math.abs(MATH.value(current(),S.domain,-S.x)||0)*1.15);S.bounds={xr,yr};$('xSlider').min=-xr;$('xSlider').max=xr;schedule();
+}
+function render(){
+ const f=current(),y=MATH.value(f,S.domain,S.x),z=MATH.value(f,S.domain,-S.x),rel=MATH.relation(f,S.domain,S.x),n=S.samples.length;
+ $('xNumber').value=MATH.format(S.x);$('xSlider').value=S.x;$('liveX').textContent=MATH.format(S.x);$('liveY').textContent=y===null?'不存在':MATH.format(y);$('liveNeg').textContent=z===null?'不存在':MATH.format(z);$('relation').textContent='当前点：'+relations[rel];$('relation').style.color=rel==='undefined'?'var(--red)':'var(--blue)';
+ $('domainWarning').hidden=z!==null;$('domainWarning').textContent=z===null?'−x = '+MATH.format(-S.x)+' 不在定义域内，Q 不存在，不能在此计算 f(−x)。':'';
+ $('samples').innerHTML=n?S.samples.slice(-6).map(x=>{const a=MATH.value(f,S.domain,x),b=MATH.value(f,S.domain,-x);return '<tr><td>'+MATH.format(x)+'</td><td>'+(a===null?'不存在':MATH.format(a))+'</td><td>'+(b===null?'不存在':MATH.format(b))+'</td><td>'+({even:'相等',odd:'互为相反数',both:'均为零',neither:'均不满足',undefined:'对应点不存在'})[MATH.relation(f,S.domain,x)]+'</td></tr>';}).join(''):'<tr><td colspan="4" class="empty">还没有记录。先拖动蓝点 P 吧。</td></tr>';
+ // shortcut: 仅显示最近六行，累计的不同取点数保留；需要完整实验报告时再增加导出。
+ const singleton=S.domain.every(i=>i.a===i.b),possible=singleton?S.domain.length:Infinity,need=Math.min(3,possible);
+ $('count').textContent='已记录 '+n+' / '+need;$('judge').disabled=n<need||S.solved;$('judge').textContent=S.solved?'✓ 已完成判定':n<need?'我来判定 · 还需 '+(need-n)+' 个点':'我来判定';
+ $('collectHint').textContent=n<need?'再记录 '+(need-n)+' 个不同的 x':n>6?'已记录 '+n+' 点，表格显示最近 6 行':'观察完成，可以提出你的猜想';
+ if(need<3)$('collectHint').textContent='定义域仅有 '+need+' 个点；逐一检查全部点后判定。';
+ $('judge').hidden=!$('answers').hidden&&!S.solved;
+ $('step1').className=!S.solved&&$('answers').hidden?'current':'';$('step2').className=!S.solved&&!$('answers').hidden?'current':'';$('step3').className=S.solved?'current':'';
+ const entries=[...S.first.values()],correct=entries.filter(Boolean).length;$('score').textContent=entries.length?'主关卡首次判定 '+correct+' / '+entries.length+' · '+Math.round(correct/entries.length*100)+'%':'主关卡首次判定：尚未作答';
+ schedule();
+}
+function setX(x){
+ if(!Number.isFinite(x)||Math.abs(x)>1000){$('pointError').textContent='请输入 −1000 到 1000 内的有限横坐标。';return false;}
+ if(!MATH.contains(S.domain,x)){$('pointError').textContent='x = '+MATH.format(x)+' 不在当前定义域内，请选择有效位置。';return false;}
+ S.x=Object.is(x,-0)?0:x;$('pointError').textContent='';if(Math.abs(x)>S.bounds.xr||Math.abs(current().fn(x))>S.bounds.yr)fit();render();return true;
+}
+function record(){if(!S.samples.includes(S.x))S.samples.push(S.x);else $('pointError').textContent='这个 x 已记录，请换一个不同的位置。';render();}
+function proof(){
+ const f=current(),d=S.domain,kind=MATH.classify(f,d);
+ if(!MATH.symmetric(d))return 'D = '+MATH.domainString(d)+'，与它关于原点的对称集合 '+MATH.domainString(MATH.reflect(d))+' 不相等。定义域不关于原点对称，因此非奇非偶，无需继续比较等式。';
+ if(kind==='both'&&f.kind!=='both')return 'D 关于原点对称，且 D 中每一点的函数值均为 0。因此对任意 x∈D，f(−x)=0=f(x)=−f(x)，两个定义均满足。';
+ if(kind==='even'&&f.kind==='neither')return '当前 D={0}，关于原点对称。f(−0)=f(0)≠0，因此是偶函数，且不是奇函数。';
+ return 'D 关于原点对称。'+f.algebra+(kind==='even'?'本定义域存在非零函数值，所以不是奇函数。':kind==='odd'?'本定义域存在非零函数值，所以不是偶函数。':'');
+}
+function toggleAnswer(answer){
+ if(S.solved)return;
+ if(answer==='neither')S.choices=S.choices.includes(answer)?[]:[answer];
+ else{S.choices=S.choices.filter(v=>v!=='neither');S.choices=S.choices.includes(answer)?S.choices.filter(v=>v!==answer):[...S.choices,answer];}
+ for(const b of $('answers').querySelectorAll('[data-answer]'))b.setAttribute('aria-pressed',String(S.choices.includes(b.dataset.answer)));
+ $('submitAnswer').disabled=S.choices.length===0;$('feedback').hidden=true;
+}
+function judge(){
+ const expectedType=MATH.classify(current(),S.domain),required=expectedType==='both'?['odd','even']:[expectedType];
+ const answer=S.choices.length===required.length&&required.every(v=>S.choices.includes(v))?expectedType:null;
+ const expected=MATH.classify(current(),S.domain);if(!S.attempted&&S.index<8&&!S.custom&&!S.first.has(S.index))S.first.set(S.index,answer===expected);S.attempted=true;
+ const ok=answer===expected;$('feedback').hidden=false;$('feedback').classList.toggle('wrong',!ok);
+ if(ok){S.solved=true;$('answers').hidden=true;$('feedback').innerHTML='<h2>✓ 判定正确：'+names[expected]+'</h2><p class="proof"></p>';$('feedback').querySelector('p').textContent=proof();$('mirrorBox').hidden=false;$('answers').querySelectorAll('button').forEach(b=>b.disabled=true);}
+ else{$('feedback').innerHTML='<h2>再检查一步</h2><p class="proof"></p>';$('feedback').querySelector('p').textContent=!MATH.symmetric(S.domain)?'先看定义域：它和关于原点的对称集合相同吗？试找一个 x，使 −x 不在定义域。':expected==='both'?'想想：0 与 0 相等，0 与 −0 也相等。两种定义能否同时满足？':'一个点满足等式不能代表所有点。换一个非零 x，并分别比较 f(−x) 与 f(x)、−f(x)。';}
+ render();
+}
+function mirror(type,on){
+ if(!S.solved)return;S.overlay=on?type:null;$(type==='y'?'mirrorY':'mirrorO').setAttribute('aria-pressed',String(on));
+ if(on){S.mirrored=true;$('next').disabled=false;$('nextHint').textContent=S.index===7?'8 个主关卡已走完，可继续加练':'镜像观察已完成';const k=MATH.classify(current(),S.domain),overlap=type==='y'?(k==='even'||k==='both'):(k==='odd'||k==='both');$('mirrorCaption').textContent=(type==='y'?'橙色虚线：y=f(−x)。':'橙色虚线：y=−f(−x)。')+(overlap?'整个图象与原图重合（含定义域）。':'整个图象不重合；局部交点或屏幕内看似重合不能替代定义判定。');}
+ schedule();
+}
+function draw(){
+ const palette=getComputedStyle(canvas),themeColor=name=>palette.getPropertyValue('--'+name).trim();
+ const box=canvas.getBoundingClientRect(),w=box.width,h=box.height;if(!w||!h)return;const dpr=Math.min(devicePixelRatio||1,3);if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+ const large=document.body.classList.contains('projection'),pad=large?45:32,xr=S.bounds.xr,yr=S.bounds.yr,sx=(w-pad*2)/(2*xr),sy=(h-pad*2)/(2*yr),px=x=>w/2+x*sx,py=y=>h/2-y*sy;
+ S.transform={w,h,pad,sx,sy};ctx.font=(large?22:12)+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+ const step=range=>{const n=range/4,p=10**Math.floor(Math.log10(n));return [1,2,5,10].find(a=>a*p>=n)*p;};
+ ctx.lineWidth=1;ctx.strokeStyle=themeColor('grid');ctx.fillStyle=themeColor('muted');for(let x=Math.ceil(-xr/step(xr))*step(xr);x<=xr;x+=step(xr)){ctx.beginPath();ctx.moveTo(px(x),pad);ctx.lineTo(px(x),h-pad);ctx.stroke();if(x!==0)ctx.fillText(MATH.format(x),px(x),h/2+19);}for(let y=Math.ceil(-yr/step(yr))*step(yr);y<=yr;y+=step(yr)){ctx.beginPath();ctx.moveTo(pad,py(y));ctx.lineTo(w-pad,py(y));ctx.stroke();if(y!==0){ctx.textAlign='left';ctx.fillText(MATH.format(y),w/2+7,py(y));ctx.textAlign='center';}}
+ ctx.strokeStyle=themeColor('axis');ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(pad,h/2);ctx.lineTo(w-pad+10,h/2);ctx.moveTo(w/2,h-pad);ctx.lineTo(w/2,pad-10);ctx.stroke();ctx.fillStyle=themeColor('ink');ctx.fillText('x',w-pad+16,h/2+18);ctx.fillText('y',w/2+16,pad-12);ctx.fillText('O',w/2-13,h/2+18);
+ ctx.save();ctx.beginPath();ctx.rect(pad,pad,w-pad*2,h-pad*2);ctx.clip();
+ const curve=(color,dash,inside,transform)=>{
+  ctx.strokeStyle=color;ctx.lineWidth=inside===null?1.7:large?4:2.8;ctx.setLineDash(dash);ctx.beginPath();let prev=null;
+  const f=current();for(let i=0;i<=w*1.5;i++){const x=-xr+2*xr*i/(w*1.5),arg=transform?-x:x,base=MATH.contains(f.base,arg),inDomain=MATH.contains(S.domain,arg);const y=base?f.fn(arg)*(transform==='o'?-1:1):NaN;const point=base&&Number.isFinite(y)&&(inside===null||inDomain===inside)&&Math.abs(y)<=yr*1.1;
+   const connected=prev&&!f.base.some(a=>a.a>prev.arg&&a.a<arg||a.a>arg&&a.a<prev.arg)&&!S.domain.some(a=>inside!==null&&((a.a>Math.min(arg,prev.arg)&&a.a<Math.max(arg,prev.arg))||(a.b>Math.min(arg,prev.arg)&&a.b<Math.max(arg,prev.arg))));
+   if(point){if(connected&&Math.abs(py(y)-prev.y)<h/2)ctx.lineTo(px(x),py(y));else ctx.moveTo(px(x),py(y));prev={arg,y:py(y)};}else prev=null;
+  }ctx.stroke();ctx.setLineDash([]);
+ };
+ curve(themeColor('ghost'),[3,5],false,null);curve(themeColor('blue'),[],true,null);if(S.overlay)curve(themeColor('overlay'),[8,5],true,S.overlay);
+ // 区间端点单独绘制，避免采样遗漏闭端点或把开端点画成实点。
+ for(const i of S.domain)for(const [x,closed] of [[i.a,i.l],[i.b,i.r]])if(Number.isFinite(x)&&Math.abs(x)<=xr&&MATH.contains(current().base,x)){const y=current().fn(x);if(Number.isFinite(y)&&Math.abs(y)<=yr){ctx.beginPath();ctx.arc(px(x),py(y),4.5,0,2*Math.PI);ctx.fillStyle=closed?themeColor('blue'):themeColor('chart');ctx.fill();ctx.strokeStyle=themeColor('blue');ctx.lineWidth=2;ctx.stroke();}}
+ ctx.restore();
+ const x=S.x,y=MATH.value(current(),S.domain,x),z=MATH.value(current(),S.domain,-x);
+ function point(a,b,color,label,below){const u=px(a),v=py(b);if(v<pad||v>h-pad)return;ctx.strokeStyle=color;ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(u,h/2);ctx.lineTo(u,v);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.arc(u,v,large?9:7,0,2*Math.PI);ctx.fillStyle=color;ctx.fill();ctx.strokeStyle=themeColor('chart');ctx.lineWidth=2;ctx.stroke();ctx.font='bold '+(large?24:16)+'px system-ui';ctx.fillStyle=color;ctx.textAlign='center';ctx.fillText(label,Math.max(22,Math.min(w-22,u)),Math.max(18,Math.min(h-18,v+(below?24:-22))));}
+ if(z!==null)point(-x,z,themeColor('orange'),x===0?'P = Q':'Q',true);
+ else{const u=px(-x),v=h/2;ctx.strokeStyle=themeColor('red');ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(u-6,v-6);ctx.lineTo(u+6,v+6);ctx.moveTo(u+6,v-6);ctx.lineTo(u-6,v+6);ctx.stroke();ctx.fillStyle=themeColor('red');ctx.font=(large?22:14)+'px system-ui';ctx.fillText('−x 不在 D',Math.max(48,Math.min(w-48,u)),v+42);}
+ if(y!==null)point(x,y,themeColor('blue'),x===0?'P = Q':'P',false);S.draws++;
+}
+for(let i=0;i<MATH.library.length;i++){const f=MATH.library[i],o=document.createElement('option');o.value=i;o.textContent=(i<8?String(i+1).padStart(2,'0'):'加练 '+(i-7))+' · f(x) = '+f.formula+(i===7?'，D=[−1,2]':'');$('functionSelect').append(o);}
+$('functionSelect').addEventListener('change',e=>selectFunction(Number(e.target.value)));
+$('xSlider').addEventListener('input',e=>setX(Number(e.target.value)));$('xSlider').addEventListener('change',record);
+$('xNumber').addEventListener('change',e=>{if(e.target.value.trim()===''){$('pointError').textContent='横坐标不能为空。';return;}if(setX(Number(e.target.value)))record();});$('record').addEventListener('click',record);
+$('clear').addEventListener('click',()=>{resetWork();$('answers').querySelectorAll('[data-answer]').forEach(b=>{b.disabled=false;b.setAttribute('aria-pressed','false');});$('submitAnswer').disabled=true;render();});
+$('judge').addEventListener('click',()=>{$('answers').hidden=false;render();$('answers').querySelector('button').focus();});
+$('answers').addEventListener('click',e=>{const b=e.target.closest('[data-answer]');if(b)toggleAnswer(b.dataset.answer);});
+$('submitAnswer').addEventListener('click',judge);
+$('domainForm').addEventListener('submit',e=>{e.preventDefault();try{const d=MATH.intersect(MATH.parse($('domainInput').value),current().base);if(!d.length)throw Error('输入范围与自然定义域交集为空，无法开展本实验。');S.domain=d;S.custom=true;S.x=MATH.firstPoint(d);resetWork();$('answers').querySelectorAll('[data-answer]').forEach(b=>{b.disabled=false;b.setAttribute('aria-pressed','false');});$('submitAnswer').disabled=true;$('domainError').textContent='';updateDomain();fit();render();}catch(error){$('domainError').textContent=error.message;}});
+for(const [id,type] of [['mirrorY','y'],['mirrorO','o']]){const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();b.focus();b.setPointerCapture(e.pointerId);mirror(type,true);});for(const event of ['pointerup','pointercancel','lostpointercapture','blur'])b.addEventListener(event,()=>mirror(type,false));b.addEventListener('keydown',e=>{if([' ','Enter'].includes(e.key)){e.preventDefault();mirror(type,true);}});b.addEventListener('keyup',e=>{if([' ','Enter'].includes(e.key)){e.preventDefault();mirror(type,false);}});}
+$('next').addEventListener('click',()=>{selectFunction((S.index+1)%MATH.library.length);$('functionSelect').focus();});
+function setTheme(theme){
+ document.documentElement.dataset.theme=theme;
+ $('theme').setAttribute('aria-pressed',String(theme==='dark'));
+ $('theme').textContent=theme==='dark'?'浅色模式':'深色模式';
+ document.querySelector('meta[name="theme-color"]').content=getComputedStyle(document.documentElement).getPropertyValue('--paper').trim();
+ schedule();
+}
+$('theme').addEventListener('click',()=>{
+ const theme=document.documentElement.dataset.theme==='dark'?'light':'dark';setTheme(theme);
+ try{localStorage.setItem('parity-lab-theme',theme);}catch{}
+});
+let savedTheme;try{savedTheme=localStorage.getItem('parity-lab-theme');}catch{}
+setTheme(savedTheme==='dark'?'dark':'light');
+$('projection').addEventListener('click',()=>{const on=document.body.classList.toggle('projection');$('projection').setAttribute('aria-pressed',String(on));$('projection').textContent=on?'退出大字':'投影大字';schedule();});
+$('fullscreen').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{$('pointError').textContent='当前浏览器不支持全屏，可使用浏览器的全屏功能。';}});document.addEventListener('fullscreenchange',()=>{$('fullscreen').textContent=document.fullscreenElement?'退出全屏':'进入全屏';schedule();});
+function pointerX(e){const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left-S.transform.w/2)/S.transform.sx;return Math.max(-1000,Math.min(1000,Math.round(x*10)/10));}
+canvas.addEventListener('pointerdown',e=>{if(e.button!==0)return;canvas.focus();dragging=true;canvas.setPointerCapture(e.pointerId);setX(pointerX(e));});canvas.addEventListener('pointermove',e=>{if(dragging)setX(pointerX(e));});canvas.addEventListener('pointerup',e=>{if(dragging){const valid=setX(pointerX(e));dragging=false;if(valid)record();}});canvas.addEventListener('pointercancel',()=>{dragging=false;});
+canvas.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();setX(Math.round((S.x+(e.key==='ArrowRight'?.1:-.1))*10)/10);}});canvas.addEventListener('keyup',e=>{if(['ArrowLeft','ArrowRight'].includes(e.key))record();});
+new ResizeObserver(schedule).observe(canvas);window.addEventListener('blur',()=>{dragging=false;mirror('y',false);mirror('o',false);});
+selectFunction(0);window.ParityLab={MATH,state:S};
+</script>
+<script>
+if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+ const observer=new IntersectionObserver(entries=>{
+  for(const entry of entries)if(entry.isIntersecting){entry.target.classList.add('is-visible');entry.target.classList.remove('reveal-pending');observer.unobserve(entry.target);}
+ },{threshold:0.04});
+ for(const el of document.querySelectorAll('.reveal-block')){el.classList.add('reveal-pending');observer.observe(el);}
+}
+</script>
+</body>
+</html>

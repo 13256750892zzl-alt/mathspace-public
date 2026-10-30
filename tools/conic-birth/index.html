@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1018">
+  <title>圆锥曲线的诞生 · 从空间截面到平面曲线</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='9' fill='%230c3264'/%3E%3Cpath d='M7 7h26L20 32Z' fill='none' stroke='%23f6d37b' stroke-width='2'/%3E%3Cellipse cx='20' cy='18' rx='9' ry='4' fill='none' stroke='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css?v=20261029-aligned">
+  <script src="vendor/three.min.js" defer></script>
+  <script src="vendor/OrbitControls.js" defer></script>
+  <script src="math.js" defer></script>
+  <script src="app.js?v=20261029-manual" defer></script>
+  <script src="visual.js?v=20261028-design" defer></script>
+</head>
+<body>
+<main class="app" id="app">
+  <header class="studio-bar reveal">
+    <div class="studio-brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 6h20L16 27Z"/><ellipse cx="16" cy="14" rx="8" ry="3.4"/><path d="M16 5v22"/></svg></span><span>几何实验室<small>GEOMETRY LAB · 01</small></span></div>
+    <span class="studio-status"><i></i>离线可用</span>
+  </header>
+  <div class="laboratory-shell">
+  <section class="laboratory" aria-label="圆锥曲线三维实验">
+    <div id="scene" aria-label="可拖动旋转、滚轮缩放的双圆锥三维模型"><div id="webgl-error" role="alert" hidden>当前浏览器无法启动 3D。请启用浏览器硬件加速后重新打开；左侧平面曲线仍可使用。</div></div>
+    <div class="title-shell reveal"><header class="title-card">
+      <div class="eyebrow"><span>高中数学</span> 解析几何 · 圆锥曲线</div>
+      <h1>圆锥曲线的诞生</h1>
+      <p>从空间截面到平面曲线</p>
+    </header></div>
+    <div class="handwriting"><span>3D / 2D</span>同一条曲线，两种观察方式。</div>
+    <aside class="left-panel" aria-label="平面曲线与性质">
+      <div class="card-shell plot-shell reveal"><section class="plot-card">
+        <div class="plot-heading"><h2 id="plot-title">椭圆的平面观察</h2><span>解析图</span></div>
+        <canvas id="plot" tabindex="0" role="img" aria-label="平面曲线，可拖动动点P，或聚焦后用左右方向键移动"></canvas>
+        <div id="invariant" class="invariant"></div>
+      </section></div>
+      <div class="card-shell explanation-shell reveal"><div class="explanation" id="explanation" aria-live="polite"></div></div>
+      <div class="plot-tip">拖动 P，验证定值关系</div>
+    </aside>
+    <svg id="annotations" aria-hidden="true"><g id="annotation-content"></g></svg>
+    <div class="stage-footer reveal"><p>在空间里相交，在平面上相遇。</p><button id="view-settings"><span>画面调节</span><span class="button-orb" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M4 3v14M10 3v14M16 3v14M1 7h6M7 13h6M13 6h6"/></svg></span></button><span class="orbit-hint">拖动旋转 · 滚轮缩放</span></div>
+  </section>
+  </div>
+  <div class="inspector-shell">
+  <aside class="inspector" aria-label="实验控制">
+    <div class="inspector-heading"><span>动手探索</span><span>EXPERIMENT CONTROLS</span></div>
+    <div id="explore" role="region" aria-label="实验参数">
+      <div class="card-shell parameter-shell reveal"><section class="control-card">
+        <h2><span class="number">1</span> 截面参数调节</h2>
+        <div class="presets" aria-label="曲线类型预设">
+          <button data-preset="circle" aria-pressed="false">圆</button><button data-preset="ellipse" aria-pressed="true">椭圆</button><button data-preset="parabola" aria-pressed="false">抛物线</button><button data-preset="hyperbola" aria-pressed="false">双曲线</button>
+        </div>
+        <div class="slider-row"><label for="theta">截面倾角 <i>θ</i></label><input type="range" id="theta" min="0" max="90" step="0.1" value="31"><output for="theta" id="theta-out">31.0°</output></div>
+        <div class="slider-row"><label for="distance">顶点距 <i>d</i></label><input type="range" id="distance" min="-2.2" max="-0.2" step="0.01" value="-1"><output for="distance" id="distance-out">−1.00</output></div>
+        <div class="slider-row"><label for="alpha">半顶角 <i>α</i></label><input type="range" id="alpha" min="10" max="45" step="0.1" value="28"><output for="alpha" id="alpha-out">28.0°</output></div>
+        <div class="slider-row"><label for="beta">母线倾角 <i>β</i></label><input type="range" id="beta" min="45" max="80" step="0.1" value="62"><output for="beta" id="beta-out">62.0°</output></div>
+        <p class="classification" id="classification"></p>
+      </section></div>
+      <div class="card-shell equation-shell reveal"><section class="control-card equation-card">
+        <h2><span class="number">2</span> <span id="equation-title">椭圆的标准方程</span></h2>
+        <div class="equation-layout"><div id="equation" class="equation" aria-label="标准方程"></div><dl id="parameters"></dl></div>
+      </section></div>
+      <div class="card-shell options-shell reveal"><section class="control-card options-card">
+        <h2><span class="number">3</span> 显示选项</h2>
+        <div class="switches"><label><input id="show-plane" type="checkbox" checked><span>显示截面</span><i></i></label><label><input id="show-focus" type="checkbox"><span>显示焦点</span><i></i></label><label><input id="show-spheres" type="checkbox"><span>丹德林球</span><i></i></label></div>
+      </section></div>
+      <div class="card-shell live-shell reveal"><section class="control-card live-card">
+        <h2><span class="number">4</span> 实时数据</h2>
+        <div class="live-grid"><div><span>曲线类型</span><b id="live-type">椭圆</b></div><div><span id="live-value-label">|PF₁|+|PF₂|</span><b id="live-value"></b></div><div><span id="live-target-label">2a</span><b id="live-target"></b></div><div><span>焦点数</span><b id="live-foci">2</b></div></div>
+      </section></div>
+      <p class="boundary-note" id="boundary-note"></p>
+    </div>
+  </aside>
+  </div>
+</main>
+<dialog id="settings"><form method="dialog"><h2>画面调节</h2><label class="brightness-label" for="brightness">实验场景亮度</label><input id="brightness" type="range" min="0.7" max="1.5" step="0.05" value="1"><div class="dialog-buttons"><button id="camera-reset" type="button">恢复初始视角</button><button id="fullscreen" type="button">进入全屏</button><button value="close">完成</button></div></form></dialog>
+<noscript>请启用 JavaScript，以使用圆锥曲线实验。</noscript>
+</body>
+</html>

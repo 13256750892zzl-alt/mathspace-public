@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>最小二乘回归直线 · 交互演示</title>
+<script id="theme-init">
+try { if(localStorage.getItem('least-squares-theme')==='dark')document.documentElement.dataset.theme='dark'; } catch {}
+</script>
+<style>
+
+:root{color-scheme:light;--bg:#eef0f6;--card:#fff;--ink:#202638;--text:#596477;--soft:#edf0f8;--tray:#dfe4f0;--line:rgba(80,99,144,.12);--blue:#295ce0;--red:#ce395f;--green:#087d65;--grid:#e9edf5;--axis:#a4b0c6;--residual:#8090aa;--rose:#fff0f3;--rose-ink:#aa2849;--mint:#e5f5ed;--mint-ink:#106951;--lilac:#eeebff;--lilac-ink:#55449c;--apricot:#fff2df;--apricot-ink:#805522;--shadow:0 16px 48px rgba(43,59,101,.06);--spring:cubic-bezier(.22,.8,.25,1)}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#10131d;--card:#1d2230;--ink:#edf0ff;--text:#b6bfd5;--soft:#262d40;--tray:#2c3349;--line:rgba(182,198,244,.12);--blue:#92b7ff;--red:#ff9db5;--green:#7be2bd;--grid:#2b344a;--axis:#7385a7;--residual:#a6b4ce;--rose:#392738;--rose-ink:#ffb3c9;--mint:#213d36;--mint-ink:#9ce9ce;--lilac:#34304c;--lilac-ink:#d6c5ff;--apricot:#3e342b;--apricot-ink:#f3cf9d;--shadow:0 20px 60px rgba(5,9,20,.12)}
+*{box-sizing:border-box}body{margin:0;color:var(--text);background-color:var(--bg);background-image:radial-gradient(ellipse at 7% 0%,rgba(141,160,247,.11),transparent 38%),radial-gradient(ellipse at 95% 55%,rgba(134,210,190,.07),transparent 42%);font:15px/1.65 "Bahnschrift","Microsoft YaHei UI","PingFang SC",system-ui,sans-serif;font-variant-numeric:tabular-nums}main{max-width:1512px;margin:auto;padding:24px 36px 28px}header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:0 2px 24px}header>div{min-width:0}h1{margin:0 0 8px;color:var(--ink);font-size:clamp(28px,3.1vw,42px);line-height:1.25;letter-spacing:-.035em;font-weight:750}header p{margin:0;font-size:14px}h2{margin:0 0 12px;color:var(--ink);font-size:14px;font-weight:700;letter-spacing:.02em}.layout{display:grid;grid-template-columns:minmax(0,1fr) 344px;gap:24px;align-items:start}.card-shell{min-width:0;padding:6px;background:var(--tray);border-radius:28px;box-shadow:inset 0 1px 0 rgba(255,255,255,.24),var(--shadow)}.card{position:relative;min-width:0;background:var(--card);border-radius:22px;box-shadow:inset 0 0 0 1px var(--line),inset 0 1px 0 rgba(255,255,255,.12)}.plot-card{padding:22px 18px 18px}.plot-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 8px 16px}.plot-heading h2{display:flex;align-items:center;gap:10px;margin:0;font-size:16px}.section-index{display:inline-grid;place-items:center;min-width:27px;height:27px;background:var(--soft);border-radius:50%;font-size:10px;letter-spacing:.04em;color:var(--text)}.count{font-size:11px;background:var(--lilac);color:var(--lilac-ink);padding:5px 11px;border-radius:30px;white-space:nowrap}.plot-surface{padding:5px;border-radius:18px;background:var(--soft);box-shadow:inset 0 0 0 1px var(--line)}#plot{width:100%;height:auto;display:block;border-radius:14px;background:var(--card);touch-action:none;user-select:none;overflow:hidden}#plot text{font-family:inherit;fill:var(--text);font-size:17px}.grid{stroke:var(--grid);stroke-width:1}.axis{stroke:var(--axis);stroke-width:1.5}.point{cursor:grab;outline:none}.point:active{cursor:grabbing}.point .dot{fill:var(--blue);stroke:var(--card);stroke-width:2}.point:focus .dot{stroke:var(--ink);stroke-width:3}.point .hit{fill:transparent}.residual{stroke:var(--residual);stroke-width:1.5;stroke-dasharray:5 4}.square{fill:rgba(225,29,72,.1);stroke:rgba(206,57,95,.5);stroke-width:1}.fit{stroke:var(--red);stroke-width:2.5}.mean{fill:var(--green);stroke:var(--card);stroke-width:1.5}.cursor{display:none;stroke:var(--ink);stroke-width:1.2;stroke-dasharray:3 3}#plot:focus>.cursor{display:block}.plot-note{margin:16px 8px 0;font-size:12px;color:var(--text)}.legend{display:flex;flex-wrap:wrap;gap:10px 18px;padding:15px 8px 0;margin:14px 0 0;box-shadow:inset 0 1px 0 var(--line);font-size:11px}.legend span{display:inline-flex;align-items:center;gap:7px}.legend i{display:inline-block;width:18px;height:0;border-top:2px solid var(--red)}.legend .blue{width:8px;height:8px;background:var(--blue);border:0;border-radius:50%}.legend .dash{border-top:2px dashed var(--residual)}.legend .box{width:11px;height:11px;background:rgba(225,29,72,.1);border:1px solid rgba(206,57,95,.5)}.legend .diamond{width:8px;height:8px;background:var(--green);border:0;transform:rotate(45deg)}.help{font-size:11px;margin:12px 8px 0;color:var(--text)}aside{display:grid;gap:14px;min-width:0}aside .card{padding:17px 18px}aside h2{display:flex;align-items:center;gap:9px}.operation-card{background:var(--lilac)}.operation-card .section-index{background:var(--card);color:var(--lilac-ink)}.display-card label{display:inline-flex;gap:7px;min-height:32px;margin-right:9px;font-size:12px;cursor:pointer;color:var(--ink)}.buttons{display:flex;gap:8px}button{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:44px;padding:8px 16px;border:0;border-radius:32px;background:var(--soft);color:var(--ink);font:inherit;font-size:12px;font-weight:650;cursor:pointer;box-shadow:inset 0 0 0 1px var(--line),inset 0 1px 0 rgba(255,255,255,.22);transition:transform .45s var(--spring)}button:hover{transform:translateY(-2px)}button:active{transform:scale(.98)}button.primary{background:#2e3b62;color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 6px 14px rgba(45,59,99,.08);padding:6px 7px 6px 17px}.button-orb{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.14);font-size:16px;transition:transform .55s var(--spring)}button:hover .button-orb{transform:translate(2px,-1px) rotate(-12deg)}#theme-toggle{flex-shrink:0;min-width:110px;background:var(--card);padding:10px 18px}#theme-toggle::before{content:"◐";font-size:17px;font-weight:400;color:var(--lilac-ink)}:focus-visible{outline:3px solid var(--blue);outline-offset:4px}input{accent-color:#4d5a99;width:15px;height:15px;margin:0;cursor:pointer}dl{margin:0}dt,dd{margin:0}dd{font-weight:650;color:var(--ink)}.stats-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.metric{display:flex;flex-direction:column;gap:2px;background:var(--soft);padding:8px 11px;border-radius:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}.metric dt{font-size:10px}.metric dd{font-size:19px;line-height:1.3;letter-spacing:-.03em}.metric:first-child{grid-column:1/-1;flex-direction:row;align-items:center;justify-content:space-between;padding:6px 11px}.metric:first-child dd{font-size:14px}.metric:nth-child(4),.metric:nth-child(5){background:var(--lilac)}.metric:nth-child(4) dd,.metric:nth-child(5) dd{color:var(--lilac-ink)}.equation{margin:12px 0;padding:13px 12px;border-radius:14px;background:var(--rose);color:var(--rose-ink);font-size:19px;font-weight:700;line-height:1.5;overflow-wrap:anywhere;box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}.sse-panel{background:var(--rose);padding:10px 12px;border-radius:14px}.sse{display:flex;justify-content:space-between;align-items:baseline;gap:10px;color:var(--rose-ink)}.sse span{font-size:11px}.sse strong{font-size:31px;line-height:1.25;letter-spacing:-.045em;color:var(--rose-ink)}.sub{font-size:10px;color:var(--rose-ink)}.correlation{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding:0 2px;font-size:12px}.correlation dd{font-size:17px}.property{margin:12px 0 0;padding:9px 11px;border-radius:12px;background:var(--mint);color:var(--mint-ink);font-size:11px}.status{min-height:20px;margin:10px 0 0;font-size:11px;color:var(--text)}.formula{font-size:12px;line-height:1.85;overflow-wrap:anywhere;color:var(--apricot-ink);background:var(--apricot)}.formula h2{color:var(--apricot-ink)}.formula .section-index{color:var(--apricot-ink);background:var(--card)}.formula p{margin:0 0 10px}.formula p:last-child{margin:0}.substitution{display:block;color:var(--apricot-ink)}.insight-shell{margin-top:24px}.teaching{display:grid;grid-template-columns:180px minmax(0,1fr);gap:24px;align-items:center;padding:22px 24px;background:var(--mint)}.teaching h2{margin:0;color:var(--mint-ink);font-size:16px}.teaching h2::before{content:"想一想";display:block;margin-bottom:4px;font-size:10px;font-weight:500;letter-spacing:.12em}.teaching p{margin:0;color:var(--mint-ink);font-size:13px}.teaching strong{color:var(--mint-ink);font-weight:750}footer{margin:18px 6px 0;max-width:1060px;font-size:10px;line-height:1.8;color:var(--text)}
+[data-theme="dark"] .square{fill:rgba(255,157,181,.13);stroke:rgba(255,157,181,.7)}[data-theme="dark"] .legend .box{background:rgba(255,157,181,.13);border-color:rgba(255,157,181,.7)}
+.motion-ready .card-shell{opacity:0;transform:translateY(22px);transition:opacity .85s var(--spring),transform .85s var(--spring)}.motion-ready .card-shell.revealed,.motion-ready .card-shell:focus-within{opacity:1;transform:translateY(0)}
+@media(max-width:1100px){main{padding:22px 24px}.layout{grid-template-columns:minmax(0,1fr) 320px;gap:18px}aside .card{padding:15px}.plot-card{padding:18px 12px}.legend{gap:9px 12px}}
+@media(max-width:950px){.layout{grid-template-columns:minmax(0,1fr)}aside{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.teaching{grid-template-columns:140px minmax(0,1fr);gap:16px}}
+@media(max-width:767px){main{padding:20px 16px}header{flex-wrap:wrap;gap:12px;margin-bottom:20px}h1{font-size:30px}header p{font-size:12px}#theme-toggle{margin-left:auto;min-width:100px}aside{grid-template-columns:1fr;gap:16px}.card-shell{padding:5px;border-radius:25px}.card{border-radius:20px}.plot-card{padding:18px 8px 14px}.plot-heading{padding:0 6px 14px}.plot-heading h2{font-size:14px}.count{font-size:10px;padding:4px 8px}.plot-surface{padding:3px;border-radius:16px}#plot{border-radius:13px}.plot-note{font-size:11px}.help{font-size:10px}.legend{font-size:10px;gap:8px 12px}aside .card{padding:18px}.metric dt{font-size:11px}.metric dd{font-size:22px}.display-card label{min-height:40px;font-size:13px}.teaching{grid-template-columns:1fr;gap:12px;padding:20px}.insight-shell{margin-top:20px}footer{font-size:10px}.motion-ready .card-shell{transform:translateY(14px)}}
+.display-card label{min-height:44px;font-size:13px}.metric dt{font-size:12px}.metric dd{font-size:22px}.formula{font-size:13px}.legend{font-size:12px}.help{font-size:11px}button{font-size:13px}.plot-note{font-size:13px}footer{font-size:11px}
+@media(min-width:951px) and (max-height:800px){main{padding-top:16px}header{margin-bottom:18px}h1{font-size:32px}#plot{max-height:calc(100dvh - 278px)}}
+
+header{gap:16px;margin:0 2px 16px}h1{font-size:30px;margin:0 0 4px}header p{font-size:13px}
+@media(max-width:767px){main{padding-top:16px}header{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px 10px;margin:0 0 16px}header>div{display:contents}h1{grid-column:1;grid-row:1;font-size:clamp(20px,6.1vw,25px);margin:0}header p{grid-column:1/-1;grid-row:2;font-size:11px}#theme-toggle{grid-column:2;grid-row:1;min-width:90px;margin:0;padding:6px 10px;gap:7px;font-size:12px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}.motion-ready .card-shell{opacity:1;transform:none}button:hover,button:hover .button-orb{transform:none}}
+</style>
+</head>
+<body>
+<main>
+<header><div><h1>最小二乘回归直线</h1><p>拖动、增删散点，观察直线如何让所有残差的平方和最小。</p></div><button id="theme-toggle" type="button" aria-pressed="false">深色模式</button></header>
+<div class="layout">
+<div class="card-shell"><section class="card plot-card" aria-label="散点与回归直线">
+<div class="plot-heading"><h2><span class="section-index" aria-hidden="true">01</span>散点与拟合</h2><span class="count" id="count">8 个数据点</span></div>
+<div class="plot-surface"><svg id="plot" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet" tabindex="0" role="group" aria-label="交互坐标区" aria-describedby="help"></svg></div>
+<p class="plot-note">拖动蓝点调整数据 · 空白处单击添加 · 右键蓝点删除</p>
+<div class="legend" aria-label="图例"><span><i class="blue"></i>散点</span><span><i></i>回归直线</span><span><i class="dash"></i>残差线段</span><span><i class="box"></i>残差平方</span><span><i class="diamond"></i>均点</span></div>
+<p class="help" id="help">键盘：聚焦坐标区后用方向键定位，回车添加；Tab 选中蓝点后，方向键移动，Delete 删除。每步 0.1。</p>
+</section></div>
+<aside aria-label="数据与计算面板">
+<div class="card-shell"><section class="card operation-card"><h2><span class="section-index" aria-hidden="true">02</span>数据操作</h2><div class="buttons"><button class="primary" id="reset">重置示例<span class="button-orb" aria-hidden="true">↺</span></button><button id="clear">清空</button></div></section></div>
+<div class="card-shell"><section class="card display-card"><h2><span class="section-index" aria-hidden="true">03</span>显示开关</h2><label><input type="checkbox" id="residuals" checked>残差线段</label><label><input type="checkbox" id="squares" checked>残差平方</label><label><input type="checkbox" id="mean" checked>均点 (x̄, ȳ)</label></section></div>
+<div class="card-shell"><section class="card" aria-labelledby="results-title"><h2 id="results-title"><span class="section-index" aria-hidden="true">04</span>拟合结果</h2><dl class="stats-grid"><div class="metric"><dt>样本数量 n</dt><dd id="n"></dd></div><div class="metric"><dt>横坐标均值 x̄</dt><dd id="mx"></dd></div><div class="metric"><dt>纵坐标均值 ȳ</dt><dd id="my"></dd></div><div class="metric"><dt>斜率 b</dt><dd id="b"></dd></div><div class="metric"><dt>截距 a</dt><dd id="a"></dd></div></dl><div class="equation" id="equation"></div><div class="sse-panel"><div class="sse"><span>残差平方和 SSE</span><strong id="sse"></strong></div><div class="sub">Σ(yᵢ − ŷᵢ)²</div></div><dl class="correlation"><dt>相关系数 r</dt><dd id="r"></dd></dl><p class="property">回归直线恒过均点 (x̄, ȳ)。</p><p class="status" id="status" role="status" aria-live="polite"></p></section></div>
+<div class="card-shell"><section class="card formula"><h2><span class="section-index" aria-hidden="true">05</span>公式代入</h2><p>b = Σ(xᵢ − x̄)(yᵢ − ȳ) / Σ(xᵢ − x̄)²<span class="substitution" id="b-formula"></span></p><p>a = ȳ − b·x̄<span class="substitution" id="a-formula"></span></p></section></div>
+</aside>
+</div>
+<div class="card-shell insight-shell"><section class="card teaching"><h2>为什么要平方？</h2><p>最小二乘让残差的<strong>平方和</strong>最小，所以直线会“照顾”远离整体趋势的点（因为它们贡献更大的平方），而不追求穿过最多的点。</p></section></div>
+<footer>坐标范围固定为 0–10；残差取竖直方向。正方形以屏幕上的残差线段为边，图示面积按统一比例对应残差平方。读数保留 3 位小数；实际计算使用未舍入数值。</footer>
+</main>
+<script>
+'use strict';
+const EXAMPLE = [[1,2.6],[2,3.1],[3,4.2],[4,4.4],[5,5.3],[6,5.6],[7,6.6],[8,6.9]];
+function fit(data) {
+  const n = data.length;
+  if (!n) return {n, valid:false};
+  const mx = data.reduce((s,p)=>s+p.x,0)/n, my = data.reduce((s,p)=>s+p.y,0)/n;
+  let sxx=0, syy=0, sxy=0;
+  for (const p of data) { const dx=p.x-mx, dy=p.y-my; sxx+=dx*dx; syy+=dy*dy; sxy+=dx*dy; }
+  if (n===1 || sxx<1e-9) return {n,mx,my,sxx,syy,sxy,valid:false,sse:n===1?0:null};
+  const b=sxy/sxx, a=my-b*mx;
+  const sse=data.reduce((s,p)=>s+(p.y-(a+b*p.x))**2,0);
+  const r=syy<1e-9?null:Math.max(-1,Math.min(1,sxy/Math.sqrt(sxx*syy)));
+  return {n,mx,my,sxx,syy,sxy,b,a,sse,r,valid:true};
+}
+// MATH_END
+const $=id=>document.getElementById(id), svg=$('plot');
+const L=68,T=30,W=802,H=520;
+const sx=x=>L+x/10*W, sy=y=>T+(10-y)/10*H;
+const clamp=v=>Math.max(0,Math.min(10,v));
+const fmt=v=>v==null?'—':(Math.abs(v)<.0005?0:v).toFixed(3);
+let points=EXAMPLE.map(([x,y])=>({x,y})), drag=null, pending=null;
+let cursor={x:5,y:5}, notice='';
+function render() {
+  const focused=document.activeElement?.getAttribute('data-point');
+  const m=fit(points), parts=['<title>最小二乘回归直线交互坐标区</title><desc>横纵坐标均为零到十。蓝点为数据，红线为回归直线，绿色菱形为均点。</desc><defs><clipPath id="plot-clip"><rect x="68" y="30" width="802" height="520"/></clipPath></defs>'];
+  for(let i=1;i<=10;i++)parts.push(`<path class="grid" d="M ${sx(i)} ${T} V ${T+H} M ${L} ${sy(i)} H ${L+W}"/>`);
+  parts.push(`<path class="axis" fill="none" d="M ${L} ${T} V ${T+H} H ${L+W}"/>`);
+  for(let i=0;i<=10;i++)parts.push(`<text x="${sx(i)}" y="577" text-anchor="middle">${i}</text><text x="52" y="${sy(i)+6}" text-anchor="end">${i}</text>`);
+  parts.push('<text x="883" y="557">x</text><text x="58" y="20">y</text><g clip-path="url(#plot-clip)" pointer-events="none">');
+  if(m.valid) {
+    for(const p of points) {
+      const yhat=m.a+m.b*p.x, dy=Math.abs(p.y-yhat)*H/10;
+      // 横纵轴比例不同；以竖直残差的像素长度作两边，保证图示为正方形。
+      if($('squares').checked)parts.push(`<rect class="square" x="${sx(p.x)}" y="${Math.min(sy(p.y),sy(yhat))}" width="${dy}" height="${dy}"/>`);
+      if($('residuals').checked)parts.push(`<line class="residual" x1="${sx(p.x)}" x2="${sx(p.x)}" y1="${sy(p.y)}" y2="${sy(yhat)}"/>`);
+    }
+    parts.push(`<line class="fit" x1="${sx(0)}" x2="${sx(10)}" y1="${sy(m.a)}" y2="${sy(m.a+10*m.b)}"/>`);
+  }
+  parts.push('</g>');
+  if(points.length && $('mean').checked)parts.push(`<path class="mean" pointer-events="none" d="M ${sx(m.mx)} ${sy(m.my)-8} l 8 8 -8 8 -8 -8 Z"><title>均点 (${fmt(m.mx)}, ${fmt(m.my)})</title></path>`);
+  points.forEach((p,i)=>parts.push(`<g class="point" data-point="${i}" role="button" tabindex="0" aria-label="数据点 ${i+1}，横坐标 ${fmt(p.x)}，纵坐标 ${fmt(p.y)}；方向键移动，Delete 删除"><circle class="hit" cx="${sx(p.x)}" cy="${sy(p.y)}" r="14"/><circle class="dot" cx="${sx(p.x)}" cy="${sy(p.y)}" r="6"/></g>`));
+  if(!points.length)parts.push('<text x="469" y="280" text-anchor="middle" pointer-events="none">点击画布添加数据点</text>');
+  parts.push(`<path class="cursor" pointer-events="none" d="M ${sx(cursor.x)-10} ${sy(cursor.y)} h 20 M ${sx(cursor.x)} ${sy(cursor.y)-10} v 20"/>`);
+  svg.innerHTML=parts.join('');
+  if(focused!==null && focused!==undefined)svg.querySelector(`[data-point="${focused}"]`)?.focus({preventScroll:true});
+  $('count').textContent=`${points.length} 个数据点`;
+  for(const [id,value] of Object.entries({n:m.n?m.n:'—',mx:fmt(m.mx),my:fmt(m.my),b:m.n?(m.valid?fmt(m.b):'未定义'):'—',a:fmt(m.a),sse:fmt(m.sse),r:m.n?(m.r==null?'未定义':fmt(m.r)):'—'}))$(id).textContent=value;
+  $('equation').textContent=m.valid?`ŷ ≈ ${fmt(m.a)} ${Number(fmt(m.b))<0?'−':'+'} ${fmt(Math.abs(m.b))}x`:'ŷ = —';
+  $('b-formula').textContent=m.valid?`≈ ${fmt(m.sxy)} / ${fmt(m.sxx)} ≈ ${fmt(m.b)}`:m.n?`Sxx = ${fmt(m.sxx)}，斜率未定义`:'= —';
+  $('a-formula').textContent=m.valid?`≈ ${fmt(m.my)} − (${fmt(m.b)}) × ${fmt(m.mx)} ≈ ${fmt(m.a)}`:'= —';
+  $('status').textContent=notice||(!m.n?'点击画布添加数据点':m.n===1?'至少需要 2 个点才能拟合':!m.valid?'所有点 x 相同，无法拟合':m.r==null?'所有点 y 相同，相关系数未定义':'拖动散点，观察拟合结果的变化。');
+}
+function coords(e) {
+  const p=new DOMPoint(e.clientX,e.clientY).matrixTransform(svg.getScreenCTM().inverse());
+  return {x:(p.x-L)/W*10,y:10-(p.y-T)/H*10};
+}
+function add(p) {
+  if(points.length>=200){notice='最多支持 200 个数据点，请先删除部分点。';render();return;}
+  notice='';points.push({x:clamp(Math.round(p.x*10)/10),y:clamp(Math.round(p.y*10)/10)});render();
+}
+function remove(i) {points.splice(i,1);notice='';render();(svg.querySelector(`[data-point="${Math.min(i,points.length-1)}"]`)||svg).focus({preventScroll:true});}
+svg.addEventListener('pointerdown',e=>{
+  if(e.button!==0 || drag || pending)return;
+  const target=e.target.closest('[data-point]'), p=coords(e);
+  // 浏览器指针坐标有浮点舍入误差；允许极小边界余量，添加时仍钳制到坐标域。
+  if(!target && (p.x < -1e-5 || p.x > 10+1e-5 || p.y < -1e-5 || p.y > 10+1e-5))return;
+  e.preventDefault();notice='';svg.setPointerCapture(e.pointerId);
+  if(target){drag={i:Number(target.dataset.point),id:e.pointerId};target.focus({preventScroll:true});}
+  else pending={id:e.pointerId,x:e.clientX,y:e.clientY,p};
+});
+window.addEventListener('pointermove',e=>{
+  if(!drag || drag.id!==e.pointerId)return;
+  const p=coords(e);points[drag.i]={x:clamp(p.x),y:clamp(p.y)};render();
+});
+window.addEventListener('pointerup',e=>{
+  if(drag?.id!==e.pointerId && pending?.id!==e.pointerId)return;
+  const tap=pending;drag=null;pending=null;
+  if(svg.hasPointerCapture(e.pointerId))svg.releasePointerCapture(e.pointerId);
+  if(tap && Math.hypot(e.clientX-tap.x,e.clientY-tap.y)<5)add(tap.p);
+});
+function cancel(){drag=null;pending=null;}
+window.addEventListener('pointercancel',cancel);window.addEventListener('blur',cancel);
+svg.addEventListener('lostpointercapture',cancel);
+svg.addEventListener('contextmenu',e=>{const target=e.target.closest('[data-point]');if(target){e.preventDefault();cancel();remove(Number(target.dataset.point));}});
+svg.addEventListener('keydown',e=>{
+  const target=e.target.closest('[data-point]'), i=target?Number(target.dataset.point):null;
+  if(target && (e.key==='Delete' || e.key==='Backspace')){e.preventDefault();remove(i);return;}
+  const delta={ArrowLeft:[-.1,0],ArrowRight:[.1,0],ArrowUp:[0,.1],ArrowDown:[0,-.1]}[e.key];
+  if(delta){e.preventDefault();notice='';const p=target?points[i]:cursor;p.x=clamp(Math.round((p.x+delta[0])*10)/10);p.y=clamp(Math.round((p.y+delta[1])*10)/10);render();}
+  else if(!target && e.key==='Enter'){e.preventDefault();add(cursor);}
+});
+$('reset').addEventListener('click',()=>{cancel();notice='';points=EXAMPLE.map(([x,y])=>({x,y}));render();});
+$('clear').addEventListener('click',()=>{cancel();notice='';points=[];render();});
+for(const id of ['residuals','squares','mean'])$(id).addEventListener('change',render);
+function updateThemeButton() {
+  const dark=document.documentElement.dataset.theme==='dark';
+  $('theme-toggle').textContent=dark?'浅色模式':'深色模式';
+  $('theme-toggle').setAttribute('aria-pressed',String(dark));
+}
+$('theme-toggle').addEventListener('click',()=>{
+  const theme=document.documentElement.dataset.theme==='dark'?'light':'dark';
+  document.documentElement.dataset.theme=theme;
+  try { localStorage.setItem('least-squares-theme',theme); } catch {}
+  updateThemeButton();
+});
+updateThemeButton();
+render();
+</script>
+
+<script id="visual-motion">
+if(!matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window){
+  document.documentElement.classList.add('motion-ready');
+  const observer=new IntersectionObserver(entries=>{
+    for(const entry of entries)if(entry.isIntersecting){entry.target.classList.add('revealed');observer.unobserve(entry.target);}
+  },{threshold:.06});
+  document.querySelectorAll('.card-shell').forEach((el,i)=>{el.style.transitionDelay=`${Math.min(i,3)*55}ms`;observer.observe(el);});
+}
+</script>
+</body>
+</html>

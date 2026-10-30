@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100" preserveAspectRatio="xMidYMid slice">
+<defs>
+ <linearGradient id="base" x2=".85" y2="1"><stop stop-color="#c7d0da"/><stop offset=".48" stop-color="#9caec0"/><stop offset="1" stop-color="#c8d3df"/></linearGradient>
+ <radialGradient id="light"><stop stop-color="#f9fcff" stop-opacity=".95"/><stop offset="1" stop-color="#f9fcff" stop-opacity="0"/></radialGradient>
+ <filter id="mist" x="-40%" y="-60%" width="180%" height="220%"><feGaussianBlur stdDeviation="54"/></filter>
+ <filter id="cloud" x="-40%" y="-50%" width="180%" height="200%"><feTurbulence type="fractalNoise" baseFrequency=".004 .009" numOctaves="3" seed="12"/><feDisplacementMap in="SourceGraphic" scale="105" xChannelSelector="R" yChannelSelector="G"/><feGaussianBlur stdDeviation="29"/></filter>
+</defs>
+<path fill="url(#base)" d="M0 0h1600v1100H0z"/>
+<g filter="url(#mist)">
+ <ellipse fill="#6a849f" opacity=".56" cx="660" cy="480" rx="310" ry="185"/>
+ <ellipse fill="#afbdcf" opacity=".9" cx="50" cy="490" rx="240" ry="420"/>
+ <ellipse fill="#eaf2f9" opacity=".8" cx="1610" cy="120" rx="420" ry="250"/>
+ <ellipse fill="#758fa7" opacity=".3" cx="1390" cy="860" rx="390" ry="220"/>
+</g>
+<g filter="url(#cloud)" fill="#eef3f8">
+ <path opacity=".6" d="M-160 100Q50-120 320 60T880 5l30 160Q570 260 300 180T-160 280Z"/>
+ <path opacity=".58" d="M-180 1020Q70 660 310 800T780 860Q950 710 1110 940l30 270H-200Z"/>
+ <path opacity=".4" d="M800 1100Q930 760 1200 910t530-90l80 360Z"/>
+</g>
+<ellipse fill="url(#light)" cx="300" cy="-40" rx="560" ry="360"/>
+<ellipse fill="url(#light)" opacity=".48" cx="270" cy="1130" rx="470" ry="390"/>
+</svg>
